@@ -1,7 +1,14 @@
 export interface Store {
   id: number
   name: string
+  store_type: string | null
   address: string | null
+  city: string | null
+  state: string | null
+  pin_code: string | null
+  gst_number: string | null
+  monthly_revenue: number | null
+  business_description: string | null
   owner_id: number
   is_active: boolean
   created_at: string

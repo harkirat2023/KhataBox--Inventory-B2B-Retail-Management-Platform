@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -29,6 +28,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { clientApi } from "@/lib/client-api"
 import { useStoreContext } from "@/lib/store-context"
+import { queryKeys } from "@/lib/query-keys"
+import { useQuery } from "@tanstack/react-query"
 import { Product } from "@/types/product"
 import { Order } from "@/types/order"
 
@@ -64,52 +65,38 @@ const quickActions = [
 
 export default function DashboardPage() {
   const router = useRouter()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [stores, setStores] = useState<Store[]>([])
-  const [loading, setLoading] = useState(true)
-  const [recentOrders, setRecentOrders] = useState<Order[]>([])
-  const [lowStockProducts, setLowStockProducts] = useState<Product[]>([])
   const { activeStore, setActiveStore } = useStoreContext()
 
-  const loadOrders = useCallback(async () => {
-    try {
-      const data = await clientApi.get<Order[]>("/api/v1/orders/")
-      setRecentOrders(data.slice(0, 5))
-    } catch (err) {
-      console.error("Failed to load orders", err)
-    }
-  }, [])
+  const { data: stores } = useQuery({
+    queryKey: queryKeys.dashboard.stores(),
+    queryFn: () => clientApi.get<Store[]>("/api/v1/stores/"),
+  })
 
-  const loadLowStock = useCallback(async () => {
-    try {
-      // Fetch all products and filter for low stock on client side
-      const data = await clientApi.get<Product[]>("/api/v1/products/")
-      const lowStock = data
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: queryKeys.dashboard.stats(activeStore.id),
+    queryFn: () => {
+      const params = activeStore.id ? `?store_id=${activeStore.id}` : ""
+      return clientApi.get<DashboardStats>(`/api/v1/dashboard/stats${params}`)
+    },
+  })
+
+  const { data: ordersData } = useQuery({
+    queryKey: queryKeys.orders.list(),
+    queryFn: () => clientApi.get<Order[]>("/api/v1/orders/"),
+    select: (data) => data.slice(0, 5),
+  })
+
+  const { data: productsData } = useQuery({
+    queryKey: queryKeys.products.list(),
+    queryFn: () => clientApi.get<Product[]>("/api/v1/products/"),
+    select: (data) =>
+      data
         .filter((p) => p.stock_quantity <= p.reorder_threshold)
-        .slice(0, 5)
-      setLowStockProducts(lowStock)
-    } catch (err) {
-      console.error("Failed to load low stock", err)
-    }
-  }, [])
+        .slice(0, 5),
+  })
 
-  useEffect(() => {
-    clientApi.get<Store[]>("/api/v1/stores/").then(setStores).catch(() => {})
-  }, [])
-
-  useEffect(() => {
-    setLoading(true)
-    const params = activeStore.id ? `?store_id=${activeStore.id}` : ""
-    clientApi.get<DashboardStats>(`/api/v1/dashboard/stats${params}`)
-      .then(setStats)
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [activeStore.id])
-
-  useEffect(() => {
-    loadOrders()
-    loadLowStock()
-  }, [loadOrders, loadLowStock])
+  const recentOrders = ordersData ?? []
+  const lowStockProducts = productsData ?? []
 
   const cards = [
     {
@@ -149,7 +136,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-semibold">Dashboard</h1>
           <p className="text-muted-foreground">Your business at a glance.</p>
         </div>
-        {stores.length > 0 && (
+        {stores && stores.length > 0 && (
           <div className="flex items-center gap-2">
             <label className="text-sm text-muted-foreground">Store:</label>
             <Select
@@ -199,7 +186,7 @@ export default function DashboardPage() {
                 <Icon className="size-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                {loading ? (
+                {statsLoading ? (
                   <Skeleton className="h-8 w-3/4" />
                 ) : (
                   <div className="text-2xl font-bold">{card.value}</div>

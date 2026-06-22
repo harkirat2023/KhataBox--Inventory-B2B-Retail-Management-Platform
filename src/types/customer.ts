@@ -8,6 +8,7 @@ export interface Customer {
   credit_limit: number
   credit_used: number
   price_tier: string
+  owner_id: number
   is_active: boolean
   created_at: string
   updated_at: string

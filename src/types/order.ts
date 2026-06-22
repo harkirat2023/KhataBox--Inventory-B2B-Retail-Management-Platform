@@ -13,13 +13,17 @@ export interface OrderItem {
 export interface Order {
   id: number
   order_number: string
+  shopkeeper_id: number
   customer_id: number | null
   customer_name: string | null
   items: OrderItem[]
   subtotal: number
   discount: number
+  gst: number
   total: number
   status: OrderStatus
+  payment_method: string
+  notes: string | null
   created_at: string
   updated_at: string
 }

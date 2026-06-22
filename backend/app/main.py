@@ -16,6 +16,10 @@ from app.services.socketio_manager import socket_app
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
+    from app.core.database import engine
+    await engine.dispose()
+    from app.services.cache import close as close_redis
+    await close_redis()
 
 
 sentry_sdk.init(

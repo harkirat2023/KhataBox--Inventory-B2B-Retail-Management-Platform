@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -12,9 +12,27 @@ router = APIRouter()
 
 
 @router.get("/", response_model=list[StoreResponse])
-async def list_stores(current_user: User = Depends(require_role("admin", "shopkeeper")), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Store).where(Store.owner_id == current_user.id, Store.is_active == True).order_by(Store.name))
-    return [StoreResponse.model_validate(s) for s in result.scalars().all()]
+async def list_stores(
+    page: int | None = Query(None, ge=1),
+    page_size: int | None = Query(None, ge=1, le=100),
+    response: Response = None,
+    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    db: AsyncSession = Depends(get_db),
+):
+    base_query = select(Store).where(Store.owner_id == current_user.id, Store.is_active == True).order_by(Store.name)
+    total = None
+    if page is not None and page_size is not None:
+        count_result = await db.execute(select(func.count()).select_from(Store).where(Store.owner_id == current_user.id, Store.is_active == True))
+        total = count_result.scalar()
+        base_query = base_query.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(base_query)
+    items = [StoreResponse.model_validate(s) for s in result.scalars().all()]
+    if total is not None and page and page_size and response:
+        response.headers["X-Total-Count"] = str(total)
+        response.headers["X-Page"] = str(page)
+        response.headers["X-Page-Size"] = str(page_size)
+        response.headers["X-Total-Pages"] = str(max(1, (total + page_size - 1) // page_size))
+    return items
 
 
 @router.post("/", response_model=StoreResponse, status_code=status.HTTP_201_CREATED)

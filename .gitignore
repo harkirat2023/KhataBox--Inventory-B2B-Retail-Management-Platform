@@ -24,11 +24,20 @@
 .DS_Store
 *.pem
 
+# logs
+/logs
+
 # debug
 npm-debug.log*
 yarn-debug.log*
+backend/*.log
 yarn-error.log*
 .pnpm-debug.log*
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
 
 # env files (can opt-in for committing if needed)
 .env*

@@ -1,2 +1,0 @@
-D:\1. PLACEMENT\1A. PROJECTS\KhataBox\backend\venv\Lib\site-packages\posthog\consumer.py:92: SyntaxWarning: 'return' in a 'finally' block
-  return success

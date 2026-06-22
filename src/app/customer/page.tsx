@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import { redirect } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import Link from "next/link"
 import {
   LayoutDashboard,
@@ -21,6 +21,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRole } from "@/components/auth/role-guard"
 import { clientApi } from "@/lib/client-api"
+import { queryKeys } from "@/lib/query-keys"
+import { useQuery } from "@tanstack/react-query"
 import { useCustomerCartStore } from "@/store/customer-cart"
 
 interface Product {
@@ -61,9 +63,6 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 export default function CustomerHome() {
   const { data: session, status } = useSession()
   const { role } = useRole()
-  const [products, setProducts] = useState<Product[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
-  const [loading, setLoading] = useState(true)
   const { items } = useCustomerCartStore()
 
   useEffect(() => {
@@ -71,33 +70,27 @@ export default function CustomerHome() {
     if (!session?.user) {
       redirect("/login")
     }
-    // For admin/shopkeeper, redirect to dashboard
     if (role && ["admin", "shopkeeper"].includes(role)) {
       redirect("/dashboard")
     }
   }, [session, status, role])
 
-  useEffect(() => {
-    if (role !== "customer") return
+  const { data: products, isLoading: productsLoading } = useQuery({
+    queryKey: queryKeys.catalog.products(""),
+    queryFn: () => clientApi.get<Product[]>("/api/v1/catalog/products?search="),
+    enabled: role === "customer",
+    select: (data) => data.slice(0, 8),
+  })
 
-    async function fetchData() {
-      try {
-        // Fetch products (first 10 for recommendations)
-        const prods = await clientApi.get<Product[]>("/api/v1/catalog/products?search=")
-        setProducts(prods.slice(0, 8))
+  const { data: orders, isLoading: ordersLoading } = useQuery({
+    queryKey: queryKeys.orders.myOrders(),
+    queryFn: () => clientApi.get<Order[]>("/api/v1/orders/my-orders"),
+    enabled: role === "customer",
+    select: (data) => data.slice(0, 5),
+  })
 
-        // Fetch recent orders
-        const ordRes = await clientApi.get<Order[]>("/api/v1/orders/my-orders")
-        setOrders(ordRes.slice(0, 5))
-      } catch (e) {
-        console.error("Failed to load data:", e)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [role])
+  const loading = productsLoading || ordersLoading
+  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
   if (status === "loading" || loading) {
     return (
@@ -114,9 +107,8 @@ export default function CustomerHome() {
     return null
   }
 
-  const popularProducts = products.slice(0, 4)
-  const recommendedProducts = products.slice(4, 8)
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
+  const popularProducts = (products ?? []).slice(0, 4)
+  const recommendedProducts = (products ?? []).slice(4, 8)
 
   return (
     <div className="space-y-6 -m-4 lg:-m-6 p-4 lg:p-6 pb-24 lg:pb-6">
@@ -167,7 +159,7 @@ export default function CustomerHome() {
           </Link>
         </div>
 
-        {orders.length === 0 ? (
+        {!orders || orders.length === 0 ? (
           <div className="text-center py-8 bg-muted/30 rounded-xl">
             <Package className="size-10 mx-auto text-muted-foreground/30 mb-2" />
             <p className="text-muted-foreground">No orders yet</p>

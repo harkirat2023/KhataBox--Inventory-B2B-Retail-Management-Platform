@@ -9,10 +9,12 @@ export interface Product {
   cost_price: number
   selling_price: number
   stock_quantity: number
+  reserved_quantity: number
   reorder_threshold: number
   owner_id: number
   store_id: number | null
   store_name: string | null
+  image_url: string | null
   is_active: boolean
   created_at: string
   updated_at: string

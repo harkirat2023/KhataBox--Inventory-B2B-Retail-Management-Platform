@@ -1,1 +1,0 @@
-{"name":"Test Product","description":"Test Description","sku":"TEST-001","barcode":"1234567890123","category":"Electronics","brand":"Test Brand","unit":"pcs","cost_price":10.00,"selling_price":15.00,"tax_rate":18.0,"reorder_level":10,"track_expiry":false,"track_batch":false}

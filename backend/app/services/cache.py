@@ -75,3 +75,14 @@ async def invalidate_pattern(pattern: str) -> None:
             await _redis.delete(*keys)
     except Exception:
         pass
+
+
+async def close() -> None:
+    global _redis
+    if _redis is None:
+        return
+    try:
+        await _redis.close()
+    except Exception:
+        pass
+    _redis = None

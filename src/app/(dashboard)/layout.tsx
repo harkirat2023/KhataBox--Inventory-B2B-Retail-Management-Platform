@@ -2,8 +2,11 @@ import { Sidebar } from "@/components/layout/sidebar"
 import { TopNav } from "@/components/layout/top-nav"
 import { BottomNav } from "@/components/layout/bottom-nav"
 import { Toaster } from "sonner"
+import { requireAuth } from "@/lib/auth-guard"
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await requireAuth(["admin", "shopkeeper"])
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />

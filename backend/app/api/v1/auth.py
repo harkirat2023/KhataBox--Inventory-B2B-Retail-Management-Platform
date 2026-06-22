@@ -1,11 +1,10 @@
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
+from app.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.core.security import create_access_token, create_refresh_token, hash_password, verify_password
@@ -13,8 +12,8 @@ from app.models.store import Store, StoreType
 from app.models.user import User, UserRole
 from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 router = APIRouter()
 
 
@@ -42,7 +41,7 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     # Create user
     user = User(
         email=payload.email,
-        password_hash=hash_password(payload.password),
+        password_hash=app.core.security.hash_password(payload.password),
         name=payload.name,
         role=role,
         store_name=payload.store_name,
@@ -62,7 +61,7 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
             logger.info(f"Store type string: '{store_type_str}'")
 
             # Create direct connection for store creation
-            direct_engine = create_async_engine('postgresql+asyncpg://khatabox:khatabox123@localhost:5432/khatabox')
+            direct_engine = create_async_engine(settings.DATABASE_URL)
             async with direct_engine.connect() as conn:
                 result = await conn.execute(
                     text('''
@@ -92,8 +91,8 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
             raise HTTPException(status_code=500, detail=f"Store creation error: {str(e)}")
 
     await db.refresh(user)
-    access_token = create_access_token({"sub": str(user.id), "role": user.role})
-    refresh_token = create_refresh_token({"sub": str(user.id)})
+    access_token = app.core.security.create_access_token({"sub": str(user.id), "role": user.role})
+    refresh_token = app.core.security.create_refresh_token({"sub": str(user.id)})
     logger.info(f"Registration complete for user {user.id}")
     return TokenResponse(access_token=access_token, refresh_token=refresh_token, user=UserResponse.model_validate(user))
 
@@ -102,10 +101,10 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
 async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
-    if not user or not verify_password(payload.password, user.password_hash):
+    if not user or not app.core.security.verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    access_token = create_access_token({"sub": str(user.id), "role": user.role})
-    refresh_token = create_refresh_token({"sub": str(user.id)})
+    access_token = app.core.security.create_access_token({"sub": str(user.id), "role": user.role})
+    refresh_token = app.core.security.create_refresh_token({"sub": str(user.id)})
     return TokenResponse(access_token=access_token, refresh_token=refresh_token, user=UserResponse.model_validate(user))
 
 

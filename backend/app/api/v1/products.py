@@ -1,7 +1,7 @@
 import re
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,7 @@ from app.models.product import Product
 from app.models.store import Store
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
+from app.services.cache import invalidate_pattern as invalidate_cache
 from app.services.notifications import check_low_stock
 from app.services.storage import upload as r2_upload, is_available as r2_available
 from app.config import settings
@@ -35,30 +36,53 @@ async def list_products(
     min_price: float | None = Query(None, ge=0),
     max_price: float | None = Query(None, ge=0),
     store_id: int | None = Query(None),
+    page: int | None = Query(None, ge=1),
+    page_size: int | None = Query(None, ge=1, le=100),
+    response: Response = None,
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):
-    query = select(Product).where(Product.owner_id == current_user.id, Product.is_active == True)
+    base_query = select(Product).where(Product.owner_id == current_user.id, Product.is_active == True)
+    count_query = select(func.count()).select_from(Product).where(Product.owner_id == current_user.id, Product.is_active == True)
     if category:
-        query = query.where(Product.category == category)
+        base_query = base_query.where(Product.category == category)
+        count_query = count_query.where(Product.category == category)
     if brand:
-        query = query.where(Product.brand.ilike(f"%{brand}%"))
+        base_query = base_query.where(Product.brand.ilike(f"%{brand}%"))
+        count_query = count_query.where(Product.brand.ilike(f"%{brand}%"))
     if store_id:
-        query = query.where(Product.store_id == store_id)
+        base_query = base_query.where(Product.store_id == store_id)
+        count_query = count_query.where(Product.store_id == store_id)
     if min_price is not None:
-        query = query.where(Product.selling_price >= min_price)
+        base_query = base_query.where(Product.selling_price >= min_price)
+        count_query = count_query.where(Product.selling_price >= min_price)
     if max_price is not None:
-        query = query.where(Product.selling_price <= max_price)
+        base_query = base_query.where(Product.selling_price <= max_price)
+        count_query = count_query.where(Product.selling_price <= max_price)
     if stock_status == "in_stock":
-        query = query.where(Product.stock_quantity > Product.reorder_threshold)
+        base_query = base_query.where(Product.stock_quantity > Product.reorder_threshold)
+        count_query = count_query.where(Product.stock_quantity > Product.reorder_threshold)
     elif stock_status == "low_stock":
-        query = query.where(Product.stock_quantity > 0, Product.stock_quantity <= Product.reorder_threshold)
+        base_query = base_query.where(Product.stock_quantity > 0, Product.stock_quantity <= Product.reorder_threshold)
+        count_query = count_query.where(Product.stock_quantity > 0, Product.stock_quantity <= Product.reorder_threshold)
     elif stock_status == "out_of_stock":
-        query = query.where(Product.stock_quantity == 0)
+        base_query = base_query.where(Product.stock_quantity == 0)
+        count_query = count_query.where(Product.stock_quantity == 0)
     if search:
-        query = query.where(Product.search_vector.op("@@")(func.plainto_tsquery("english", search)))
-    result = await db.execute(query)
+        base_query = base_query.where(Product.search_vector.op("@@")(func.plainto_tsquery("english", search)))
+        count_query = count_query.where(Product.search_vector.op("@@")(func.plainto_tsquery("english", search)))
+    total = None
+    if page is not None and page_size is not None:
+        count_result = await db.execute(count_query)
+        total = count_result.scalar()
+        base_query = base_query.offset((page - 1) * page_size).limit(page_size)
+    result = await db.execute(base_query)
     products = result.scalars().all()
+    if total is not None and page and page_size and response:
+        response.headers["X-Total-Count"] = str(total)
+        response.headers["X-Page"] = str(page)
+        response.headers["X-Page-Size"] = str(page_size)
+        response.headers["X-Total-Pages"] = str(max(1, (total + page_size - 1) // page_size))
 
     stores = {}
     if products:
@@ -86,6 +110,7 @@ async def create_product(payload: ProductCreate, current_user: User = Depends(re
     await check_low_stock(product.id, current_user.id, db)
     await db.commit()
     await db.refresh(product)
+    await invalidate_cache("dashboard:*")
     return await _enrich_store_name(product, ProductResponse.model_validate(product), db)
 
 
@@ -124,6 +149,7 @@ async def update_product(product_id: int, payload: ProductUpdate, current_user: 
         await check_low_stock(product.id, current_user.id, db)
     await db.commit()
     await db.refresh(product)
+    await invalidate_cache("dashboard:*")
     return await _enrich_store_name(product, ProductResponse.model_validate(product), db)
 
 
@@ -167,3 +193,4 @@ async def delete_product(product_id: int, current_user: User = Depends(require_r
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
     product.is_active = False
     await db.commit()
+    await invalidate_cache("dashboard:*")
