@@ -6,7 +6,7 @@ This project has **two parts**:
 - **Dependencies**: PostgreSQL + Redis via `docker-compose`
 - **Demo data**: created using Alembic migrations + `seed_india.py`
 
-The repo includes a Windows launcher script: `start-dev.bat`. The steps below match what that script does.
+The repo includes a Windows launcher script: `scripts\start-khatabox.bat`. The steps below match what that script does.
 
 ---
 
@@ -30,7 +30,7 @@ From the repo root:
 
 ```bat
 cd "D:\1. PLACEMENT\1A. PROJECTS\KhataBox"
-start-dev.bat
+scripts\start-khatabox.bat
 ```
 
 This script performs:
@@ -43,7 +43,7 @@ This script performs:
 5. Starts backend:
    - `uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload`
 6. Starts frontend:
-   - `npm run dev` (Next.js on port **3000**)
+   - `cd frontend && npm run dev` (Next.js on port **3000**)
 
 After it finishes, you should see URLs like:
 - Frontend: http://localhost:3000
@@ -99,7 +99,7 @@ Backend will be available at:
 1. Install dependencies (from repo root):
 
 ```bat
-cd "D:\1. PLACEMENT\1A. PROJECTS\KhataBox"
+cd "D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend"
 npm install
 ```
 
@@ -127,7 +127,7 @@ The seeder prints credentials; commonly expected demo credentials are:
 
 ## 4) Stopping the project
 
-1. Stop backend + frontend dev servers (close terminal windows / stop `npm run dev` and Uvicorn).
+1. Stop backend + frontend dev servers (close terminal windows / stop `npm run dev` in `frontend/` and Uvicorn).
 2. Stop containers:
 
 ```bat
@@ -142,7 +142,7 @@ docker compose -f docker-compose.yml down
 - Check and free: `3000`, `8002`, `5432`, `6379`.
 
 ### Docker not running
-- `start-dev.bat` will fail early with a Docker Compose error.
+- `scripts\start-khatabox.bat` will fail early with a Docker Compose error.
 
 ### Migrations/seeding fail
 - Re-run migrations:

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class CustomerCreate(BaseModel):
-    company_name: str
+    company_name: str | None = None
     contact_person: str | None = None
     email: str | None = None
     phone: str | None = None
@@ -23,9 +23,14 @@ class CustomerUpdate(BaseModel):
     price_tier: str | None = None
 
 
+class CustomerCreditUpdate(BaseModel):
+    clear_overdue: bool = False
+    additional_credit: float | None = None
+
+
 class CustomerResponse(BaseModel):
     id: int
-    company_name: str
+    company_name: str | None
     contact_person: str | None
     email: str | None
     phone: str | None

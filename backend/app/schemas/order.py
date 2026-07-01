@@ -16,6 +16,7 @@ class OrderCreate(BaseModel):
     discount: float = 0
     notes: str | None = None
     items: list[OrderItemCreate]
+    apply_gst: bool = True
 
 
 class OrderItemResponse(BaseModel):
@@ -36,7 +37,6 @@ class OrderResponse(BaseModel):
     order_number: str
     shopkeeper_id: int
     customer_id: int | None
-    # UI contract expects customer_name
     customer_name: str | None = None
     status: str
     payment_method: str | None
@@ -48,6 +48,7 @@ class OrderResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     items: list[OrderItemResponse]
+    credit_alert: dict | None = None
 
     model_config = {"from_attributes": True}
 
@@ -60,3 +61,4 @@ class BulkOrderCreate(BaseModel):
     payment_method: str | None = "credit"
     notes: str | None = None
     items: list[OrderItemCreate]
+    apply_gst: bool = True

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class ProductCreate(BaseModel):
     name: str
     sku: str
-    category: str
+    category: str | None = None
     brand: str | None = None
     description: str | None = None
     cost_price: float
@@ -40,7 +40,7 @@ class ProductResponse(BaseModel):
     product_uuid: str
     name: str
     sku: str
-    category: str
+    category: str | None
     brand: str | None
     description: str | None
     cost_price: float

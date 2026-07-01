@@ -1,5 +1,9 @@
+import logging
+
 import socketio
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
@@ -11,12 +15,12 @@ socket_app = socketio.ASGIApp(sio)
 
 @sio.event
 async def connect(sid, environ, auth):
-    print(f"[SocketIO] Client connected: {sid}")
+    logger.info("SocketIO client connected: %s", sid)
 
 
 @sio.event
 async def disconnect(sid):
-    print(f"[SocketIO] Client disconnected: {sid}")
+    logger.info("SocketIO client disconnected: %s", sid)
 
 
 @sio.event

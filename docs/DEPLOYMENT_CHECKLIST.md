@@ -10,7 +10,7 @@
 - [ ] Run `alembic upgrade head` locally to verify all 6 migrations apply cleanly.
 - [ ] Run `python seed.py` to verify seed data populates without error.
 - [ ] Run `pytest -v` (on Linux) to confirm all 48 tests pass.
-- [ ] Run `npm run build` (frontend) to confirm 24 routes build with no errors/warnings.
+- [ ] Run `cd frontend && npm run build` (frontend) to confirm 24 routes build with no errors/warnings.
 - [ ] Generate strong secrets:
   - `AUTH_SECRET`: `openssl rand -base64 32`
   - `SECRET_KEY`: `openssl rand -hex 32`

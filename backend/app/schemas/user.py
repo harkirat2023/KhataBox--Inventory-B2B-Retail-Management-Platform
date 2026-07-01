@@ -87,6 +87,10 @@ class UserCreate(BaseModel):
         return validate_gst_number(v)
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str

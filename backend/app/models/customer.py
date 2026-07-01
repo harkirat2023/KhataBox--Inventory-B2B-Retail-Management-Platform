@@ -10,7 +10,7 @@ class Customer(Base):
     __tablename__ = "customers"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    company_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    company_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     contact_person: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
@@ -24,4 +24,4 @@ class Customer(Base):
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
 
-    carts: Mapped[list["CustomerCart"]] = relationship("CustomerCart", back_populates="customer", cascade="all, delete-orphan")
+    carts: Mapped[list["CustomerCart"]] = relationship("CustomerCart", back_populates="customer", lazy="noload")

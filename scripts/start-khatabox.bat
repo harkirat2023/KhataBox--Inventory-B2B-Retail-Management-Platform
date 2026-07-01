@@ -157,12 +157,12 @@ echo [6/6] Starting application servers...
 
 REM Start backend if not running
 if "%API_STATUS%"=="STOPPED" (
-    start "KhataBox Backend" cmd /c "cd /d "%BACKEND%" && "%VENV_PY%" -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload --log-level info
+    start "KhataBox Backend" cmd /c "cd /d "%BACKEND%" && "%VENV_PY%" -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload --log-level info"
 )
 
 REM Start frontend if not running
 if "%FRONTEND_STATUS%"=="STOPPED" (
-    start "KhataBox Frontend" cmd /c "cd /d "%ROOT%" && npm run dev"
+    start "KhataBox Frontend" cmd /c "cd /d "%ROOT%frontend" && npm run dev"
 )
 
 REM Wait for backend to be ready

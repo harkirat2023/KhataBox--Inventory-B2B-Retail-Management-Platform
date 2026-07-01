@@ -6,7 +6,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.models.customer import Customer
 from app.models.user import User
-from app.schemas.customer import CustomerCreate, CustomerResponse, CustomerUpdate
+from app.schemas.customer import CustomerCreate, CustomerCreditUpdate, CustomerResponse, CustomerUpdate
 
 router = APIRouter()
 
@@ -65,3 +65,23 @@ async def delete_customer(customer_id: int, current_user: User = Depends(require
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
     await db.delete(customer)
     await db.commit()
+
+
+@router.patch("/{customer_id}/credit", response_model=CustomerResponse)
+async def update_customer_credit(
+    customer_id: int,
+    payload: CustomerCreditUpdate,
+    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Customer).where(Customer.id == customer_id, Customer.owner_id == current_user.id))
+    customer = result.scalar_one_or_none()
+    if not customer:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    if payload.clear_overdue:
+        customer.credit_used = 0
+    if payload.additional_credit is not None and payload.additional_credit > 0:
+        customer.credit_limit += payload.additional_credit
+    await db.commit()
+    await db.refresh(customer)
+    return CustomerResponse.model_validate(customer)
