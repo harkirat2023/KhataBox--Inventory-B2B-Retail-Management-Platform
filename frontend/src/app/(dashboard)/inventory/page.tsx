@@ -224,17 +224,36 @@ export default function InventoryPage() {
             className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
           />
         </div>
-        <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-          <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
-            <SelectValue placeholder="All Stores" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Stores</SelectItem>
-            {stores.map((s) => (
-              <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {stores.length <= 1 ? (
+          stores.length === 1 ? (
+            <Input
+              className="w-[180px] rounded-xl bg-slate-50 border-0 h-11"
+              value={stores[0]?.name ?? ""}
+              disabled
+            />
+          ) : (
+            <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
+              <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
+                <SelectValue placeholder="All Stores" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stores</SelectItem>
+              </SelectContent>
+            </Select>
+          )
+        ) : (
+          <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
+            <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
+              <SelectValue placeholder="All Stores" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stores</SelectItem>
+              {stores.map((s) => (
+                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

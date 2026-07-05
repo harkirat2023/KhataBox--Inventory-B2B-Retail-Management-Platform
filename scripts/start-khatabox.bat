@@ -165,7 +165,8 @@ if "%FRONTEND_STATUS%"=="RUNNING" (
     )
     timeout /t 2 /nobreak >nul
 )
-start "KhataBox Frontend" cmd /c "cd /d "%ROOT%frontend" && npm run dev"
+REM Use --webpack flag to avoid path-encoding bug with spaces in project path
+start "KhataBox Frontend" cmd /c "cd /d "%ROOT%frontend" && npm run dev -- --webpack"
 
 REM Wait for backend to be ready
 echo Waiting for backend API...

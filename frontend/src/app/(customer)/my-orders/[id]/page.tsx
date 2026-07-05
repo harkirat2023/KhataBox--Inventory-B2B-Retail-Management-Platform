@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react"
 import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
-import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Wallet, CreditCard } from "lucide-react"
+import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Wallet, CreditCard, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/components/auth/role-guard"
 import { clientApi } from "@/lib/client-api"
@@ -53,20 +53,21 @@ function formatCurrency(amount: number) {
 const statusSteps = [
   { key: "pending", label: "Order Placed", description: "Your order has been received" },
   { key: "confirmed", label: "Approved", description: "Shopkeeper has approved your order" },
-  { key: "completed", label: "Completed", description: "Order fulfilled and completed" },
+  { key: "completed", label: "Received", description: "Order fulfilled and completed" },
 ]
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; icon: any }> = {
+const statusConfig: Record<string, { label: string; color: string; bg: string; icon: LucideIcon }> = {
   pending: { label: "Pending", color: "text-orange-600", bg: "bg-orange-50", icon: Clock },
   confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
   online: { label: "Online", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
   counter: { label: "In-Store", color: "text-purple-600", bg: "bg-purple-50", icon: Package },
   ready: { label: "Ready", color: "text-purple-600", bg: "bg-purple-50", icon: Package },
-  completed: { label: "Completed", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
+  completed: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
+  received: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
   cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
 }
 
-const paymentLabels: Record<string, { icon: any; label: string }> = {
+const paymentLabels: Record<string, { icon: LucideIcon; label: string }> = {
   credit: { icon: Wallet, label: "Pay at Shop" },
   online: { icon: CreditCard, label: "Paid Online" },
 }
@@ -97,7 +98,7 @@ function OrderDetailContent() {
         const orderIdNum = parseInt(orderId)
         // Try B2C single order endpoint first
         try {
-          const b2cOrder = await clientApi.get<any>(`/api/v1/b2c/orders/${orderIdNum}`)
+          const b2cOrder = await clientApi.get<Order>(`/api/v1/b2c/orders/${orderIdNum}`)
           setOrder(b2cOrder)
           setLoading(false)
           return
@@ -155,11 +156,13 @@ function OrderDetailContent() {
     )
   }
 
-  const statusCfg = statusConfig[order.status] || statusConfig.pending
+  // For B2C completed orders, show "received" status to customer
+  const displayStatus = order.status === "completed" && order.order_number?.startsWith("B2C-") ? "received" : order.status
+  const statusCfg = statusConfig[displayStatus] || statusConfig.pending
   const StatusIcon = statusCfg.icon
   const paymentInfo = paymentLabels[order.payment_method] || paymentLabels.credit
   const PaymentIcon = paymentInfo.icon
-  const currentStep = statusSteps.findIndex((s) => s.key === order.status)
+  const currentStep = statusSteps.findIndex((s) => s.key === (displayStatus === "received" ? "completed" : displayStatus))
   const isPastOrder = ["completed", "cancelled"].includes(order.status)
 
   return (

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table"
 import { clientApi } from "@/lib/client-api"
 import { toast } from "sonner"
+import { EditStockModal, type EditStockMode } from "./edit-stock-modal"
 
 interface Product {
   id: number
@@ -24,6 +25,7 @@ interface Product {
   sku: string
   selling_price: number
   stock_quantity: number
+  store_id?: number | null
 }
 
 export default function QRLabelsPage() {
@@ -34,9 +36,28 @@ export default function QRLabelsPage() {
   const [generating, setGenerating] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
+  const [editStockProduct, setEditStockProduct] = useState<Product | null>(null)
+  const [editStockOpen, setEditStockOpen] = useState(false)
+  const [editStockMode, setEditStockMode] = useState<EditStockMode>("add")
+  const [editStockQty, setEditStockQty] = useState<number>(0)
+  const [editStockSetQty, setEditStockSetQty] = useState<number>(0)
+  const [editStockQtyValue, setEditStockQtyValue] = useState<number>(0)
+
+  const loadProducts = async () => {
     setLoading(true)
-    clientApi.get<Product[]>("/api/v1/products/").then((data) => { setProducts(data); setLoading(false) }).catch(() => { toast.error("Failed to load products"); setLoading(false) })
+    try {
+      const data = await clientApi.get<Product[]>("/api/v1/products/")
+      setProducts(data)
+    } catch {
+      toast.error("Failed to load products")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadProducts()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const toggleSelect = (id: number) => {
@@ -74,6 +95,56 @@ export default function QRLabelsPage() {
       p.name.toLowerCase().includes(search.toLowerCase()) ||
       p.sku.toLowerCase().includes(search.toLowerCase())
   )
+
+  const openEditStock = (product: Product) => {
+    setEditStockProduct(product)
+    setEditStockMode("add")
+    setEditStockQty(1)
+    setEditStockSetQty(product.stock_quantity)
+    setEditStockQtyValue(product.stock_quantity)
+    setEditStockOpen(true)
+  }
+
+  const closeEditStock = () => {
+    setEditStockOpen(false)
+    setEditStockProduct(null)
+  }
+
+  const submitStockUpdate = async () => {
+    if (!editStockProduct) return
+
+    const qty =
+      editStockMode === "adjust" ? editStockSetQty : editStockQty
+
+    if (!Number.isFinite(qty)) {
+      toast.error("Invalid quantity")
+      return
+    }
+
+    if (editStockMode !== "adjust" && qty <= 0) {
+      toast.error("Quantity must be greater than 0")
+      return
+    }
+
+    if (editStockMode === "remove" && qty > editStockProduct.stock_quantity) {
+      toast.error(`Cannot remove more than current stock (${editStockProduct.stock_quantity})`)
+      return
+    }
+
+    try {
+      await clientApi.post("/api/v1/inventory/stock-update", {
+        product_id: editStockProduct.id,
+        store_id: editStockProduct.store_id ?? null,
+        action: editStockMode,
+        quantity: qty,
+      })
+      toast.success("Stock updated")
+      await loadProducts()
+      closeEditStock()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update stock")
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -113,6 +184,7 @@ export default function QRLabelsPage() {
               <TableHead>SKU</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Stock</TableHead>
+              <TableHead className="w-[120px]">Stock Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -125,11 +197,21 @@ export default function QRLabelsPage() {
                 <TableCell className="text-sm text-slate-500">{p.sku}</TableCell>
                 <TableCell className="text-slate-700">&#x20B9;{p.selling_price.toFixed(2)}</TableCell>
                 <TableCell>{p.stock_quantity}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 px-3 text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-xl"
+                    onClick={() => openEditStock(p)}
+                  >
+                    Edit Stock
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <div className="flex items-center justify-center size-12 rounded-xl bg-slate-100 mb-4">
                       <QrCode className="size-6 text-slate-400" />
@@ -144,6 +226,24 @@ export default function QRLabelsPage() {
         </Table>
       </div>
       )}
+
+      <EditStockModal
+        open={editStockOpen}
+        onOpenChange={(open: boolean) => {
+          setEditStockOpen(open)
+          if (!open) closeEditStock()
+        }}
+        productName={editStockProduct?.name ?? ""}
+        currentStock={editStockProduct?.stock_quantity ?? 0}
+        mode={editStockMode}
+        setMode={setEditStockMode}
+        addQty={editStockQty}
+        setAddQty={setEditStockQty}
+        setStockQty={setEditStockSetQty}
+        setSetStockQty={setEditStockSetQty}
+        onQtyValueChange={setEditStockQtyValue}
+        onConfirm={submitStockUpdate}
+      />
     </div>
   )
 }

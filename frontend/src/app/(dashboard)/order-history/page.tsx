@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, Fragment } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronDown, ChevronRight, Search, Filter, Calendar, Package, Receipt, XCircle, Store } from "lucide-react"
+import { ChevronDown, ChevronRight, Search, Filter, Calendar, Package, Receipt, XCircle, Store, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -23,9 +23,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Order, OrderStatus } from "@/types/order"
-import { clientApi } from "@/lib/client-api"
+import { clientApi, getToken } from "@/lib/client-api"
 import { useBillingStore } from "@/store/billing"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface BillingDisplayItem {
   id: string
@@ -79,6 +88,37 @@ export default function OrderHistoryPage() {
   const [dateTo, setDateTo] = useState("")
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  const [viewingInvoiceId, setViewingInvoiceId] = useState<number | null>(null)
+  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null)
+
+
+  const handleViewInvoice = async (orderId: number) => {
+    setViewingInvoiceId(orderId)
+    setInvoiceUrl(null)
+    try {
+      const token = await getToken()
+      const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${orderId}`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!resp.ok) throw new Error("Failed to generate invoice")
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
+      setInvoiceUrl(url)
+    } catch {
+      toast.error("Failed to load invoice")
+      setViewingInvoiceId(null)
+    }
+  }
+
+  const closeInvoice = () => {
+    if (invoiceUrl) {
+      URL.revokeObjectURL(invoiceUrl)
+    }
+    setViewingInvoiceId(null)
+    setInvoiceUrl(null)
+  }
 
   const loadOrders = useCallback(async () => {
     setLoading(true)
@@ -201,6 +241,124 @@ export default function OrderHistoryPage() {
             </div>
           ))}
         </div>
+      </div>
+    )
+  }
+
+  const callB2CAction = async (orderId: number, action: "approve" | "reject" | "processing" | "confirm" | "cancel") => {
+    try {
+      setActionLoadingId(String(orderId))
+      const token = await getToken()
+      const endpointMap: Record<typeof action, string> = {
+        approve: `/api/v1/b2c/shopkeeper/orders/${orderId}/approve`,
+        reject: `/api/v1/b2c/shopkeeper/orders/${orderId}/reject`,
+        processing: `/api/v1/b2c/shopkeeper/orders/${orderId}/processing`,
+        confirm: `/api/v1/b2c/shopkeeper/orders/${orderId}/confirm`,
+        cancel: `/api/v1/b2c/shopkeeper/orders/${orderId}/cancel`,
+      }
+      const resp = await fetch(`${API_URL}${endpointMap[action]}`, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (!resp.ok) throw new Error("Action failed")
+      toast.success("Order status updated")
+      await loadOrders()
+    } catch {
+      toast.error("Failed to update order")
+    } finally {
+      setActionLoadingId(null)
+    }
+  }
+
+  const getB2CActionButtons = (o: any) => {
+    const status = o.status as string
+    const id = o.id as number
+    const canPending = status === "pending"
+    const canConfirmed = status === "confirmed"
+    const canProcessing = status === "processing"
+    const canCancel = ["pending", "confirmed", "processing"].includes(status)
+
+    if (!("is_b2c" in o) && !(historyTab === "b2c")) return null
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {canPending && (
+          <>
+            <Button
+              size="sm"
+              className="rounded-xl"
+              onClick={(e) => { e.stopPropagation(); callB2CAction(id, "approve") }}
+              disabled={actionLoadingId === String(id)}
+            >
+              Accept Order
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="rounded-xl"
+              onClick={(e) => { e.stopPropagation(); callB2CAction(id, "reject") }}
+              disabled={actionLoadingId === String(id)}
+            >
+              Reject Order
+            </Button>
+          </>
+        )}
+
+        {canConfirmed && (
+          <>
+            <Button
+              size="sm"
+              className="rounded-xl"
+              onClick={(e) => { e.stopPropagation(); callB2CAction(id, "processing") }}
+              disabled={actionLoadingId === String(id)}
+            >
+              Mark as Processing
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-xl"
+              onClick={(e) => { e.stopPropagation(); callB2CAction(id, "cancel") }}
+              disabled={actionLoadingId === String(id)}
+            >
+              Cancel Order
+            </Button>
+          </>
+        )}
+
+        {canProcessing && (
+          <>
+            <Button
+              size="sm"
+              className="rounded-xl"
+              onClick={(e) => { e.stopPropagation(); callB2CAction(id, "confirm") }}
+              disabled={actionLoadingId === String(id)}
+            >
+              Mark as Completed
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-xl"
+              onClick={(e) => { e.stopPropagation(); callB2CAction(id, "cancel") }}
+              disabled={actionLoadingId === String(id)}
+            >
+              Cancel Order
+            </Button>
+          </>
+        )}
+
+        {!canPending && !canConfirmed && !canProcessing && canCancel && (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="rounded-xl"
+            onClick={(e) => { e.stopPropagation(); callB2CAction(id, "cancel") }}
+            disabled={actionLoadingId === String(id)}
+          >
+            Cancel Order
+          </Button>
+        )}
       </div>
     )
   }
@@ -363,12 +521,31 @@ export default function OrderHistoryPage() {
                   <TableCell className="text-slate-500">{items.length}</TableCell>
                   <TableCell className="font-medium text-slate-900">₹{order.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={`text-xs px-2 py-0 ${statusStyles[order.status]}`}>
-                      {isBilling ? "Cancelled (Billing)" : statusConfig[order.status].label}
-                    </Badge>
+                    <div className="flex flex-col gap-2">
+                      <Badge variant="outline" className={`text-xs px-2 py-0 ${statusStyles[order.status]}`}>
+                        {isBilling ? "Cancelled (Billing)" : statusConfig[order.status]?.label || order.status}
+                      </Badge>
+                      {!isBilling && historyTab === "b2c" && getB2CActionButtons(order)}
+                    </div>
                   </TableCell>
                   <TableCell className="text-sm text-slate-500">
-                    {new Date(order.created_at).toLocaleDateString()}
+                    {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </TableCell>
+                  <TableCell className="w-[80px]">
+                    {!isBilling && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleViewInvoice((order as Order).id)
+                        }}
+                        title="View Invoice"
+                      >
+                        <FileText className="size-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
                 {expandedId === id && items.length > 0 && (
@@ -398,6 +575,29 @@ export default function OrderHistoryPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Invoice View Modal */}
+      <Dialog open={viewingInvoiceId !== null} onOpenChange={(open) => !open && closeInvoice()}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Invoice #{viewingInvoiceId}</DialogTitle>
+          </DialogHeader>
+          {invoiceUrl && (
+            <ScrollArea className="h-[70vh] w-full rounded-xl border border-slate-200">
+              <iframe
+                src={invoiceUrl}
+                className="w-full h-full min-h-[70vh]"
+                title={`Invoice ${viewingInvoiceId}`}
+              />
+            </ScrollArea>
+          )}
+          {!invoiceUrl && viewingInvoiceId && (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,0 +1,7 @@
+- [ ] Inventory: make Product Name, Selling Price, Stock Quantity, Store mandatory; disallow products without store; if only one store exists auto-select and hide/disable store selector; default Reorder Threshold=10
+- [ ] QR Labels: add Edit Stock button per product; modal options Add/Remove/Set stock; call backend POST /api/v1/inventory/stock-update; refresh displayed stock
+- [ ] Billing: add “Unpacked Product” button + modal (optional name, required price) and add item directly to billing cart
+- [ ] Billing: verify QR scanner adds scanned products to cart (current QRScanner passes UUID; ensure cart add uses fetched product)
+- [ ] Customers: make Name, Contact, Credit Limit mandatory; block creation until required filled
+- [ ] Shopkeeper navigation: remove BottomNav from shopkeeper panel only (conditional render in dashboard layout by role)
+- [ ] Verify no existing functionality broken: run frontend lint/tests/build (if available) and quick backend route checks

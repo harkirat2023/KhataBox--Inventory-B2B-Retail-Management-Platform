@@ -44,11 +44,21 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
   })
   const [stores, setStores] = useState<Store[]>([])
   const [loading, setLoading] = useState(false)
+  const [storesLoading, setStoresLoading] = useState(false)
 
   useEffect(() => {
-    if (open) {
-      clientApi.get<Store[]>("/api/v1/stores/").then(setStores).catch(() => {})
-    }
+    if (!open) return
+    setStoresLoading(true)
+    clientApi.get<Store[]>("/api/v1/stores/")
+      .then((s) => {
+        setStores(s)
+        // If only one store exists, auto-select and prevent empty store.
+        if (s.length === 1) {
+          setForm((prev) => ({ ...prev, store_id: prev.store_id ?? s[0].id }))
+        }
+      })
+      .catch(() => {})
+      .finally(() => setStoresLoading(false))
   }, [open])
 
   useEffect(() => {
@@ -62,8 +72,8 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
         cost_price: product.cost_price || 0,
         selling_price: product.selling_price || 0,
         stock_quantity: product.stock_quantity || 0,
-        reorder_threshold: product.reorder_threshold || 10,
-        store_id: product.store_id || null,
+        reorder_threshold: product.reorder_threshold ?? 10,
+        store_id: product.store_id ?? null,
       })
     } else {
       setForm({
@@ -71,7 +81,7 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
         cost_price: 0, selling_price: 0, stock_quantity: 0, reorder_threshold: 10, store_id: null,
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,9 +89,23 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
     setLoading(true)
     try {
       const data = { ...form }
+
+      // Required fields (Shopkeeper Inventory)
+      if (!data.name?.trim()) return
+      if (!data.selling_price || data.selling_price <= 0) return
+      if (!Number.isInteger(data.stock_quantity) || data.stock_quantity < 0) return
+
+      // Store is mandatory: disallow shared/no-store products.
+      if (!data.store_id) return
+
+      if (!data.reorder_threshold || data.reorder_threshold <= 0) {
+        data.reorder_threshold = 10
+      }
+
       if (!data.sku) {
         data.sku = data.name.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 50) + "-" + Date.now().toString(36)
       }
+
       await onSubmit(data)
       onOpenChange(false)
     } finally {
@@ -131,21 +155,30 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
               <Input type="number" value={form.reorder_threshold} onChange={(e) => setForm({ ...form, reorder_threshold: parseInt(e.target.value) })} />
             </div>
             <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium">Store</label>
-              <Select
-                value={form.store_id ? String(form.store_id) : ""}
-                onValueChange={(val) => setForm({ ...form, store_id: val ? parseInt(val) : null })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="No store (shared)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">No store (shared)</SelectItem>
-                  {stores.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium">Store *</label>
+
+              {storesLoading ? (
+                <Input value="Loading stores..." disabled />
+              ) : stores.length === 1 ? (
+                <>
+                  <Input value={stores[0]?.name ?? ""} disabled />
+                  <input type="hidden" value={stores[0]?.id ?? ""} />
+                </>
+              ) : (
+                <Select
+                  value={form.store_id ? String(form.store_id) : ""}
+                  onValueChange={(val) => setForm({ ...form, store_id: val ? parseInt(val) : null })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a store" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stores.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Description</label>

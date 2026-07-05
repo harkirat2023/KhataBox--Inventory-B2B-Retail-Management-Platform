@@ -103,6 +103,36 @@ async def approve_b2c_order(
     return await b2c_service.approve_order(db, order_id, current_user.id)
 
 
+@router.post("/shopkeeper/orders/{order_id}/processing", response_model=B2COrderResponse)
+async def processing_b2c_order(
+    order_id: int,
+    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Shopkeeper marks a confirmed order as processing."""
+    return await b2c_service.set_processing_order(db, order_id, current_user.id)
+
+
+@router.post("/shopkeeper/orders/{order_id}/reject", response_model=B2COrderResponse)
+async def reject_b2c_order(
+    order_id: int,
+    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Shopkeeper rejects an order (returns reserved inventory)."""
+    return await b2c_service.reject_order(db, order_id, current_user.id)
+
+
+@router.post("/shopkeeper/orders/{order_id}/cancel", response_model=B2COrderResponse)
+async def cancel_b2c_order(
+    order_id: int,
+    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Shopkeeper cancels an order (returns reserved inventory)."""
+    return await b2c_service.cancel_order(db, order_id, current_user.id)
+
+
 @router.post("/shopkeeper/orders/{order_id}/confirm", response_model=B2COrderResponse)
 async def confirm_b2c_order(
     order_id: int,

@@ -38,6 +38,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   pending: { label: "Pending", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
   confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
   completed: { label: "Completed", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
+  received: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
   cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
 }
 
@@ -57,6 +58,8 @@ function OrdersContent() {
   }, [session, status, role])
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+
     async function fetchOrders() {
       if (role !== "customer") return
       setLoading(true)
@@ -65,21 +68,51 @@ function OrdersContent() {
           clientApi.get<Order[]>("/api/v1/orders/my-orders"),
           clientApi.get<B2COrder[]>("/api/v1/b2c/orders"),
         ])
+
         const merged: Order[] = []
-        if (legacyOrders.status === "fulfilled") merged.push(...legacyOrders.value.map((o) => ({ ...o, payment_method: o.payment_method || "online" })))
-        if (b2cOrders.status === "fulfilled") {
-          merged.push(...b2cOrders.value.map((o) => ({
-            id: o.id, order_number: o.order_number, status: o.status, payment_method: o.payment_type,
-            subtotal: o.subtotal, discount: o.discount, gst: o.gst, total: o.total, notes: o.notes,
-            created_at: o.created_at, updated_at: o.updated_at, items: o.items || [], store_name: o.store_name,
-          })))
+        if (legacyOrders.status === "fulfilled") {
+          merged.push(
+            ...legacyOrders.value.map((o) => ({ ...o, payment_method: o.payment_method || "online" }))
+          )
         }
+
+        if (b2cOrders.status === "fulfilled") {
+          merged.push(
+            ...b2cOrders.value.map((o) => ({
+              id: o.id,
+              order_number: o.order_number,
+              status: o.status,
+              payment_method: o.payment_type,
+              subtotal: o.subtotal,
+              discount: o.discount,
+              gst: o.gst,
+              total: o.total,
+              notes: o.notes,
+              created_at: o.created_at,
+              updated_at: o.updated_at,
+              items: o.items || [],
+              store_name: o.store_name,
+            }))
+          )
+        }
+
         merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         setOrders(merged)
-      } catch (e) { console.error("Failed to load orders:", e); toast.error("Failed to load orders") }
-      finally { setLoading(false) }
+      } catch (e) {
+        console.error("Failed to load orders:", e)
+        toast.error("Failed to load orders")
+      } finally {
+        setLoading(false)
+      }
     }
+
     fetchOrders()
+    // Keep customer-side order list in sync with shopkeeper status changes
+    interval = setInterval(fetchOrders, 4000)
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
   }, [role])
 
   if (status === "loading" || loading || !session?.user || role !== "customer") {
@@ -144,7 +177,9 @@ function OrdersContent() {
           </div>
         ) : (
           displayOrders.map((order) => {
-            const s = statusConfig[order.status] || statusConfig.pending
+            // Show "Received" for completed B2C orders
+            const displayStatus = order.status === "completed" && order.order_number?.startsWith("B2C-") ? "received" : order.status
+            const s = statusConfig[displayStatus] || statusConfig.pending
             const StatusIcon = s.icon
             return (
               <Link key={order.id} href={`/my-orders/${order.id}`}>

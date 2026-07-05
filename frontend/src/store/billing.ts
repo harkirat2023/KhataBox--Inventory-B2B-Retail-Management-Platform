@@ -71,151 +71,155 @@ export const useStoreSelection = create<StoreSelectionState>()(
 
 export const useBillingStore = create<BillingState>()(
   persist(
-    (set, get) => ({
-      carts: [createNewCart("Cart 1", "active")],
-      activeCartId: null,
+    (set, get) => {
+      const initialCart = createNewCart("Cart 1", "active")
+      
+      return {
+        carts: [initialCart],
+        activeCartId: initialCart.id,
 
-      addNewCart: () => {
-        const { carts, activeCartId } = get()
-        const idx = carts.length + 1
-        const newCart = createNewCart(`Cart ${idx}`, "active")
+        addNewCart: () => {
+          const { carts, activeCartId } = get()
+          const idx = carts.length + 1
+          const newCart = createNewCart(`Cart ${idx}`, "active")
 
-        const active = carts.find(c => c.id === activeCartId)
-        const updated = carts.map(c =>
-          c.id === activeCartId && active && active.status !== "cancelled"
-            ? { ...c, status: "incomplete" as const }
-            : c
-        )
-
-        set({ carts: [...updated, newCart], activeCartId: newCart.id })
-      },
-
-      deleteCart: (cartId: string) => {
-        const { carts } = get()
-        set({
-          carts: carts.map(c =>
-            c.id === cartId
-              ? { ...c, status: "cancelled" as const, cancelledAt: new Date().toISOString() }
+          const active = carts.find(c => c.id === activeCartId)
+          const updated = carts.map(c =>
+            c.id === activeCartId && active && active.status !== "cancelled"
+              ? { ...c, status: "incomplete" as const }
               : c
-          ),
-        })
-      },
+          )
 
-      switchToCart: (cartId: string) => {
-        const { carts } = get()
-        const target = carts.find(c => c.id === cartId)
-        if (!target || (target.status !== "active" && target.status !== "incomplete")) return
+          set({ carts: [...updated, newCart], activeCartId: newCart.id })
+        },
 
-        const { activeCartId } = get()
+        deleteCart: (cartId: string) => {
+          const { carts } = get()
+          set({
+            carts: carts.map(c =>
+              c.id === cartId
+                ? { ...c, status: "cancelled" as const, cancelledAt: new Date().toISOString() }
+                : c
+            ),
+          })
+        },
 
-        const updated = carts.map(c => {
-          if (c.id === activeCartId && c.status === "active") return c
-          if (c.id === cartId && c.status === "incomplete") return { ...c, status: "active" as const }
-          return c
-        })
+        switchToCart: (cartId: string) => {
+          const { carts } = get()
+          const target = carts.find(c => c.id === cartId)
+          if (!target || (target.status !== "active" && target.status !== "incomplete")) return
 
-        set({ carts: updated, activeCartId: cartId })
-      },
+          const { activeCartId } = get()
 
-      switchToNext: () => {
-        const { carts, activeCartId } = get()
-        const navigable = carts.filter(c => c.status === "active" || c.status === "incomplete")
-        if (navigable.length < 2) return
-        const curIdx = navigable.findIndex(c => c.id === activeCartId)
-        const next = navigable[(curIdx + 1) % navigable.length]
+          const updated = carts.map(c => {
+            if (c.id === activeCartId && c.status === "active") return c
+            if (c.id === cartId && c.status === "incomplete") return { ...c, status: "active" as const }
+            return c
+          })
 
-        const updated = carts.map(c => {
-          if (c.id === activeCartId) return { ...c, status: "incomplete" as const }
-          if (c.id === next.id) return { ...c, status: "active" as const }
-          return c
-        })
+          set({ carts: updated, activeCartId: cartId })
+        },
 
-        set({ carts: updated, activeCartId: next.id })
-      },
+        switchToNext: () => {
+          const { carts, activeCartId } = get()
+          const navigable = carts.filter(c => c.status === "active" || c.status === "incomplete")
+          if (navigable.length < 2) return
+          const curIdx = navigable.findIndex(c => c.id === activeCartId)
+          const next = navigable[(curIdx + 1) % navigable.length]
 
-      switchToPrev: () => {
-        const { carts, activeCartId } = get()
-        const navigable = carts.filter(c => c.status === "active" || c.status === "incomplete")
-        if (navigable.length < 2) return
-        const curIdx = navigable.findIndex(c => c.id === activeCartId)
-        const prev = navigable[(curIdx - 1 + navigable.length) % navigable.length]
+          const updated = carts.map(c => {
+            if (c.id === activeCartId) return { ...c, status: "incomplete" as const }
+            if (c.id === next.id) return { ...c, status: "active" as const }
+            return c
+          })
 
-        const updated = carts.map(c => {
-          if (c.id === activeCartId) return { ...c, status: "incomplete" as const }
-          if (c.id === prev.id) return { ...c, status: "active" as const }
-          return c
-        })
+          set({ carts: updated, activeCartId: next.id })
+        },
 
-        set({ carts: updated, activeCartId: prev.id })
-      },
+        switchToPrev: () => {
+          const { carts, activeCartId } = get()
+          const navigable = carts.filter(c => c.status === "active" || c.status === "incomplete")
+          if (navigable.length < 2) return
+          const curIdx = navigable.findIndex(c => c.id === activeCartId)
+          const prev = navigable[(curIdx - 1 + navigable.length) % navigable.length]
 
-      addItemToActiveCart: (item, quantity = 1) => {
-        const { carts, activeCartId } = get()
-        set({
-          carts: carts.map(c => {
-            if (c.id !== activeCartId) return c
-            const existing = c.items.find(i => i.product_id === item.product_id)
-            if (existing) {
+          const updated = carts.map(c => {
+            if (c.id === activeCartId) return { ...c, status: "incomplete" as const }
+            if (c.id === prev.id) return { ...c, status: "active" as const }
+            return c
+          })
+
+          set({ carts: updated, activeCartId: prev.id })
+        },
+
+        addItemToActiveCart: (item, quantity = 1) => {
+          const { carts, activeCartId } = get()
+          set({
+            carts: carts.map(c => {
+              if (c.id !== activeCartId) return c
+              const existing = c.items.find(i => i.product_id === item.product_id)
+              if (existing) {
+                return {
+                  ...c,
+                  items: c.items.map(i =>
+                    i.product_id === item.product_id
+                      ? { ...i, quantity: i.quantity + quantity }
+                      : i
+                  ),
+                }
+              }
+              return { ...c, items: [...c.items, { ...item, quantity }] }
+            }),
+          })
+        },
+
+        removeItemFromActiveCart: (productId: number) => {
+          const { carts, activeCartId } = get()
+          set({
+            carts: carts.map(c =>
+              c.id !== activeCartId
+                ? c
+                : { ...c, items: c.items.filter(i => i.product_id !== productId) }
+            ),
+          })
+        },
+
+        updateQtyInActiveCart: (productId: number, quantity: number) => {
+          const { carts, activeCartId } = get()
+          set({
+            carts: carts.map(c => {
+              if (c.id !== activeCartId) return c
               return {
                 ...c,
-                items: c.items.map(i =>
-                  i.product_id === item.product_id
-                    ? { ...i, quantity: i.quantity + quantity }
-                    : i
-                ),
+                items: quantity <= 0
+                  ? c.items.filter(i => i.product_id !== productId)
+                  : c.items.map(i =>
+                      i.product_id === productId ? { ...i, quantity } : i
+                    ),
               }
-            }
-            return { ...c, items: [...c.items, { ...item, quantity }] }
-          }),
-        })
-      },
+            }),
+          })
+        },
 
-      removeItemFromActiveCart: (productId: number) => {
-        const { carts, activeCartId } = get()
-        set({
-          carts: carts.map(c =>
-            c.id !== activeCartId
-              ? c
-              : { ...c, items: c.items.filter(i => i.product_id !== productId) }
-          ),
-        })
-      },
+        setDiscountOnActiveCart: (discount: number) => {
+          const { carts, activeCartId } = get()
+          set({
+            carts: carts.map(c =>
+              c.id !== activeCartId ? c : { ...c, discount }
+            ),
+          })
+        },
 
-      updateQtyInActiveCart: (productId: number, quantity: number) => {
-        const { carts, activeCartId } = get()
-        set({
-          carts: carts.map(c => {
-            if (c.id !== activeCartId) return c
-            return {
-              ...c,
-              items: quantity <= 0
-                ? c.items.filter(i => i.product_id !== productId)
-                : c.items.map(i =>
-                    i.product_id === productId ? { ...i, quantity } : i
-                  ),
-            }
-          }),
-        })
-      },
-
-      setDiscountOnActiveCart: (discount: number) => {
-        const { carts, activeCartId } = get()
-        set({
-          carts: carts.map(c =>
-            c.id !== activeCartId ? c : { ...c, discount }
-          ),
-        })
-      },
-
-      clearActiveCart: () => {
-        const { carts, activeCartId } = get()
-        set({
-          carts: carts.map(c =>
-            c.id !== activeCartId ? c : { ...c, items: [], discount: 0 }
-          ),
-        })
-      },
-    }),
+        clearActiveCart: () => {
+          const { carts, activeCartId } = get()
+          set({
+            carts: carts.map(c =>
+              c.id !== activeCartId ? c : { ...c, items: [], discount: 0 }
+            ),
+          })
+        },
+      }
+    },
     {
       name: "khatabox-billing-store",
     }

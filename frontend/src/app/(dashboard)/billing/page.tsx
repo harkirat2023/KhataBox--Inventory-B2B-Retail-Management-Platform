@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { toast } from "sonner"
-import { Search, Plus, Minus, Trash2, Receipt, Barcode, ScanBarcode, Download, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { Search, Plus, Minus, Trash2, Receipt, Barcode, ScanBarcode, Download, ChevronLeft, ChevronRight, X, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,6 +28,14 @@ import { Order } from "@/types/order"
 import { Customer } from "@/types/customer"
 import { clientApi, getToken } from "@/lib/client-api"
 import { useBillingStore } from "@/store/billing"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
@@ -43,6 +51,11 @@ export default function BillingPage() {
   const [applyGst, setApplyGst] = useState(true)
   const [lastOrderId, setLastOrderId] = useState<number | null>(null)
   const [downloading, setDownloading] = useState(false)
+  const [unpackedOpen, setUnpackedOpen] = useState(false)
+  const [unpackedName, setUnpackedName] = useState("")
+  const [unpackedPrice, setUnpackedPrice] = useState<number | null>(null)
+  const [customerChangeModalOpen, setCustomerChangeModalOpen] = useState(false)
+  const [pendingCustomerId, setPendingCustomerId] = useState<number | null>(null)
 
   const {
     carts,
@@ -89,6 +102,17 @@ export default function BillingPage() {
 
   useEffect(() => { loadProducts() }, [loadProducts])
   useEffect(() => { loadCustomers() }, [loadCustomers])
+  
+  // Ensure activeCartId is valid after store hydration
+  useEffect(() => {
+    const state = useBillingStore.getState()
+    if (!state.activeCartId || !state.carts.find(c => c.id === state.activeCartId)) {
+      // If activeCartId is invalid, set it to the first cart
+      if (state.carts.length > 0) {
+        useBillingStore.setState({ activeCartId: state.carts[0].id })
+      }
+    }
+  }, [])
 
   const handleScannerError = useCallback((err: string) => toast.error(err), [])
 
@@ -155,6 +179,31 @@ export default function BillingPage() {
     }
   }
 
+  const handleAddUnpackedToCart = () => {
+    if (unpackedPrice === null || !Number.isFinite(unpackedPrice) || unpackedPrice <= 0) {
+      toast.error("Price is required and must be greater than 0")
+      return
+    }
+
+    const product_id = -Date.now()
+    const itemName = unpackedName.trim() || "Unpacked Product"
+
+    addItemToActiveCart(
+      {
+        product_id,
+        name: itemName,
+        sku: "UNPACKED",
+        unit_price: unpackedPrice,
+      },
+      1
+    )
+
+    setUnpackedOpen(false)
+    setUnpackedName("")
+    setUnpackedPrice(null)
+    toast.success(`${itemName} added to cart`)
+  }
+
   const handleGenerateBill = async () => {
     if (items.length === 0) return
     setLoading(true)
@@ -182,7 +231,7 @@ export default function BillingPage() {
       if (order.credit_alert) {
         const { customer_name, credit_used, credit_limit, exceeded_by } = order.credit_alert
         toast.warning(
-          `${customer_name}: Credit limit exceeded by ₹${exceeded_by.toFixed(2)}! Used ₹${credit_used.toFixed(2)} of ₹${credit_limit.toFixed(2)}`,
+          `${customer_name}: Credit limit exceeded by ₹${exceeded_by.toFixed(2)}! Used ₹${credit_used.toFixed(2)} of ₹{credit_limit.toFixed(2)}`,
           { duration: 8000 }
         )
       } else if (selectedCustomerId) {
@@ -192,13 +241,21 @@ export default function BillingPage() {
         }
       }
 
-      clearActiveCart()
+      // Don't clear cart immediately, let user download or skip
     } catch (err: unknown) {
       console.error("Failed to create order", err)
       toast.error(err instanceof Error ? err.message : "Failed to generate bill.")
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSkip = () => {
+    // Clear current cart and create new empty cart
+    clearActiveCart()
+    setLastOrderId(null)
+    setSelectedCustomerId(null)
+    toast.success("Ready for new order")
   }
 
   const handleDownloadInvoice = async () => {
@@ -246,58 +303,18 @@ export default function BillingPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Tabs value={scanMode} onValueChange={(v) => setScanMode(v as "search" | "qr")}>
-            <TabsList className="w-full bg-slate-100 p-1 rounded-xl">
-              <TabsTrigger value="search" className="flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <Search className="size-4 mr-2" />
-                Search
-              </TabsTrigger>
-              <TabsTrigger value="qr" className="flex-1 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                <ScanBarcode className="size-4 mr-2" />
-                Scan QR
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="search" className="space-y-4 mt-4">
-              <Card className="rounded-2xl border border-slate-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Search Products</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                    <Input
-                      placeholder="Search by name, SKU, or category..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                      <Input
-                        placeholder="Scan / enter SKU or name..."
-                        value={scanInput}
-                        onChange={(e) => setScanInput(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleScan()}
-                        className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
-                      />
-                    </div>
-                    <Button onClick={handleScan} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5">Lookup</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="qr" className="space-y-4 mt-4">
+          {/* QR Scanner Section - Always visible at top */}
+          <Card className="rounded-2xl border border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Scan Product</CardTitle>
+            </CardHeader>
+            <CardContent>
               <QRScanner
                 onScan={handleQRScanned}
                 onError={handleScannerError}
               />
               {lastScanned && (
-                <Card className="rounded-2xl border border-blue-200 bg-blue-50/30 shadow-sm">
+                <Card className="rounded-2xl border border-blue-200 bg-blue-50/30 shadow-sm mt-4">
                   <CardHeader className="pb-3 flex-row items-center justify-between">
                     <CardTitle className="text-base">Last Scanned</CardTitle>
                     <Button variant="ghost" size="icon-xs" className="size-6 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl" onClick={() => setLastScanned(null)}>
@@ -356,8 +373,44 @@ export default function BillingPage() {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* Search Products Section */}
+          <Card className="rounded-2xl border border-slate-200 shadow-sm">
+            <CardHeader>
+              <CardTitle>Search Products</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                <Input
+                  placeholder="Search by name, SKU, or category..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                  <Input
+                    placeholder="Scan / enter SKU or name..."
+                    value={scanInput}
+                    onChange={(e) => setScanInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleScan()}
+                    className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
+                  />
+                </div>
+                <Button onClick={handleScan} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5">Lookup</Button>
+                <Button onClick={() => setUnpackedOpen(true)} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5">
+                  <Package className="size-4 mr-2" />
+                  Unpacked Product
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <Table>
@@ -423,7 +476,6 @@ export default function BillingPage() {
         </div>
 
         <div className="space-y-6">
-          {/* Customer Selector (Khata) */}
           <Card className="rounded-2xl border border-slate-200 shadow-sm">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Khata Customer</CardTitle>
@@ -431,10 +483,21 @@ export default function BillingPage() {
             <CardContent className="space-y-3">
               <Select
                 value={selectedCustomerId ? String(selectedCustomerId) : ""}
-                onValueChange={(val) => setSelectedCustomerId(val ? parseInt(val) : null)}
+                onValueChange={(val) => {
+                  const newCustomerId = val ? parseInt(val) : null
+                  // If cart has items and trying to change customer, show modal
+                  if (newCustomerId !== selectedCustomerId && items.length > 0 && selectedCustomerId !== null) {
+                    setPendingCustomerId(newCustomerId)
+                    setCustomerChangeModalOpen(true)
+                  } else {
+                    setSelectedCustomerId(newCustomerId)
+                  }
+                }}
               >
                 <SelectTrigger className="rounded-xl border-slate-200 h-11">
-                  <SelectValue placeholder="Walk-in (no khata)" />
+                  <SelectValue>
+                    {selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.company_name || customers.find(c => c.id === selectedCustomerId)?.contact_person || `Customer #${selectedCustomerId}`) : "Walk-in (no khata)"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Walk-in (no khata)</SelectItem>
@@ -612,17 +675,25 @@ export default function BillingPage() {
           )}
 
           {lastOrderId && (
-            <Button
-              className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5"
-              onClick={handleDownloadInvoice}
-              disabled={downloading}
-            >
-              <Download className="size-4 mr-2" />
-              {downloading ? "Downloading..." : "Download Invoice"}
-            </Button>
+            <>
+              <Button
+                className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5"
+                onClick={handleDownloadInvoice}
+                disabled={downloading}
+              >
+                <Download className="size-4 mr-2" />
+                {downloading ? "Downloading..." : "Download Invoice"}
+              </Button>
+              <button
+                type="button"
+                onClick={handleSkip}
+                className="text-sm text-slate-500 hover:text-slate-700 underline"
+              >
+                Skip
+              </button>
+            </>
           )}
 
-          {/* ORDERS Section */}
           {incompleteCarts.length > 0 && (
             <Card className="rounded-2xl border border-slate-200 shadow-sm">
               <CardHeader className="pb-3">
@@ -653,10 +724,80 @@ export default function BillingPage() {
               </CardContent>
             </Card>
           )}
-
-
         </div>
       </div>
+
+      <Dialog open={unpackedOpen} onOpenChange={setUnpackedOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Unpacked Product</DialogTitle>
+            <DialogDescription>
+              Add a custom line item to the billing cart.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2 space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Name (optional)</label>
+              <Input value={unpackedName} onChange={(e) => setUnpackedName(e.target.value)} className="rounded-xl border-slate-200 h-11" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Price *</label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={unpackedPrice ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value
+                  setUnpackedPrice(v === "" ? null : parseFloat(v))
+                }}
+                className="rounded-xl border-slate-200 h-11"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setUnpackedOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={handleAddUnpackedToCart}>
+              Add to Cart
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Change Modal */}
+      <Dialog open={customerChangeModalOpen} onOpenChange={setCustomerChangeModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Customer?</DialogTitle>
+            <DialogDescription>
+              The current cart has items. Changing the customer will require a new cart.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => {
+              setCustomerChangeModalOpen(false)
+              setPendingCustomerId(null)
+            }}>
+              Cancel
+            </Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => {
+              if (pendingCustomerId !== null) {
+                setSelectedCustomerId(pendingCustomerId)
+              }
+              addNewCart()
+              setCustomerChangeModalOpen(false)
+              setPendingCustomerId(null)
+              toast.success("New cart created with selected customer")
+            }}>
+              Add New Cart
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

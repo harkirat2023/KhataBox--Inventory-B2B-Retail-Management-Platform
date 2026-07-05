@@ -256,7 +256,7 @@ export default function OrdersPage() {
                   </TableCell>
                   {tab === "b2c" && (
                     <TableCell>
-                      {(order.status === "counter" || order.status === "confirmed") && (
+                      {(order.status === "pending" || order.status === "counter" || order.status === "confirmed") && (
                         <Button
                           size="sm"
                           onClick={(e) => {

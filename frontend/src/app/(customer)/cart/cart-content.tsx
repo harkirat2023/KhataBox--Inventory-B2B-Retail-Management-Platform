@@ -31,22 +31,56 @@ export function CartContent() {
 
   async function handlePlaceOrder() {
     if (placing) return
-    if (items.length === 0) { toast.error("Cart is empty"); return }
-    if (!effectiveStoreId) { toast.error("No store selected"); return }
+    if (items.length === 0) {
+      toast.error("Cart is empty")
+      return
+    }
+    if (!effectiveStoreId) {
+      toast.error("No store selected")
+      return
+    }
+
+    console.log("[Cart] Starting order placement...", { items: items.length, effectiveStoreId })
     setPlacing(true)
+
     try {
       const payload = {
-        store_id: effectiveStoreId, payment_type: "online", discount: 0, notes: null,
-        items: items.map((it) => ({ product_id: it.product_id, product_name: it.name, quantity: it.quantity, unit_price: it.unit_price })),
+        store_id: effectiveStoreId,
+        payment_type: "online",
+        discount: 0,
+        notes: null,
+        items: items.map((it) => ({
+          product_id: it.product_id,
+          product_name: it.name,
+          quantity: it.quantity,
+          unit_price: it.unit_price,
+        })),
       }
+
+      console.log("[Cart] Validating order...")
       const validation = await clientApi.post<{ valid: boolean; issues: string[] }>("/api/v1/b2c/orders/validate", payload)
-      if (!validation.valid) { toast.error(validation.issues.join(". ")); setPlacing(false); return }
-      await clientApi.post("/api/v1/b2c/orders", payload)
+      console.log("[Cart] Validation result:", validation)
+
+      if (!validation.valid) {
+        toast.error(validation.issues.join(". "))
+        setPlacing(false)
+        return
+      }
+
+      console.log("[Cart] Creating order...")
+      const orderResult = await clientApi.post("/api/v1/b2c/orders", payload)
+      console.log("[Cart] Order created successfully:", orderResult)
+
       clearCart()
       toast.success("Order placed successfully!")
       router.push("/my-orders?tab=active")
-    } catch (err: any) { toast.error(err.message || "Failed to place order") }
-    finally { setPlacing(false) }
+    } catch (err: unknown) {
+      console.error("[Cart] Order placement failed:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to place order"
+      toast.error(errorMessage)
+    } finally {
+      setPlacing(false)
+    }
   }
 
   useEffect(() => {
@@ -88,7 +122,7 @@ export function CartContent() {
         </div>
       </div>
 
-      <div className="px-4 mt-4 space-y-3 pb-36">
+      <div className="px-4 mt-4 space-y-3 pb-40">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="size-20 mx-auto mb-4 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
@@ -147,7 +181,7 @@ export function CartContent() {
 
       {/* Checkout Footer */}
       {items.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+        <div className="fixed bottom-16 left-0 right-0 z-[60] bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
           <div className="px-4 pt-3 pb-4 max-w-lg mx-auto">
             <div className="bg-slate-50 rounded-2xl p-4 mb-3 space-y-1.5">
               <div className="flex justify-between text-sm"><span className="text-slate-500">Subtotal</span><span className="font-medium text-slate-900">{formatCurrency(subtotal)}</span></div>

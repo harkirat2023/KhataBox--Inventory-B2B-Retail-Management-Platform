@@ -67,6 +67,10 @@ export default function CustomersPage() {
   )
 
   const handleCreate = async (data: CustomerFormData) => {
+    if (!data.contact_person?.trim()) {
+      toast.error("Contact person is required")
+      return
+    }
     if (!data.credit_limit || data.credit_limit <= 0) {
       toast.error("Credit limit must be greater than 0")
       return
@@ -315,6 +319,10 @@ function CustomerFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.company_name?.trim() && !form.contact_person?.trim()) {
+      toast.error("Name or contact person is required")
+      return
+    }
     if (!form.credit_limit || form.credit_limit <= 0) {
       toast.error("Credit limit must be greater than 0")
       return
@@ -338,12 +346,12 @@ function CustomerFormDialog({
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Name (optional)</label>
-              <Input value={form.company_name ?? ""} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="rounded-xl border-slate-200 h-11" />
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Name *</label>
+              <Input value={form.company_name ?? ""} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="rounded-xl border-slate-200 h-11" required />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Contact Person</label>
-              <Input value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} className="rounded-xl border-slate-200 h-11" />
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Contact Person *</label>
+              <Input value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} className="rounded-xl border-slate-200 h-11" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700 mb-1.5 block">Email</label>
@@ -354,8 +362,8 @@ function CustomerFormDialog({
               <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border-slate-200 h-11" />
             </div>
             <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Credit Limit (must be {">"} 0)</label>
-              <Input type="number" step="0.01" min="0.01" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: parseFloat(e.target.value) || 0 })} className="rounded-xl border-slate-200 h-11" />
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Credit Limit * (must be {">"} 0)</label>
+              <Input type="number" step="0.01" min="0.01" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: parseFloat(e.target.value) || 0 })} className="rounded-xl border-slate-200 h-11" required />
             </div>
             <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium text-slate-700 mb-1.5 block">Price Tier</label>

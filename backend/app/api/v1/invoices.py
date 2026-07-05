@@ -1,4 +1,5 @@
 import io
+import os
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,6 +9,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,6 +19,20 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.models.order import Order, OrderItem
 from app.models.user import User
+
+# Register a font that supports the Indian Rupee symbol
+try:
+    # Try to register DejaVu Sans or similar font that supports ₹
+    pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
+    RUPEE_FONT = 'DejaVuSans'
+except:
+    try:
+        # Fallback to system fonts
+        pdfmetrics.registerFont(TTFont('ArialUnicode', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
+        RUPEE_FONT = 'ArialUnicode'
+    except:
+        # If no Unicode font available, use default and replace rupee with text
+        RUPEE_FONT = 'Helvetica'
 
 router = APIRouter()
 
@@ -71,12 +88,13 @@ async def generate_invoice(
     table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2563EB")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 0), (-1, 0), RUPEE_FONT),
         ("FONTSIZE", (0, 0), (-1, 0), 10),
         ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ("GRID", (0, 1), (-1, -1), 0.5, colors.grey),
         ("ALIGN", (2, 1), (-1, -1), "RIGHT"),
         ("FONTSIZE", (0, 1), (-1, -1), 9),
+        ("FONTNAME", (0, 1), (-1, -1), RUPEE_FONT),
     ]))
     elements.append(table)
     elements.append(Spacer(1, 12))
@@ -91,8 +109,8 @@ async def generate_invoice(
 
     totals_table = Table(totals_data, colWidths=[2.5 * inch, 1.5 * inch])
     totals_table.setStyle(TableStyle([
-        ("FONTNAME", (0, 0), (0, -2), "Helvetica"),
-        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+        ("FONTNAME", (0, 0), (0, -2), RUPEE_FONT),
+        ("FONTNAME", (0, -1), (-1, -1), RUPEE_FONT),
         ("FONTSIZE", (0, 0), (-1, -1), 10),
         ("ALIGN", (1, 0), (1, -1), "RIGHT"),
         ("TOPPADDING", (0, 0), (-1, -1), 3),

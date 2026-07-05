@@ -51,7 +51,7 @@ const statusStyles: Record<string, string> = {
 const statusLabels: Record<string, string> = {
   online: "Online",
   counter: "Counter",
-  completed: "Completed",
+  completed: "B2C-Completed",
   cancelled: "Cancelled",
 }
 
