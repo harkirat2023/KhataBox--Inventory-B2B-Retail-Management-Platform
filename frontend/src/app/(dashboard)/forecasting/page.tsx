@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   Truck,
   Shield,
+  BarChart3,
 } from "lucide-react"
 import {
   LineChart,
@@ -111,19 +112,19 @@ export default function ForecastingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">AI Forecasting</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold text-slate-900">AI Forecasting</h1>
+        <p className="text-sm text-slate-500">
           Predict demand and optimize inventory with AI-powered insights.
         </p>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <ShoppingCart className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Product</span>
+          <ShoppingCart className="size-4 text-slate-400" />
+          <span className="text-sm font-medium text-slate-700">Product</span>
         </div>
         <Select value={selectedId} onValueChange={(v) => v && setSelectedId(v)}>
-          <SelectTrigger className="w-[280px]">
+          <SelectTrigger className="w-[280px] rounded-xl border-slate-200 h-11">
             <SelectValue placeholder="Select a product..." />
           </SelectTrigger>
           <SelectContent>
@@ -154,15 +155,15 @@ export default function ForecastingPage() {
           {heroCards.map((card) => {
             const Icon = card.icon
             return (
-              <Card key={card.label}>
-                <CardContent className="pt-6">
+              <Card key={card.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <CardContent className="p-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">{card.label}</p>
-                    <div className={`rounded-lg p-2 ${card.bg}`}>
+                    <p className="text-sm text-slate-500">{card.label}</p>
+                    <div className={`rounded-xl p-2 ${card.bg}`}>
                       <Icon className={`size-4 ${card.color}`} />
                     </div>
                   </div>
-                  <p className="mt-2 text-2xl font-bold">{card.value}</p>
+                  <p className="mt-2 text-2xl font-bold text-slate-900">{card.value}</p>
                 </CardContent>
               </Card>
             )
@@ -171,37 +172,43 @@ export default function ForecastingPage() {
       )}
 
       {!selectedId && !loading && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Select a product to view demand forecast and trend analysis.
+        <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <CardContent className="py-16 text-center p-0">
+            <div className="flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center size-14 rounded-2xl bg-slate-100 mb-4">
+                <BarChart3 className="size-7 text-slate-400" />
+              </div>
+              <p className="text-sm font-medium text-slate-900">Select a product</p>
+              <p className="text-sm text-slate-500 mt-1">Choose a product above to view demand forecast and trend analysis.</p>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {forecast && (
         <>
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Restocking Recommendation</CardTitle>
+          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <CardHeader className="p-0 pb-5">
+              <CardTitle className="text-base font-semibold text-slate-900">AI Restocking Recommendation</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-lg border bg-muted/30 p-4">
-                <p className="text-sm text-muted-foreground">
+            <CardContent className="p-0">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm text-slate-600">
                   Based on historical sales data, we recommend ordering{" "}
-                  <span className="font-semibold text-foreground">
+                  <span className="font-semibold text-slate-900">
                     {forecast.recommended_order_qty} units
                   </span>{" "}
-                  of <span className="font-semibold text-foreground">{forecast.product_name}</span>{" "}
+                  of <span className="font-semibold text-slate-900">{forecast.product_name}</span>{" "}
                   to maintain optimal stock levels.
                 </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <div className="h-2 w-full max-w-[200px] rounded-full bg-muted">
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="h-2 w-full max-w-[200px] rounded-full bg-slate-200">
                     <div
                       className="h-2 rounded-full bg-emerald-500"
                       style={{ width: `${forecast.confidence}%` }}
                     />
                   </div>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-slate-500">
                     {forecast.confidence}% forecast accuracy
                   </span>
                 </div>
@@ -209,11 +216,11 @@ export default function ForecastingPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Trend Chart</CardTitle>
+          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <CardHeader className="p-0 pb-5">
+              <CardTitle className="text-base font-semibold text-slate-900">Trend Chart</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height={300} minWidth={300}>
                   <LineChart data={trendData}>

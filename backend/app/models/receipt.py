@@ -14,7 +14,8 @@ class Receipt(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     receipt_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 
-    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), nullable=False)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id"), nullable=True)
+    b2c_order_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     shopkeeper_id: Mapped[int] = mapped_column(Integer, nullable=False)
     customer_id: Mapped[int | None] = mapped_column(Integer, nullable=True)

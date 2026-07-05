@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, Fragment } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronDown, ChevronRight, Search, Filter, Calendar, Receipt, XCircle } from "lucide-react"
+import { ChevronDown, ChevronRight, Search, Filter, Calendar, Package, Receipt, XCircle, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -47,25 +47,31 @@ interface BillingDisplayItem {
   order_number_display?: string
 }
 
-const statusConfig: Record<OrderStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Pending", variant: "outline" },
   confirmed: { label: "Confirmed", variant: "default" },
+  counter: { label: "Counter", variant: "secondary" },
   processing: { label: "Ready", variant: "secondary" },
   completed: { label: "Completed", variant: "outline" },
   cancelled: { label: "Cancelled", variant: "destructive" },
 }
 
-const statusStyles: Record<OrderStatus, string> = {
+const statusStyles: Record<string, string> = {
   pending: "bg-amber-100 text-amber-800 border-amber-300",
   confirmed: "bg-blue-100 text-blue-800 border-blue-300",
+  counter: "bg-orange-100 text-orange-800 border-orange-300",
   processing: "bg-purple-100 text-purple-800 border-purple-300",
   completed: "bg-green-100 text-green-800 border-green-300",
   cancelled: "bg-red-100 text-red-800 border-red-300",
 }
 
+type HistoryTab = "all" | "regular" | "b2c"
+
 export default function OrderHistoryPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
+  const [b2cOrders, setB2cOrders] = useState<Order[]>([])
+  const [historyTab, setHistoryTab] = useState<HistoryTab>("all")
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const handleStatusChange = (value: string | null) => setStatusFilter(value || "all")
@@ -77,8 +83,12 @@ export default function OrderHistoryPage() {
   const loadOrders = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await clientApi.get<Order[]>("/api/v1/orders/")
-      setOrders(data)
+      const [regData, b2cData] = await Promise.all([
+        clientApi.get<Order[]>("/api/v1/orders/"),
+        clientApi.get<Order[]>("/api/v1/orders/?b2c=true"),
+      ])
+      setOrders(regData)
+      setB2cOrders(b2cData)
     } catch (err) {
       console.error("Failed to load orders", err)
     } finally {
@@ -113,25 +123,29 @@ export default function OrderHistoryPage() {
     }
   })
 
-  const allItems = [...orders, ...billingDisplayItems].sort(
+  const sourceCompletedOrders = historyTab === "b2c" ? b2cOrders : orders
+  const sourceAllOrders = historyTab === "b2c" ? b2cOrders : orders
+
+  const allItems = [...sourceAllOrders, ...billingDisplayItems].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   )
 
   const filtered = allItems.filter((o) => {
-    // Only show completed or cancelled orders
-    const isHistorical = o.status === "completed" || o.status === "cancelled"
-    if (!isHistorical) return false
+    if (historyTab === "b2c") {
+      const isB2CCompleted = o.status === "completed" && "is_b2c" in o
+      if (!isB2CCompleted && o.status !== "cancelled") return false
+    } else {
+      const isHistorical = o.status === "completed" || o.status === "cancelled"
+      if (!isHistorical) return false
+    }
 
-    // Search filter
     const matchesSearch =
       !search ||
       o.order_number.toLowerCase().includes(search.toLowerCase()) ||
       (o.customer_name || "").toLowerCase().includes(search.toLowerCase())
 
-    // Status filter
     const matchesStatus = statusFilter === "all" || o.status === statusFilter
 
-    // Date range filter
     let matchesDate = true
     const orderDate = new Date(o.created_at)
     if (dateFrom) {
@@ -144,122 +158,187 @@ export default function OrderHistoryPage() {
     return matchesSearch && matchesStatus && matchesDate
   })
 
-  const completedCount = orders.filter((o) => o.status === "completed").length
-  const cancelledCount = orders.filter((o) => o.status === "cancelled").length + billingCancelledCarts.length
-  const totalRevenue = orders
+  const completedCount = sourceCompletedOrders.filter((o) => o.status === "completed").length
+  const cancelledCount = sourceAllOrders.filter((o) => o.status === "cancelled").length + billingCancelledCarts.length
+  const totalRevenue = sourceCompletedOrders
     .filter((o) => o.status === "completed")
     .reduce((sum, o) => sum + o.total, 0)
 
+  if (loading) {
+    return (
+      <div className="space-y-6 pb-8 bg-[#F8FAFC] min-h-screen">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Order History</h1>
+            <div className="h-4 bg-slate-200 rounded w-48 mt-2 animate-pulse" />
+          </div>
+          <div className="h-11 bg-slate-200 rounded-xl w-40 animate-pulse" />
+        </div>
+        <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl w-fit">
+          <div className="px-4 py-2 text-sm font-medium rounded-lg bg-white shadow-sm">All History</div>
+          <div className="px-4 py-2 text-sm font-medium rounded-lg text-slate-500">Regular Orders</div>
+          <div className="px-4 py-2 text-sm font-medium rounded-lg text-slate-500">B2C History</div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 animate-pulse">
+              <div className="h-4 bg-slate-200 rounded w-32" />
+              <div className="h-8 bg-slate-200 rounded w-16 mt-3" />
+            </div>
+          ))}
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
+          <div className="bg-slate-50 px-6 py-4 flex gap-4">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className="h-4 bg-slate-200 rounded w-20" />
+            ))}
+          </div>
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="px-6 py-4 flex gap-4 border-t border-slate-100">
+              {[...Array(7)].map((_, j) => (
+                <div key={j} className="h-4 bg-slate-200 rounded w-20" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-8 bg-[#F8FAFC] min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Order History</h1>
-          <p className="text-muted-foreground">View completed and cancelled orders.</p>
+          <h1 className="text-3xl font-bold text-slate-900">Order History</h1>
+          <p className="text-slate-500">View completed and cancelled orders.</p>
         </div>
-        <Button variant="outline" onClick={() => router.push("/orders")}>
+        <Button variant="outline" onClick={() => router.push("/orders")} className="rounded-xl h-11 px-5 bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300">
           View Active Orders
         </Button>
       </div>
 
+      {/* History Tabs */}
+      <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl w-fit">
+        <button
+          onClick={() => setHistoryTab("all")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+            historyTab === "all" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          All History
+        </button>
+        <button
+          onClick={() => setHistoryTab("regular")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+            historyTab === "regular" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          Regular Orders
+        </button>
+        <button
+          onClick={() => setHistoryTab("b2c")}
+          className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+            historyTab === "b2c" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
+          }`}
+        >
+          <Store className="size-4 inline mr-1" />
+          B2C History
+          {b2cOrders.filter((o) => o.status === "completed").length > 0 && (
+            <Badge className="ml-2 bg-blue-600 text-white text-[10px] px-1.5 py-0">
+              {b2cOrders.filter((o) => o.status === "completed").length}
+            </Badge>
+          )}
+        </button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Cancelled Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">{cancelledCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{totalRevenue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm font-medium text-slate-500">Completed Orders</p>
+          <p className="text-3xl font-bold text-slate-900 mt-1">{completedCount}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm font-medium text-slate-500">Cancelled Orders</p>
+          <p className="text-3xl font-bold text-red-600 mt-1">{cancelledCount}</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <p className="text-sm font-medium text-slate-500">Total Revenue</p>
+          <p className="text-3xl font-bold text-slate-900 mt-1">₹{totalRevenue.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</p>
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Filter className="size-4" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                placeholder="Search order number or customer..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={handleStatusChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-2">
-              <Calendar className="size-4 text-muted-foreground" />
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                placeholder="From date"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="size-4 text-muted-foreground" />
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                placeholder="To date"
-              />
-            </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="size-4 text-slate-500" />
+          <h3 className="text-sm font-semibold text-slate-900">Filters</h3>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Input
+              placeholder="Search order number or customer..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 h-11 rounded-xl bg-slate-50 border-0"
+            />
           </div>
-        </CardContent>
-      </Card>
+          <Select value={statusFilter} onValueChange={handleStatusChange}>
+            <SelectTrigger className="rounded-xl h-11 border-slate-200">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Calendar className="size-4 text-slate-400 shrink-0" />
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              placeholder="From date"
+              className="rounded-xl h-11 border-slate-200"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="size-4 text-slate-400 shrink-0" />
+            <Input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              placeholder="To date"
+              className="rounded-xl h-11 border-slate-200"
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Results */}
-      <div className="rounded-lg border bg-card">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40px]"></TableHead>
-              <TableHead>Order #</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
+            <TableRow className="bg-slate-50">
+              <TableHead className="w-[40px] text-slate-500 font-medium"></TableHead>
+              <TableHead className="text-slate-500 font-medium">Order #</TableHead>
+              <TableHead className="text-slate-500 font-medium">Customer</TableHead>
+              <TableHead className="text-slate-500 font-medium">Items</TableHead>
+              <TableHead className="text-slate-500 font-medium">Total</TableHead>
+              <TableHead className="text-slate-500 font-medium">Status</TableHead>
+              <TableHead className="text-slate-500 font-medium">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-                  No order history found.
+                <TableCell colSpan={7} className="text-center py-16">
+                  <div className="flex flex-col items-center gap-2">
+                    <Package className="size-10 text-slate-300" />
+                    <p className="text-slate-500 font-medium">No results found</p>
+                    <p className="text-slate-400 text-sm">No order history matching your filters.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -269,44 +348,44 @@ export default function OrderHistoryPage() {
               const items = order.items || []
               return (
               <Fragment key={id}>
-                <TableRow className={`cursor-pointer ${isBilling ? "bg-muted/20" : ""}`} onClick={() => setExpandedId(expandedId === id ? null : id)}>
+                <TableRow className={`cursor-pointer ${isBilling ? "bg-slate-50/50" : ""}`} onClick={() => setExpandedId(expandedId === id ? null : id)}>
                   <TableCell>
                     {expandedId === id ? (
-                      <ChevronDown className="size-4 text-muted-foreground" />
+                      <ChevronDown className="size-4 text-slate-400" />
                     ) : (
-                      <ChevronRight className="size-4 text-muted-foreground" />
+                      <ChevronRight className="size-4 text-slate-400" />
                     )}
                   </TableCell>
-                  <TableCell className={`font-mono text-sm font-medium ${isBilling ? "text-muted-foreground italic" : ""}`}>
+                  <TableCell className={`font-mono text-sm font-medium ${isBilling ? "text-slate-400 italic" : "text-slate-900"}`}>
                     {isBilling ? order.order_number : (order as Order).order_number}
                   </TableCell>
-                  <TableCell className="text-sm">{order.customer_name || "—"}</TableCell>
-                  <TableCell>{items.length}</TableCell>
-                  <TableCell className="font-medium">₹{order.total.toFixed(2)}</TableCell>
+                  <TableCell className="text-sm text-slate-700">{order.customer_name || "—"}</TableCell>
+                  <TableCell className="text-slate-500">{items.length}</TableCell>
+                  <TableCell className="font-medium text-slate-900">₹{order.total.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={`text-xs px-2 py-0 ${statusStyles[order.status]}`}>
                       {isBilling ? "Cancelled (Billing)" : statusConfig[order.status].label}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-sm text-slate-500">
                     {new Date(order.created_at).toLocaleDateString()}
                   </TableCell>
                 </TableRow>
                 {expandedId === id && items.length > 0 && (
                   <TableRow key={`${id}-items`}>
-                    <TableCell colSpan={7} className="bg-muted/30 p-0">
+                    <TableCell colSpan={7} className="bg-slate-50/50 p-0">
                       <div className="px-10 py-3 space-y-3">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Items</p>
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Items</p>
                         {items.map((item: { id: number; product_name: string; product_sku: string; quantity: number; unit_price: number; total: number }, idx: number) => (
                           <div key={item.id || idx} className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-3">
-                              <span className="font-medium">{item.product_name}</span>
-                              <span className="text-muted-foreground font-mono text-xs">{item.product_sku}</span>
+                              <span className="font-medium text-slate-900">{item.product_name}</span>
+                              <span className="text-slate-500 font-mono text-xs">{item.product_sku}</span>
                             </div>
                             <div className="flex items-center gap-4">
-                              <span className="text-muted-foreground">x{item.quantity}</span>
-                              <span className="text-muted-foreground">₹{item.unit_price.toFixed(2)}</span>
-                              <span className="font-medium w-20 text-right">₹{item.total.toFixed(2)}</span>
+                              <span className="text-slate-500">x{item.quantity}</span>
+                              <span className="text-slate-500">₹{item.unit_price.toFixed(2)}</span>
+                              <span className="font-medium w-20 text-right text-slate-900">₹{item.total.toFixed(2)}</span>
                             </div>
                           </div>
                         ))}

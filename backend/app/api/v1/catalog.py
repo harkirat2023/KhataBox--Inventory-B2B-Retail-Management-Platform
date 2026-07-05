@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.product import Product
+from app.models.store import Store
 from app.models.user import User
 
 router = APIRouter()
@@ -19,11 +20,14 @@ async def catalog_products(
     brand: str = Query("", max_length=100),
     min_price: float = Query(0),
     max_price: float = Query(0),
+    store_id: int | None = Query(None),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     query = select(Product).where(Product.is_active == True)
 
+    if store_id:
+        query = query.where(Product.store_id == store_id)
     if search:
         query = query.where(
             Product.name.ilike(f"%{search}%") | Product.sku.ilike(f"%{search}%")
@@ -55,6 +59,37 @@ async def catalog_products(
     ]
 
 
+@router.get("/products/{product_id}")
+async def catalog_product_by_id(
+    product_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Product).where(Product.id == product_id, Product.is_active == True)
+    )
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    store_name = None
+    if product.store_id:
+        store_result = await db.execute(select(Store).where(Store.id == product.store_id))
+        store = store_result.scalar_one_or_none()
+        if store:
+            store_name = store.name
+    return {
+        "id": product.id,
+        "name": product.name,
+        "sku": product.sku,
+        "category": product.category,
+        "brand": product.brand,
+        "selling_price": product.selling_price,
+        "stock_quantity": product.stock_quantity,
+        "store_id": product.store_id,
+        "store_name": store_name,
+    }
+
+
 @router.get("/by-uuid/{uuid}")
 async def catalog_product_by_uuid(
     uuid: str,
@@ -69,6 +104,12 @@ async def catalog_product_by_uuid(
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
+    store_name = None
+    if product.store_id:
+        store_result = await db.execute(select(Store).where(Store.id == product.store_id))
+        store = store_result.scalar_one_or_none()
+        if store:
+            store_name = store.name
     return {
         "id": product.id,
         "name": product.name,
@@ -77,4 +118,6 @@ async def catalog_product_by_uuid(
         "brand": product.brand,
         "selling_price": product.selling_price,
         "stock_quantity": product.stock_quantity,
+        "store_id": product.store_id,
+        "store_name": store_name,
     }

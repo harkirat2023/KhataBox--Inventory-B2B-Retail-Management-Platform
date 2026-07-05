@@ -72,3 +72,4 @@ class CustomerCartAddResponse(BaseModel):
 class CustomerCartCheckout(BaseModel):
     payment_method: str | None = "credit"
     notes: str | None = None
+    store_id: int | None = None

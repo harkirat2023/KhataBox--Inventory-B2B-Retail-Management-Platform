@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -65,10 +66,10 @@ const statusConfig: Record<POStatus, { label: string }> = {
 }
 
 const statusStyles: Record<POStatus, string> = {
-  draft: "bg-gray-100 text-gray-800 border-gray-300",
-  sent: "bg-blue-100 text-blue-800 border-blue-300",
-  received: "bg-green-100 text-green-800 border-green-300",
-  cancelled: "bg-red-100 text-red-800 border-red-300",
+  draft: "bg-slate-100 text-slate-700 border-slate-200",
+  sent: "bg-blue-50 text-blue-700 border-blue-200",
+  received: "bg-green-50 text-green-700 border-green-200",
+  cancelled: "bg-red-50 text-red-700 border-red-200",
 }
 
 const statusOptions: POStatus[] = ["draft", "sent", "received", "cancelled"]
@@ -77,6 +78,7 @@ export default function PurchaseOrdersPage() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([])
   const [search, setSearch] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const loadOrders = useCallback(async () => {
     try {
@@ -84,6 +86,8 @@ export default function PurchaseOrdersPage() {
       setOrders(data)
     } catch (err) {
       console.error("Failed to load purchase orders", err)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -107,47 +111,78 @@ export default function PurchaseOrdersPage() {
   )
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Purchase Orders</h1>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="size-4 mr-2" /> Create PO
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by PO number or supplier..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+    <div className="min-h-screen bg-[#F8FAFC] p-6">
+      <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-slate-900">Purchase Orders</h1>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
+            <Plus className="size-4 mr-2" /> Create PO
+          </Button>
         </div>
-      </div>
 
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>PO #</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
-                  No purchase orders found. Create your first PO.
-                </TableCell>
-              </TableRow>
-            )}
-            {filtered.map((order) => (
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Input
+              placeholder="Search by PO number or supplier..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
+            />
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>PO #</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <FileText className="size-12 text-slate-300 mb-4" />
+            <h3 className="text-lg font-semibold text-slate-900">No purchase orders found</h3>
+            <p className="text-sm text-slate-500 mt-1 mb-6">Create your first purchase order to get started.</p>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
+              <Plus className="size-4 mr-2" /> Create PO
+            </Button>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>PO #</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="font-mono text-sm font-medium">{order.po_number}</TableCell>
                 <TableCell>{order.supplier_name}</TableCell>
@@ -176,7 +211,7 @@ export default function PurchaseOrdersPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-slate-500">
                   {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
               </TableRow>
@@ -184,12 +219,14 @@ export default function PurchaseOrdersPage() {
           </TableBody>
         </Table>
       </div>
+      )}
 
       <CreatePODialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onSuccess={loadOrders}
       />
+      </div>
     </div>
   )
 }
@@ -289,10 +326,10 @@ function CreatePODialog({
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Supplier</label>
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Supplier</label>
               <Select value={supplierId} onValueChange={(val) => val && setSupplierId(val)}>
-                <SelectTrigger>
+                <SelectTrigger className="rounded-xl border-slate-200 h-11">
                   <SelectValue placeholder="Select a supplier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -303,25 +340,25 @@ function CreatePODialog({
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Items</label>
-                <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-slate-700 block">Items</label>
+                <Button type="button" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl h-9 px-4 text-sm transition-all duration-200" onClick={addLineItem}>
                   <Plus className="size-3 mr-1" /> Add Item
                 </Button>
               </div>
               {lineItems.length === 0 && (
-                <p className="text-sm text-muted-foreground py-2">No items added yet.</p>
+                <p className="text-sm text-slate-500 py-2">No items added yet.</p>
               )}
               {lineItems.map((item, idx) => (
                 <div key={idx} className="flex items-end gap-2">
-                  <div className="flex-1 space-y-1">
-                    <label className="text-xs text-muted-foreground">Product</label>
+                  <div className="flex-1">
+                    <label className="text-xs text-slate-500 mb-1 block">Product</label>
                     <Select
                       value={String(item.product_id)}
                       onValueChange={(val) => val && updateLineItem(idx, "product_id", parseInt(val))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="rounded-xl border-slate-200 h-11">
                         <SelectValue placeholder="Select product" />
                       </SelectTrigger>
                       <SelectContent>
@@ -333,36 +370,38 @@ function CreatePODialog({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="w-20 space-y-1">
-                    <label className="text-xs text-muted-foreground">Qty</label>
+                  <div className="w-20">
+                    <label className="text-xs text-slate-500 mb-1 block">Qty</label>
                     <Input
                       type="number"
                       min={1}
                       value={item.quantity}
                       onChange={(e) => updateLineItem(idx, "quantity", parseInt(e.target.value) || 1)}
+                      className="rounded-xl border-slate-200 h-11"
                     />
                   </div>
-                  <div className="w-28 space-y-1">
-                    <label className="text-xs text-muted-foreground">Unit Price</label>
+                  <div className="w-28">
+                    <label className="text-xs text-slate-500 mb-1 block">Unit Price</label>
                     <Input
                       type="number"
                       step="0.01"
                       min={0}
                       value={item.unit_price}
                       onChange={(e) => updateLineItem(idx, "unit_price", parseFloat(e.target.value) || 0)}
+                      className="rounded-xl border-slate-200 h-11"
                     />
                   </div>
-                  <Button type="button" variant="ghost" size="icon" className="size-9 mb-0.5 text-destructive" onClick={() => removeLineItem(idx)}>
+                  <Button type="button" variant="ghost" size="icon" className="size-9 mb-0.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl" onClick={() => removeLineItem(idx)}>
                     &times;
                   </Button>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Notes</label>
+            <div>
+              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Notes</label>
               <textarea
-                className="w-full min-h-[60px] rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                className="w-full min-h-[60px] rounded-xl border-slate-200 p-3 text-sm"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Optional notes..."
@@ -370,8 +409,8 @@ function CreatePODialog({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={loading}>{loading ? "Creating..." : "Create PO"}</Button>
+            <Button type="button" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" disabled={loading}>{loading ? "Creating..." : "Create PO"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

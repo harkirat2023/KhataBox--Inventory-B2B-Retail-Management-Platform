@@ -5,7 +5,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- END:nextjs-agent-rules -->
 
 ## Runtime Status (2026-06-09)
-**All 35 API endpoint tests PASS. All 20 frontend routes serve 200.**
+**All 43 backend tests PASS (39 API + 4 inventory sync). All 20 frontend routes serve 200.**
 - Backend: `localhost:8002` (FastAPI + Uvicorn)
 - Frontend: `localhost:3000` (Next.js)
 - Database: PostgreSQL 5432, 14 tables, 11,531+ records

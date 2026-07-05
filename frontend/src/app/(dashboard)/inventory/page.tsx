@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
-import { Plus, Search, Pencil, Trash2, Upload, QrCode, ScanLine } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Upload, QrCode, ScanLine, Loader2, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +26,7 @@ import { ProductQrDialog } from "@/components/products/product-qr-dialog"
 import { InventoryQrScanDialog } from "@/components/inventory/inventory-qr-scan-dialog"
 import { Product, ProductFormData } from "@/types/product"
 import { Store } from "@/types/store"
+import { Skeleton } from "@/components/ui/skeleton"
 import { clientApi } from "@/lib/client-api"
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
@@ -41,14 +42,18 @@ export default function InventoryPage() {
   const [scanDialogOpen, setScanDialogOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importing, setImporting] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const loadProducts = useCallback(async () => {
+    setLoading(true)
     try {
       const params = storeFilter && storeFilter !== "all" ? `?store_id=${storeFilter}` : ""
       const data = await clientApi.get<Product[]>(`/api/v1/products/${params}`)
       setProducts(data)
     } catch (err) {
       console.error("Failed to load products", err)
+    } finally {
+      setLoading(false)
     }
   }, [storeFilter])
 
@@ -194,16 +199,16 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Inventory</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Inventory</h1>
         <div className="flex items-center gap-2">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportCsv} />
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+          <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
             <Upload className="size-4 mr-2" /> {importing ? "Importing..." : "Import"}
           </Button>
-          <Button variant="outline" onClick={() => setScanDialogOpen(true)}>
+          <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setScanDialogOpen(true)}>
             <ScanLine className="size-4 mr-2" /> Scan QR
           </Button>
-          <Button onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
             <Plus className="size-4 mr-2" /> Add Product
           </Button>
         </div>
@@ -211,16 +216,16 @@ export default function InventoryPage() {
 
       <div className="flex items-center gap-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <Input
             placeholder="Search by name, SKU, or category..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
           />
         </div>
         <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
             <SelectValue placeholder="All Stores" />
           </SelectTrigger>
           <SelectContent>
@@ -232,7 +237,7 @@ export default function InventoryPage() {
         </Select>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -247,21 +252,38 @@ export default function InventoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 && (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 8 }).map((_, j) => (
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-12">
-                  No products found. Add your first product to get started.
+                <TableCell colSpan={8} className="text-center py-16">
+                  <div className="flex flex-col items-center justify-center">
+                    <Package className="size-12 text-slate-300 mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-900 mb-1">No products found</h3>
+                    <p className="text-sm text-slate-500 mb-6 max-w-xs">Add your first product to get started with inventory tracking.</p>
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
+                      <Plus className="size-4 mr-2" /> Add Product
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
-            )}
-            {filtered.map((product) => (
+            ) : (
+              filtered.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell className="font-mono text-sm">{product.sku}</TableCell>
                 <TableCell>{product.category}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{product.store_name || "—"}</TableCell>
+                <TableCell className="text-sm text-slate-500">{product.store_name || "—"}</TableCell>
                 <TableCell>
-                  <span className={product.stock_quantity <= product.reorder_threshold ? "text-destructive font-medium" : ""}>
+                  <span className={product.stock_quantity <= product.reorder_threshold ? "text-red-600 font-medium" : ""}>
                     {product.stock_quantity}
                   </span>
                 </TableCell>
@@ -280,7 +302,7 @@ export default function InventoryPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8"
+                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                       onClick={() => { setQrProduct(product) }}
                       title="QR Identity"
                     >
@@ -289,7 +311,7 @@ export default function InventoryPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8"
+                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                       onClick={() => { setEditingProduct(product); setDialogOpen(true) }}
                     >
                       <Pencil className="size-3.5" />
@@ -297,7 +319,7 @@ export default function InventoryPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-destructive"
+                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-red-600"
                       onClick={() => handleDelete(product.id)}
                     >
                       <Trash2 className="size-3.5" />
@@ -305,7 +327,8 @@ export default function InventoryPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ))
+          )}
           </TableBody>
         </Table>
       </div>

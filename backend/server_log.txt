@@ -1,0 +1,2300 @@
+INFO:     Started server process [1832]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8002 (Press CTRL+C to quit)
+INFO:     127.0.0.1:56802 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56802 - "GET /api/v1/receipts/my HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56072 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53690 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49180 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49180 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52390 - "OPTIONS /api/v1/auth/register HTTP/1.1" 200 OK
+INFO:app.api.v1.auth:Starting registration for aaa@gmail.com
+INFO:app.api.v1.auth:Creating user with role=shopkeeper
+INFO:app.api.v1.auth:User committed: id=146
+INFO:app.api.v1.auth:Creating store for user 146
+INFO:app.api.v1.auth:Store created with id: 25
+INFO:app.api.v1.auth:Registration complete for user 146
+INFO:     127.0.0.1:52390 - "POST /api/v1/auth/register HTTP/1.1" 201 Created
+INFO:     127.0.0.1:49242 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51309 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:60799 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60799 - "OPTIONS /api/v1/dashboard/stats?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "OPTIONS /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "OPTIONS /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59010 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59010 - "GET /api/v1/dashboard/stats?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62215 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62026 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49812 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59161 - "OPTIONS /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "OPTIONS /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63302 - "GET /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63302 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59867 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "OPTIONS /api/v1/customers/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/customers/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65005 - "GET /api/v1/customers/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56091 - "OPTIONS /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56091 - "GET /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64081 - "GET /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "OPTIONS /api/v1/notifications/?type=low_stock HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "GET /api/v1/notifications/?type=low_stock HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59363 - "GET /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56471 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57426 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57426 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57426 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50340 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61982 - "OPTIONS /api/v1/catalog/products?store_id=25 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61982 - "GET /api/v1/catalog/products?store_id=25 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61982 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61982 - "GET /api/v1/catalog/products?store_id=25 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61982 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57021 - "OPTIONS /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57021 - "GET /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57021 - "GET /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "OPTIONS /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54386 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53993 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51496 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61223 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50244 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61223 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50244 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50244 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50244 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62406 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62406 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60586 - "OPTIONS /api/v1/b2c/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60586 - "POST /api/v1/b2c/orders/ HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:60586 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:57635 - "POST /api/v1/b2c/orders HTTP/1.1" 201 Created
+INFO:     127.0.0.1:58822 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58822 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60448 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60448 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60448 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60448 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61356 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61356 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61356 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61356 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53466 - "OPTIONS /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53466 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53466 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53466 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65208 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64453 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61415 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61415 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61415 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63142 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53194 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62331 - "POST /api/v1/b2c/orders/ HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:62331 - "POST /api/v1/b2c/orders HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52162 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52162 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53709 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53709 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60568 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60568 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54842 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54842 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54842 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54842 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54842 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54842 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57155 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57155 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57155 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63002 - "POST /api/v1/b2c/orders/ HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:63002 - "POST /api/v1/b2c/orders HTTP/1.1" 201 Created
+INFO:     127.0.0.1:64453 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64453 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64453 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64453 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64453 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64453 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60106 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60106 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60106 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60106 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60106 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54840 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54840 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56198 - "POST /api/v1/b2c/orders/ HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:56198 - "POST /api/v1/b2c/orders HTTP/1.1" 201 Created
+INFO:     127.0.0.1:56198 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56198 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53741 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53741 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60381 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60381 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60381 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60381 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62721 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62721 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63138 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63138 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63138 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "OPTIONS /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56064 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56064 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56064 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56064 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56064 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65291 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53099 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53099 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64237 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57861 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57861 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57861 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57861 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61283 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61283 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54076 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54076 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61807 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51147 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51741 - "OPTIONS /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51741 - "GET /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51741 - "GET /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53203 - "GET /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53203 - "GET /api/v1/catalog/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64596 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58189 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58189 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58189 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52557 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52557 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52557 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52557 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64827 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:49328 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49328 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49328 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49328 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64556 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64556 - "OPTIONS /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64556 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64556 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64556 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62057 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62057 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58354 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58354 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54083 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53735 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53735 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59909 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59909 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62052 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62052 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "OPTIONS /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62388 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62703 - "OPTIONS /api/v1/catalog/products?store_id=14&search=c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "GET /api/v1/catalog/products?store_id=14&search=c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "OPTIONS /api/v1/catalog/products?store_id=14&search=ca HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "GET /api/v1/catalog/products?store_id=14&search=ca HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "GET /api/v1/catalog/products?store_id=14&search=c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "GET /api/v1/catalog/products?store_id=14&search=c HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62004 - "GET /api/v1/catalog/products?store_id=14&search=ca HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/catalog/products?store_id=14 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63658 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63264 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63264 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63264 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63264 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63264 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63448 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "OPTIONS /api/v1/cart/checkout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51032 - "POST /api/v1/cart/checkout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53265 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53265 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53265 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53265 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64247 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64247 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56547 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56547 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "OPTIONS /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52035 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60101 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60101 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60101 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60101 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60101 - "POST /api/v1/cart/checkout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60854 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60854 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57895 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60854 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60854 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60854 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57895 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62282 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49784 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57497 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57497 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56438 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56438 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61359 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61359 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65040 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65040 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65040 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65040 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53176 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55604 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56064 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "OPTIONS /api/v1/catalog/products/91 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59661 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59661 - "OPTIONS /api/v1/catalog/products/310 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59661 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55956 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55956 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55956 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55956 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55956 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55956 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55956 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49673 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49673 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49673 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49673 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50696 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65043 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50696 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:65043 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59032 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58346 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58346 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58346 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58346 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58346 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58346 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50080 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50085 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64328 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63652 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63652 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63652 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63652 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63652 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "OPTIONS /api/v1/cart/0/items/0?product_id=310 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "DELETE /api/v1/cart/0/items/0?product_id=310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "OPTIONS /api/v1/cart/0/items/0?product_id=309 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "DELETE /api/v1/cart/0/items/0?product_id=309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51988 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51988 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51988 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "OPTIONS /api/v1/catalog/products/161 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60432 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54657 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59654 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58182 - "OPTIONS /api/v1/catalog/products/310 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53395 - "OPTIONS /api/v1/catalog/products/161 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53395 - "OPTIONS /api/v1/catalog/products/91 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:53395 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54877 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "OPTIONS /api/v1/catalog/products?store_id=13&search=s HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13&search=s HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "OPTIONS /api/v1/catalog/products?store_id=13&search=so HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13&search=so HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "OPTIONS /api/v1/catalog/products?store_id=13&search=soa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13&search=soa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "OPTIONS /api/v1/catalog/products?store_id=13&search=soap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13&search=soap HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63697 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63697 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57527 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57527 - "OPTIONS /api/v1/catalog/products/160 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54116 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54116 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54116 - "OPTIONS /api/v1/catalog/products/169 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/169 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/169 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "OPTIONS /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "GET /api/v1/catalog/products/169 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49933 - "OPTIONS /api/v1/catalog/products/309 HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:52968 - "GET /api/v1/catalog/products/309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52968 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52968 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62408 - "GET /api/v1/catalog/products/161 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52968 - "GET /api/v1/catalog/products/169 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62408 - "GET /api/v1/catalog/products/309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49242 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "OPTIONS /api/v1/cart/checkout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/cart/checkout HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49783 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49783 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49783 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53435 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53435 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53435 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53435 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53435 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53435 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60430 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60430 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49242 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53079 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53079 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53079 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57511 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50214 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "OPTIONS /api/v1/catalog/products/309 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "GET /api/v1/catalog/products/309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56087 - "OPTIONS /api/v1/catalog/products/310 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56087 - "OPTIONS /api/v1/catalog/products/91 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56087 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56087 - "OPTIONS /api/v1/catalog/products/160 HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:50214 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50214 - "GET /api/v1/catalog/products/309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50214 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50214 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50214 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60745 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60745 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60745 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60745 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60745 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60745 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60745 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59114 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/catalog/products/91 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/catalog/products/160 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/cart/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63513 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63513 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63513 - "OPTIONS /api/v1/catalog/products/310 HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "OPTIONS /api/v1/catalog/products/309 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/91 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/160 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64083 - "GET /api/v1/catalog/products/309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57027 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57042 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53282 - "POST /api/v1/auth/refresh HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:58251 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58251 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50219 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:64397 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64397 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65455 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60257 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60257 - "OPTIONS /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:58951 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "GET /api/v1/catalog/products?store_id=24 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "OPTIONS /api/v1/cart/0/items/0?product_id=310 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "DELETE /api/v1/cart/0/items/0?product_id=310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58951 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "DELETE /api/v1/cart/0/items/0?product_id=310 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58951 - "OPTIONS /api/v1/cart/0/items/0?product_id=309 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "DELETE /api/v1/cart/0/items/0?product_id=309 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58951 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58951 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60291 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60291 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53146 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53146 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57890 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57890 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57890 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57890 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57890 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51374 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55617 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55617 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55617 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55617 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55617 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49839 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49839 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49839 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58646 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58646 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63406 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63406 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53028 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53028 - "OPTIONS /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53028 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53028 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53028 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51637 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51637 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58593 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58593 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58593 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58593 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52286 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52286 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52286 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55753 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55753 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55753 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55753 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52286 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58491 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54953 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58491 - "GET /api/v1/catalog/products?store_id=12 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58491 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58491 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58491 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58491 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61161 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57405 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57405 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57405 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57405 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57405 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63122 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63122 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63122 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63791 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63807 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58840 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54753 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65299 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53595 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:56190 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56190 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51898 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64166 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64166 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62435 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65157 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65157 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64395 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55068 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55068 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63338 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63338 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64972 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54040 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61546 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61546 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61546 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61546 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55888 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55888 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "OPTIONS /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55272 - "GET /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53312 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50361 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50361 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64698 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64698 - "GET /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64698 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64698 - "GET /api/v1/catalog/products?store_id=20 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55607 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50851 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50851 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50851 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64208 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64208 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65197 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58631 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54806 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56986 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58658 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58658 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52653 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55950 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55276 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55276 - "GET /api/v1/orders/?limit=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61873 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61873 - "POST /api/v1/products/ HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:54799 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50239 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61197 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61197 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61197 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61197 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "OPTIONS /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57864 - "OPTIONS /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57864 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57864 - "OPTIONS /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "GET /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62785 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51238 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49781 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60183 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60183 - "OPTIONS /api/v1/customers/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60183 - "GET /api/v1/customers/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63668 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63668 - "GET /api/v1/customers/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56092 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56092 - "GET /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56092 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55601 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53387 - "OPTIONS /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53387 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53387 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53387 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60718 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60718 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60718 - "GET /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60718 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60718 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60718 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57833 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57833 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61962 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61962 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61962 - "GET /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61962 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61962 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61962 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54100 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "OPTIONS /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64731 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64329 - "OPTIONS /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64329 - "GET /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64329 - "GET /api/v1/notifications/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56811 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56811 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56811 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "OPTIONS /api/v1/products/?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55600 - "GET /api/v1/products/?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64376 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64376 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64376 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64376 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57001 - "OPTIONS /api/v1/products/?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61763 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61763 - "GET /api/v1/products/?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61763 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50355 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50357 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51602 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51602 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58235 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58235 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51139 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53870 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53870 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53870 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53870 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53870 - "OPTIONS /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53870 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61919 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "POST /api/v1/b2c/orders HTTP/1.1" 201 Created
+INFO:     127.0.0.1:52209 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52209 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53961 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53961 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51536 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51536 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51536 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55892 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55441 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60339 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60339 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55441 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50286 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50286 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49152 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49152 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55006 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61707 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58144 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59194 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59194 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59194 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59194 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59194 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49347 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61695 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63310 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61421 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61421 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61965 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55772 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55772 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55772 - "OPTIONS /api/v1/dashboard/stats?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55772 - "OPTIONS /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55772 - "OPTIONS /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52576 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:54352 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55136 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/dashboard/stats?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55136 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63363 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53978 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50313 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50313 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56723 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56723 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/dashboard/stats?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54352 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62136 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62136 - "GET /api/v1/dashboard/stats?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62136 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62136 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "OPTIONS /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "OPTIONS /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "GET /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/b2c/shopkeeper/order-history HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/b2c/shopkeeper/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63975 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59517 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63073 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51236 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51236 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51236 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49165 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49165 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62407 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62407 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58610 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58610 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55878 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55878 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52447 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52447 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64726 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59608 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65348 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50173 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50173 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51801 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61669 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61669 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52404 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52404 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64612 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64612 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50188 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50188 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50561 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50561 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64273 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64011 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64011 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55732 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55732 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57142 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57142 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57142 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57142 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56678 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56678 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58250 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52669 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60903 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58193 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58193 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58193 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51966 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51966 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58193 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58116 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58116 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58116 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58116 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58116 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60644 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63078 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63078 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52237 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52237 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52237 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52237 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51038 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58912 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61843 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61843 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54146 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54146 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54146 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65145 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55232 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51705 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56156 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64991 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64991 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64991 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64991 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57024 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57024 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63929 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63929 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62754 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62754 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56404 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52597 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59652 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59652 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59652 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59652 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58807 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59977 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58606 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58606 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52308 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62782 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63906 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61821 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62492 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50060 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52423 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52423 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52587 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52587 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62965 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62965 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62430 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62430 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53334 - "OPTIONS /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53334 - "OPTIONS /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53334 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53334 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61651 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58672 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55119 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55119 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55119 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55119 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55119 - "GET /api/v1/orders/?b2c=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55119 - "GET /api/v1/orders/?b2c=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60524 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:57670 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "OPTIONS /api/v1/dashboard/stats?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "OPTIONS /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "OPTIONS /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "OPTIONS /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "GET /api/v1/orders/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59451 - "GET /api/v1/products/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51405 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50841 - "GET /api/v1/dashboard/stats?store_id=22 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59451 - "GET /api/v1/stores/ HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56651 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60763 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60763 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54707 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60763 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63575 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63575 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64050 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64050 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64050 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61712 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54279 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62317 - "GET /api/v1/cart/ HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:62317 - "GET /api/v1/cart/ HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:59556 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59556 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59556 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59632 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59632 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63023 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65385 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63823 - "GET / HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63823 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63823 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53444 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53446 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58606 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58606 - "GET /api/v1/orders/my-orders HTTP/1.1" 500 Internal Server Error
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\applications.py", line 1159, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 409, in _sentry_patched_asgi_app
+    return await middleware(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\asgi.py", line 161, in _run_asgi3
+    return await self._run_app(scope, receive, send, asgi_version=3)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\asgi.py", line 262, in _run_app
+    raise exc from None
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\asgi.py", line 257, in _run_app
+    return await self.app(
+           ^^^^^^^^^^^^^^^
+        scope, receive, _sentry_wrapped_send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 200, in _create_span_call
+    return await old_call(app, scope, new_receive, new_send, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 200, in _create_span_call
+    return await old_call(app, scope, new_receive, new_send, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\1. PLACEMENT\1A. PROJECTS\KhataBox\backend\app\main.py", line 60, in add_performance_headers
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 200, in _create_span_call
+    return await old_call(app, scope, new_receive, new_send, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\1. PLACEMENT\1A. PROJECTS\KhataBox\backend\app\main.py", line 54, in rate_limit
+    return await rate_limit_middleware(request, call_next)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\1. PLACEMENT\1A. PROJECTS\KhataBox\backend\app\services\rate_limiter.py", line 66, in rate_limit_middleware
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 200, in _create_span_call
+    return await old_call(app, scope, new_receive, new_send, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py", line 96, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\cors.py", line 154, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 298, in _sentry_exceptionmiddleware_call
+    await old_call(self, scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 200, in _create_span_call
+    return await old_call(app, scope, new_receive, new_send, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\starlette.py", line 200, in _create_span_call
+    return await old_call(app, scope, new_receive, new_send, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sentry_sdk\integrations\fastapi.py", line 143, in _sentry_app
+    return await old_app(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\routing.py", line 457, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\dependencies\utils.py", line 649, in solve_dependencies
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\fastapi\dependencies\utils.py", line 678, in solve_dependencies
+    solved = await call(**solved_result.values)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\1. PLACEMENT\1A. PROJECTS\KhataBox\backend\app\core\dependencies.py", line 23, in get_current_user
+    result = await db.execute(select(User).where(User.id == int(user_id)))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\ext\asyncio\session.py", line 448, in execute
+    result = await greenlet_spawn(
+             ^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 203, in greenlet_spawn
+    result = context.switch(value)
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py", line 2372, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\session.py", line 2270, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        conn,
+        ^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+        statement, params or {}, execution_options=execution_options
+    )
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1421, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\sql\elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\engine\default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 585, in execute
+    self._adapt_connection.await_(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self._prepare_and_execute(operation, parameters)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 132, in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\util\_concurrency_py3k.py", line 196, in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 520, in _prepare_and_execute
+    await adapt_connection._start_transaction()
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 850, in _start_transaction
+    self._handle_exception(error)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py", line 797, in _handle_exception
+    raise translated_error from error
+sqlalchemy.exc.InterfaceError: (sqlalchemy.dialects.postgresql.asyncpg.InterfaceError) <class 'asyncpg.exceptions._base.InterfaceError'>: connection is closed
+[SQL: SELECT users.id, users.email, users.password_hash, users.name, users.role, users.store_name, users.phone, users.is_active, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = $1::INTEGER]
+[parameters: (144,)]
+(Background on this error at: https://sqlalche.me/e/20/rvf5)
+INFO:     127.0.0.1:54911 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50688 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57196 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63711 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51431 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51431 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54213 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54213 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54213 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60446 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60446 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53291 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53293 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62770 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52542 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60741 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60757 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59469 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59469 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60851 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60851 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58297 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58297 - "OPTIONS /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58297 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "OPTIONS /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "GET /api/v1/catalog/products?store_id=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61152 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59924 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:62016 - "OPTIONS /api/v1/catalog/products?store_id=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59924 - "OPTIONS /api/v1/catalog/products?store_id=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62016 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59924 - "GET /api/v1/catalog/products?store_id=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62016 - "GET /api/v1/catalog/products?store_id=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62016 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62016 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62016 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62016 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58667 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58667 - "GET /api/v1/catalog/products?store_id=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58667 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58667 - "GET /api/v1/catalog/products?store_id=6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65213 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65213 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50467 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60275 - "OPTIONS /api/v1/catalog/products?store_id=17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50467 - "OPTIONS /api/v1/catalog/products?store_id=17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60275 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50467 - "GET /api/v1/catalog/products?store_id=17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60275 - "GET /api/v1/catalog/products?store_id=17 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60275 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60275 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "OPTIONS /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "OPTIONS /api/v1/b2c/orders/validate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61097 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61097 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61097 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61097 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:61097 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55174 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55174 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55174 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54833 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54833 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54833 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59629 - "OPTIONS /api/v1/b2c/orders/1586 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59629 - "OPTIONS /api/v1/b2c/orders/1586 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51712 - "GET /api/v1/b2c/orders/1586 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59629 - "GET /api/v1/b2c/orders/1586 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59629 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51712 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53863 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53863 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53863 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53788 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56296 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56296 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62701 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49354 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49354 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49354 - "POST /api/v1/auth/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55722 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55722 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58403 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58403 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59609 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65474 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65474 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55019 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55019 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52960 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56659 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65206 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65206 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51378 - "GET /api/v1/dashboard/stats?store_id=13 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:60755 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52093 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51786 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58192 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "OPTIONS /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "OPTIONS /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62040 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54515 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54515 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50603 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54515 - "GET /api/v1/catalog/products?store_id=2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "OPTIONS /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60431 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50567 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50567 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52778 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56632 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56632 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56632 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62153 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "OPTIONS /api/v1/catalog/products?store_id=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60216 - "OPTIONS /api/v1/catalog/products?store_id=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60216 - "GET /api/v1/catalog/products?store_id=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "GET /api/v1/catalog/products?store_id=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63064 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58991 - "OPTIONS /api/v1/b2c/orders/validate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58991 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58991 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:58991 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62575 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62575 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58991 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58991 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50525 - "OPTIONS /api/v1/b2c/orders/1585 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50525 - "GET /api/v1/b2c/orders/1585 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50525 - "GET /api/v1/b2c/orders/1585 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:50525 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50525 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50525 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59327 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50525 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59327 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52596 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52596 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57349 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53279 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53279 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61714 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61714 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61714 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63801 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63801 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:63801 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/catalog/products?store_id=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/catalog/products?store_id=11 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63801 - "POST /api/v1/cart/items HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63066 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63066 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63268 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63066 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59538 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59538 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59538 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59538 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52688 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51480 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51480 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51480 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51480 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65436 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65436 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60230 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57429 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62334 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62334 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49937 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57747 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51468 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61528 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55481 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63796 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63796 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63796 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63796 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63796 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50560 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61183 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61374 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61214 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64077 - "OPTIONS /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64077 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62986 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62986 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62986 - "OPTIONS /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62986 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62986 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49348 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52544 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49392 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49392 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49392 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49392 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58164 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58164 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58164 - "OPTIONS /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58164 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58164 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58164 - "GET /api/v1/catalog/products?store_id=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60344 - "OPTIONS /api/v1/orders/my-orders HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:64110 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64110 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51483 - "OPTIONS /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64110 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64110 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64110 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59243 - "OPTIONS /api/v1/b2c/orders/5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60777 - "GET /api/v1/b2c/orders/5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60777 - "GET /api/v1/b2c/orders/5 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60777 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60777 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60777 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49677 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49677 - "GET /api/v1/orders/my-orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60777 - "GET /api/v1/b2c/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51079 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55906 - "POST /api/v1/auth/login HTTP/1.1" 422 Unprocessable Content
+INFO:     127.0.0.1:61942 - "POST /api/v1/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:61942 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61942 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:62167 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62167 - "GET /api/v1/users HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:59856 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59856 - "GET /api/v1/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59856 - "GET /api/v1/customers HTTP/1.1" 307 Temporary Redirect
+INFO:     127.0.0.1:59856 - "GET /api/v1/customers/ HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:57967 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+ERROR:asyncio:Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\HP\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+INFO:     127.0.0.1:57967 - "GET /api/v1/dashboard/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55482 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55482 - "GET /api/v1/stores/public HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55482 - "GET /api/v1/catalog/products?store_id=13 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49675 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49675 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:49675 - "POST /api/v1/b2c/orders HTTP/1.1" 201 Created
+INFO:     127.0.0.1:49675 - "GET /api/v1/b2c/orders?status=pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63990 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63990 - "POST /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:62164 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52713 - "POST /api/v1/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52713 - "OPTIONS /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52713 - "HEAD /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52713 - "GET /api/v1/b2c/orders/validate HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:60630 - "GET /openapi.json HTTP/1.1" 200 OK

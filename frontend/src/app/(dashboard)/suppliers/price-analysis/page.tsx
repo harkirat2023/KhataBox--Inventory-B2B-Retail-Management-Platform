@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Search } from "lucide-react"
+import { ArrowLeft, Search } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { SupplierPriceAnalysis, PriceAnalysisItem } from "@/types/price-analysis"
+import { SupplierPriceAnalysis } from "@/types/price-analysis"
 import { clientApi } from "@/lib/client-api"
 
 function MarginBadge({ margin }: { margin: number }) {
@@ -71,65 +71,68 @@ export default function PriceAnalysisPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[#F8FAFC]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/suppliers">
-            <Button variant="ghost" size="icon" className="size-8">
+            <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl">
               <ArrowLeft className="size-4" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-semibold">Price Analysis</h1>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Price Analysis</h1>
+            <p className="text-sm text-slate-500">Compare supplier pricing and margins</p>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Average Margin</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Average Margin</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalAvgMargin}%</div>
-            <p className="text-xs text-muted-foreground mt-1">Across {allItems.length} products</p>
+            <div className="text-2xl font-bold text-slate-900">{totalAvgMargin}%</div>
+            <p className="text-xs text-slate-500 mt-1">Across {allItems.length} products</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">High Margin (&ge;35%)</CardTitle>
+            <CardTitle className="text-sm text-slate-500">High Margin (&ge;35%)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{highMargin}</div>
-            <p className="text-xs text-muted-foreground mt-1">Products with good profitability</p>
+            <p className="text-xs text-slate-500 mt-1">Products with good profitability</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Low Margin (&lt;20%)</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Low Margin (&lt;20%)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{lowMargin}</div>
-            <p className="text-xs text-muted-foreground mt-1">Products needing price review</p>
+            <p className="text-xs text-slate-500 mt-1">Products needing price review</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
           <Input
             placeholder="Search product, supplier, or SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
           />
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All Suppliers</TabsTrigger>
+        <TabsList className="bg-slate-100 p-1 rounded-xl">
+          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">All Suppliers</TabsTrigger>
           {data.filter((s) => s.total_items > 0).map((s) => (
-            <TabsTrigger key={s.supplier_id} value={s.supplier_id.toString()}>
+            <TabsTrigger key={s.supplier_id} value={s.supplier_id.toString()} className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
               {s.supplier_name}
             </TabsTrigger>
           ))}
@@ -150,14 +153,14 @@ export default function PriceAnalysisPage() {
             return (
               <div key={group.supplier_id} className="mb-6">
                 {activeTab === "all" && (
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium">{group.supplier_name}</h3>
-                    <span className="text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between mb-3 px-1">
+                    <h3 className="font-semibold text-slate-900">{group.supplier_name}</h3>
+                    <span className="text-sm text-slate-500">
                       Avg Margin: <strong>{group.avg_margin_percent}%</strong> &middot; {group.total_items} products
                     </span>
                   </div>
                 )}
-                <div className="rounded-lg border bg-card">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -174,7 +177,7 @@ export default function PriceAnalysisPage() {
                       {groupItems.map((item) => (
                         <TableRow key={`${item.product_id}-${item.supplier_id}`}>
                           <TableCell className="font-medium">{item.product_name}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{item.product_sku}</TableCell>
+                          <TableCell className="text-sm text-slate-500">{item.product_sku}</TableCell>
                           <TableCell className="text-sm">{item.category}</TableCell>
                           <TableCell className="text-right">₹{item.last_supplier_price.toFixed(2)}</TableCell>
                           <TableCell className="text-right">₹{item.current_selling_price.toFixed(2)}</TableCell>
@@ -192,7 +195,11 @@ export default function PriceAnalysisPage() {
           })}
 
           {search && filteredItems.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">No products match your search.</div>
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+              <Search className="size-10 text-slate-300" />
+              <p className="text-sm font-medium text-slate-900">No products found</p>
+              <p className="text-sm text-slate-500">Try a different search term</p>
+            </div>
           )}
         </TabsContent>
       </Tabs>

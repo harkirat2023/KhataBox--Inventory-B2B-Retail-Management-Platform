@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator"
 import { Product } from "@/types/product"
 import { toast } from "sonner"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface Props {
   open: boolean

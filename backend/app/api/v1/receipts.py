@@ -68,7 +68,14 @@ async def _get_customer_for_current_user(current_user: User, db: AsyncSession) -
     result = await db.execute(select(Customer).where(Customer.email == current_user.email))
     customer = result.scalar_one_or_none()
     if not customer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer record not found")
+        customer = Customer(
+            email=current_user.email,
+            company_name=current_user.email.split("@")[0],
+            contact_person=current_user.name or current_user.email.split("@")[0],
+            owner_id=0,
+        )
+        db.add(customer)
+        await db.flush()
     return customer
 
 
@@ -183,7 +190,7 @@ async def receipt_history(
 
 @router.get("/my")
 async def my_receipts(
-    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    current_user: User = Depends(require_role("admin", "shopkeeper", "customer")),
     db: AsyncSession = Depends(get_db),
 ):
     customer = await _get_customer_for_current_user(current_user, db)

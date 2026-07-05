@@ -2,10 +2,12 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     auth,
+    b2c,
     catalog,
     customer_cart,
     dashboard,
     data,
+    payments,
     products,
     orders,
     suppliers,
@@ -46,3 +48,5 @@ router.include_router(reports.router, prefix="/reports", tags=["Reports"])
 router.include_router(stores.router, prefix="/stores", tags=["Stores"])
 router.include_router(transfers.router, prefix="/transfers", tags=["Stock Transfers"])
 router.include_router(customer_cart.router, prefix="/cart", tags=["Customer Cart"])
+router.include_router(payments.router, prefix="/payment", tags=["Payments"])
+router.include_router(b2c.router, prefix="/b2c", tags=["B2C Orders"])

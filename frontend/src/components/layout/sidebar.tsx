@@ -64,6 +64,13 @@ const staffNavGroups = [
     ],
   },
   {
+    label: "B2C Orders",
+    items: [
+      { label: "New Orders", href: "/b2c-orders", icon: ShoppingCart, roles: ["admin", "shopkeeper"] },
+      { label: "Order History", href: "/b2c-order-history", icon: History, roles: ["admin", "shopkeeper"] },
+    ],
+  },
+  {
     label: "B2B",
     items: [
       { label: "Suppliers", href: "/suppliers", icon: Truck, roles: ["admin", "shopkeeper"] },
@@ -130,7 +137,7 @@ export function Sidebar() {
   const [stores, setStores] = useState<Store[]>([])
   // Select navigation groups based on role
   const navGroups = role === "customer" ? customerNavGroups : staffNav
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(role === "customer" ? ["Shop", "Account"] : ["Dashboard", "B2C"]))
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(role === "customer" ? ["Shop", "Account"] : ["Dashboard", "B2C", "B2C Orders"]))
 
   useEffect(() => {
     if (role && ["admin", "shopkeeper"].includes(role)) {

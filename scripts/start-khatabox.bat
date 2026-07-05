@@ -109,17 +109,14 @@ if not errorlevel 1 (
     goto skip_migration
 )
 
-REM Run migrations
+REM Run pending migrations (idempotent)
 pushd "%BACKEND%"
-"%VENV_PY%" -m alembic current >nul 2>&1
+echo Running pending migrations...
+"%VENV_PY%" -m alembic upgrade head
 if errorlevel 1 (
-    echo Running migrations...
-    "%VENV_PY%" -m alembic upgrade head
-    if errorlevel 1 (
-        echo WARNING: Migration may have partially failed.
-    )
+    echo WARNING: Migration may have partially failed.
 ) else (
-    echo Migrations already up-to-date.
+    echo Migrations up-to-date.
 )
 popd
 goto migration_done
@@ -160,10 +157,15 @@ if "%API_STATUS%"=="STOPPED" (
     start "KhataBox Backend" cmd /c "cd /d "%BACKEND%" && "%VENV_PY%" -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload --log-level info"
 )
 
-REM Start frontend if not running
-if "%FRONTEND_STATUS%"=="STOPPED" (
-    start "KhataBox Frontend" cmd /c "cd /d "%ROOT%frontend" && npm run dev"
+REM Always restart frontend to pick up latest changes
+if "%FRONTEND_STATUS%"=="RUNNING" (
+    echo Restarting frontend to apply latest changes...
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3000"') do (
+        taskkill /f /pid %%a >nul 2>&1
+    )
+    timeout /t 2 /nobreak >nul
 )
+start "KhataBox Frontend" cmd /c "cd /d "%ROOT%frontend" && npm run dev"
 
 REM Wait for backend to be ready
 echo Waiting for backend API...
@@ -175,6 +177,9 @@ if errorlevel 1 (
 )
 echo Backend API is ready.
 
+REM Open browser to landing page
+start http://localhost:3000/khatabox
+
 REM ========================================
 REM Final Status Display
 REM ========================================
@@ -184,6 +189,7 @@ echo  All services started!
 echo.
 echo  URLs:
 echo  -------
+echo  Landing:  http://localhost:3000/khatabox
 echo  Frontend: http://localhost:3000
 echo  Backend:  http://localhost:8002
 echo  API Docs: http://localhost:8002/docs

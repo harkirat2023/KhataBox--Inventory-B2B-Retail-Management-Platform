@@ -1,5 +1,5 @@
 /** Server-side API client (for use in Server Components / Route Handlers). Uses auth() from NextAuth. */
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface SessionWithToken {
   access_token?: string

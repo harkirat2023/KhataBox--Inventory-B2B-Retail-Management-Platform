@@ -10,8 +10,14 @@ export async function requireAuth(roles?: Role[]) {
     redirect("/login")
   }
 
-  if (roles && !roles.includes(session.user.role as Role)) {
-    redirect("/dashboard")
+  const userRole = session.user.role as Role
+
+  if (roles && !roles.includes(userRole)) {
+    // Break infinite loop: redirect customer to /customer, others to /login
+    if (userRole === "customer") {
+      redirect("/customer")
+    }
+    redirect("/login")
   }
 
   return session

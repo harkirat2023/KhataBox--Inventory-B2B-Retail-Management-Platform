@@ -1,15 +1,16 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Camera, CameraOff, Search, Package, QrCode, Plus, Minus, Equal } from "lucide-react"
+import { Camera, CameraOff, Search, Package, QrCode, Plus, Minus, Equal, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { clientApi } from "@/lib/client-api"
 import { toast } from "sonner"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface ProductInfo {
   id: number
@@ -147,25 +148,25 @@ export default function InventoryScanPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Inventory Scan</h1>
+        <h1 className="text-3xl font-bold text-slate-900">Inventory Scan</h1>
         <Badge variant="outline" className="text-xs gap-1">
           <QrCode className="size-3" />
           QR Mode
         </Badge>
       </div>
 
-      <Card>
+      <Card className="rounded-2xl border-slate-200 shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
             <Camera className="size-4" />
             Scan QR Code
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative aspect-video rounded-lg border bg-muted overflow-hidden">
+          <div className="relative aspect-video rounded-xl border bg-slate-50 overflow-hidden">
             <div id="qr-inventory-scanner-static" className="w-full h-full" />
             {!cameraActive && !cameraError && (
-              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 pointer-events-none">
                 <div className="text-center p-8">
                   <QrCode className="size-12 mx-auto mb-3 opacity-40" />
                   <p className="text-sm">Point camera at a product QR code</p>
@@ -173,7 +174,7 @@ export default function InventoryScanPage() {
               </div>
             )}
             {cameraError && (
-              <div className="absolute inset-0 flex items-center justify-center text-destructive pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center text-red-500 pointer-events-none">
                 <div className="text-center p-8">
                   <CameraOff className="size-12 mx-auto mb-3 opacity-60" />
                   <p className="text-sm">{cameraError}</p>
@@ -184,12 +185,12 @@ export default function InventoryScanPage() {
 
           <div className="flex items-center gap-2">
             {!cameraActive ? (
-              <Button onClick={startCamera} className="flex-1">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={startCamera}>
                 <Camera className="size-4 mr-1.5" />
                 Start Camera
               </Button>
             ) : (
-              <Button variant="outline" onClick={stopCamera} className="flex-1">
+              <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={stopCamera}>
                 <CameraOff className="size-4 mr-1.5" />
                 Stop Camera
               </Button>
@@ -198,10 +199,10 @@ export default function InventoryScanPage() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-slate-200" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-2 text-muted-foreground">or enter UUID manually</span>
+              <span className="bg-white px-2 text-slate-400">or enter UUID manually</span>
             </div>
           </div>
 
@@ -210,8 +211,9 @@ export default function InventoryScanPage() {
               placeholder="Paste product UUID..."
               value={manualUuid}
               onChange={(e) => setManualUuid(e.target.value)}
+              className="rounded-xl border-slate-200 h-11"
             />
-            <Button type="submit" variant="outline" disabled={!manualUuid.trim()}>
+            <Button type="submit" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl size-11 transition-all duration-200" disabled={!manualUuid.trim()}>
               <Search className="size-4" />
             </Button>
           </form>
@@ -219,18 +221,29 @@ export default function InventoryScanPage() {
       </Card>
 
       {loading && (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            Looking up product...
+        <Card className="rounded-2xl border-slate-200 shadow-sm">
+          <CardContent className="py-8 space-y-4">
+            <div className="flex items-center justify-center gap-2 text-slate-500">
+              <Loader2 className="size-5 animate-spin" />
+              <span>Looking up product...</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i}>
+                  <Skeleton className="h-3 w-20 mb-2" />
+                  <Skeleton className="h-5 w-32" />
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
       {product && !loading && (
         <>
-          <Card>
+          <Card className="rounded-2xl border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
                 <Package className="size-4" />
                 {product.name}
               </CardTitle>
@@ -238,40 +251,46 @@ export default function InventoryScanPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">SKU</span>
-                  <p className="font-mono font-medium">{product.sku}</p>
+                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">SKU</span>
+                  <p className="font-mono font-medium text-slate-900">{product.sku}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Category</span>
-                  <p className="font-medium">{product.category}</p>
+                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">Category</span>
+                  <p className="font-medium text-slate-900">{product.category}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Current Stock</span>
-                  <p className="text-lg font-bold">{product.stock_quantity}</p>
+                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">Current Stock</span>
+                  <p className="text-lg font-bold text-slate-900">{product.stock_quantity}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Store</span>
-                  <p className="font-medium">{product.store_name || "—"}</p>
+                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">Store</span>
+                  <p className="font-medium text-slate-900">{product.store_name || "—"}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-2xl border-slate-200 shadow-sm">
             <CardHeader>
-              <CardTitle>Stock Update</CardTitle>
+              <CardTitle className="text-slate-900">Stock Update</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
                 {(["add", "remove", "adjust"] as ActionType[]).map((a) => {
                   const cfg = actionConfig[a]
                   const Icon = cfg.icon
+                  const isActive = action === a
+                  const activeClass = a === "remove"
+                    ? "bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+                    : a === "adjust"
+                      ? "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"
+                      : "bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+                  const inactiveClass = "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"
                   return (
                     <Button
                       key={a}
-                      variant={action === a ? cfg.variant : "outline"}
                       onClick={() => setAction(a)}
-                      className="flex-1"
+                      className={isActive ? activeClass : inactiveClass}
                     >
                       <Icon className="size-4 mr-1" />
                       {cfg.label}
@@ -282,7 +301,7 @@ export default function InventoryScanPage() {
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                  <label className="text-sm font-medium text-slate-700 mb-1.5 block">
                     {action === "add"
                       ? "Quantity to add"
                       : action === "remove"
@@ -294,6 +313,7 @@ export default function InventoryScanPage() {
                     min={0}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="rounded-xl border-slate-200 h-11"
                   />
                 </div>
                 <div className="pt-5">
@@ -301,6 +321,7 @@ export default function InventoryScanPage() {
                     size="lg"
                     onClick={handleSubmit}
                     disabled={submitting || action === "remove" && quantity > product.stock_quantity}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
                   >
                     {submitting ? "Updating..." : "Update Stock"}
                   </Button>
@@ -308,17 +329,17 @@ export default function InventoryScanPage() {
               </div>
 
               {action === "remove" && quantity > product.stock_quantity && (
-                <p className="text-xs text-destructive">
+                <p className="text-xs text-red-500">
                   Cannot remove more than current stock ({product.stock_quantity})
                 </p>
               )}
               {action === "adjust" && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   Stock will be set to exactly {quantity} (was {product.stock_quantity})
                 </p>
               )}
               {action === "add" && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate-500">
                   Stock will become {product.stock_quantity + quantity}
                 </p>
               )}
@@ -328,10 +349,11 @@ export default function InventoryScanPage() {
       )}
 
       {!product && !loading && (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <QrCode className="size-16 mx-auto mb-4 opacity-20" />
-            <p>Scan a product QR code or enter a UUID to begin</p>
+        <Card className="rounded-2xl border-slate-200 shadow-sm">
+          <CardContent className="py-16 text-center">
+            <QrCode className="size-16 mx-auto mb-4 text-slate-300" />
+            <h3 className="text-lg font-semibold text-slate-900 mb-1">Scan a Product</h3>
+            <p className="text-sm text-slate-500">Point camera at a product QR code or enter a UUID to begin</p>
           </CardContent>
         </Card>
       )}

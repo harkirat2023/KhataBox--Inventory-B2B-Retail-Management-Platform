@@ -3,7 +3,7 @@ import Credentials from "next-auth/providers/credentials"
 import type { JWT } from "next-auth/jwt"
 import type { Session } from "next-auth"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface UserWithTokens extends User {
   id: string

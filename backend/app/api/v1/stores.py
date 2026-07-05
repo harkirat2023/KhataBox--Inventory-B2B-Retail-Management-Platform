@@ -11,6 +11,15 @@ from app.schemas.store import StoreCreate, StoreResponse, StoreUpdate
 router = APIRouter()
 
 
+@router.get("/public", response_model=list[StoreResponse])
+async def list_public_stores(
+    db: AsyncSession = Depends(get_db),
+):
+    """Public endpoint: list all active stores (accessible by any authenticated role including customers)."""
+    result = await db.execute(select(Store).where(Store.is_active == True).order_by(Store.name))
+    return [StoreResponse.model_validate(s) for s in result.scalars().all()]
+
+
 @router.get("/", response_model=list[StoreResponse])
 async def list_stores(
     page: int | None = Query(None, ge=1),

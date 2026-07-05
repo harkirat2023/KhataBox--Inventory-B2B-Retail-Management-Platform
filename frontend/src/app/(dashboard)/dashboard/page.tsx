@@ -14,6 +14,7 @@ import {
   Plus,
   ScanBarcode,
   ArrowRight,
+  ClipboardList,
 } from "lucide-react"
 import {
   Select,
@@ -133,12 +134,12 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-muted-foreground">Your business at a glance.</p>
+          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+          <p className="text-sm text-slate-500">Your business at a glance.</p>
         </div>
         {stores && stores.length > 0 && (
           <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground">Store:</label>
+            <label className="text-sm font-medium text-slate-700">Store:</label>
             <Select
               value={activeStore.id ? String(activeStore.id) : ""}
               onValueChange={(val) => {
@@ -146,7 +147,7 @@ export default function DashboardPage() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -166,8 +167,8 @@ export default function DashboardPage() {
           const Icon = action.icon
           return (
             <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
-              <Button variant="outline" className="w-full h-auto py-4 flex-col gap-2 hover:bg-muted">
-                <Icon className="size-5" />
+              <Button className="w-full h-auto py-4 flex-col gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl">
+                <Icon className="size-5 text-slate-500" />
                 <span className="text-xs font-medium">{action.label}</span>
               </Button>
             </Link>
@@ -180,16 +181,16 @@ export default function DashboardPage() {
         {cards.map((card) => {
           const Icon = card.icon
           return (
-            <Card key={card.title}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                <Icon className="size-4 text-muted-foreground" />
+            <Card key={card.title} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
+                <CardTitle className="text-sm font-medium text-slate-700">{card.title}</CardTitle>
+                <Icon className="size-4 text-slate-400" />
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {statsLoading ? (
                   <Skeleton className="h-8 w-3/4" />
                 ) : (
-                  <div className="text-2xl font-bold">{card.value}</div>
+                  <div className="text-2xl font-bold text-slate-900">{card.value}</div>
                 )}
                 <p className={`mt-1 text-xs ${card.changePositive ? "text-emerald-600" : "text-amber-600"}`}>
                   {card.change}
@@ -202,34 +203,40 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent Orders */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Recent Orders</CardTitle>
+        <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Recent Orders</CardTitle>
             <Link href="/orders">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Button className="text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl h-9 px-3">
                 View All <ArrowRight className="size-4 ml-1" />
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {recentOrders.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No recent orders</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex items-center justify-center size-10 rounded-xl bg-slate-100 mb-3">
+                  <ClipboardList className="size-5 text-slate-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-900">No recent orders</p>
+                <p className="text-sm text-slate-500 mt-1">Orders placed today will appear here.</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {recentOrders.map((order) => (
                   <Link key={order.id} href={`/orders?id=${order.id}`}>
-                    <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors">
+                    <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200">
                       <div className="flex items-center gap-3">
                         <div>
-                          <p className="text-sm font-medium">{order.order_number}</p>
-                          <p className="text-xs text-muted-foreground">{order.customer_name || "Walk-in"}</p>
+                          <p className="text-sm font-medium text-slate-900">{order.order_number}</p>
+                          <p className="text-xs text-slate-500">{order.customer_name || "Walk-in"}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge variant="outline" className={`text-xs ${statusStyles[order.status]}`}>
                           {order.status}
                         </Badge>
-                        <span className="text-sm font-medium">₹{order.total.toFixed(2)}</span>
+                        <span className="text-sm font-medium text-slate-900">₹{order.total.toFixed(2)}</span>
                       </div>
                     </div>
                   </Link>
@@ -240,30 +247,36 @@ export default function DashboardPage() {
         </Card>
 
         {/* Low Stock Alert */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Low Stock Alert</CardTitle>
+        <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <CardHeader className="flex flex-row items-center justify-between p-0 pb-4">
+            <CardTitle className="text-base font-semibold text-slate-900">Low Stock Alert</CardTitle>
             <Link href="/inventory">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">
+              <Button className="text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl h-9 px-3">
                 View All <ArrowRight className="size-4 ml-1" />
               </Button>
             </Link>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {lowStockProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">All products well stocked</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex items-center justify-center size-10 rounded-xl bg-slate-100 mb-3">
+                  <Package className="size-5 text-slate-400" />
+                </div>
+                <p className="text-sm font-medium text-slate-900">All stocked up</p>
+                <p className="text-sm text-slate-500 mt-1">All products are above their reorder thresholds.</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {lowStockProducts.map((product) => (
                   <Link key={product.id} href={`/inventory?product=${product.id}`}>
-                    <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors">
+                    <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all duration-200 border border-transparent hover:border-slate-200">
                       <div>
-                        <p className="text-sm font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
+                        <p className="text-sm font-medium text-slate-900">{product.name}</p>
+                        <p className="text-xs text-slate-500 font-mono">{product.sku}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-destructive">{product.stock_quantity}</p>
-                        <p className="text-xs text-muted-foreground">in stock</p>
+                        <p className="text-sm font-medium text-red-600">{product.stock_quantity}</p>
+                        <p className="text-xs text-slate-500">in stock</p>
                       </div>
                     </div>
                   </Link>

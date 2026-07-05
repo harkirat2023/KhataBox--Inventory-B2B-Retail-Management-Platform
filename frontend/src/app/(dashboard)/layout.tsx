@@ -8,7 +8,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   await requireAuth(["admin", "shopkeeper"])
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <TopNav />

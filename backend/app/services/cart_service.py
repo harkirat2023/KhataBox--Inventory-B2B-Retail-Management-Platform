@@ -8,11 +8,12 @@ from sqlalchemy.orm import selectinload
 from app.models.customer import Customer
 from app.models.customer_cart import CartStatus, CustomerCart, CustomerCartItem
 from app.models.inventory import InventoryMovement, MovementType
-from app.models.order import Order, OrderItem
+from app.models.order import Order, OrderItem, OrderStatus
 from app.models.product import Product
 from app.models.receipt import Receipt, ReceiptItem
 from app.models.store import Store
 from app.schemas.customer_cart import CustomerCartItemResponse, CustomerCartResponse
+from app.services.socketio_manager import emit_order_created
 
 
 def generate_order_number() -> str:
@@ -60,7 +61,17 @@ def _build_cart_item_response(item):
 
 async def _get_customer(db, user_email):
     result = await db.execute(select(Customer).where(Customer.email == user_email))
-    return result.scalar_one_or_none()
+    customer = result.scalar_one_or_none()
+    if not customer:
+        customer = Customer(
+            email=user_email,
+            company_name=user_email.split("@")[0],
+            contact_person=user_email.split("@")[0],
+            owner_id=0,
+        )
+        db.add(customer)
+        await db.flush()
+    return customer
 
 
 async def _recalculate_totals(db, cart):
@@ -77,9 +88,20 @@ async def _recalculate_totals(db, cart):
     return all_items
 
 
-async def _checkout_cart_impl(db, customer, cart, payment_method, notes):
+async def _checkout_cart_impl(db, customer, cart, payment_method, notes, store_id=None):
     if not cart.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cart is empty")
+
+    shopkeeper_id = customer.owner_id
+    store = None
+    if store_id:
+        store_result = await db.execute(select(Store).where(Store.id == store_id))
+        store = store_result.scalar_one_or_none()
+        if store:
+            shopkeeper_id = store.owner_id
+    if not store:
+        store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
+        store = store_result.scalar_one_or_none()
 
     if payment_method == "credit":
         credit_remaining = customer.credit_limit - customer.credit_used
@@ -89,11 +111,28 @@ async def _checkout_cart_impl(db, customer, cart, payment_method, notes):
                 detail=f"Credit limit exceeded. Available: ₹{credit_remaining:.2f}, Order total: ₹{cart.total:.2f}",
             )
 
+    out_of_stock = []
+    for cart_item in cart.items:
+        prod_result = await db.execute(select(Product).where(Product.id == cart_item.product_id))
+        product = prod_result.scalar_one_or_none()
+        if product:
+            available = product.stock_quantity - product.reserved_quantity
+            if available < cart_item.quantity:
+                out_of_stock.append(f"{cart_item.product_name} (available: {available}, requested: {cart_item.quantity})")
+    if out_of_stock:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient stock: {'; '.join(out_of_stock)}",
+        )
+
+    b2c_status = OrderStatus.CONFIRMED if payment_method == "upi" else OrderStatus.COUNTER
     order = Order(
         order_number=generate_order_number(),
-        shopkeeper_id=customer.owner_id,
+        shopkeeper_id=shopkeeper_id,
         customer_id=customer.id,
         payment_method=payment_method,
+        status=b2c_status,
+        is_b2c=True,
         subtotal=cart.subtotal,
         discount=cart.discount,
         gst=cart.gst,
@@ -119,7 +158,7 @@ async def _checkout_cart_impl(db, customer, cart, payment_method, notes):
         if product:
             movement = InventoryMovement(
                 product_id=cart_item.product_id,
-                shopkeeper_id=customer.owner_id,
+                shopkeeper_id=shopkeeper_id,
                 movement_type=MovementType.RESERVE_OUT,
                 quantity=-cart_item.quantity,
                 reference=f"Cart #{cart.id} → Order {order.order_number}",
@@ -133,13 +172,11 @@ async def _checkout_cart_impl(db, customer, cart, payment_method, notes):
     await db.commit()
     await db.refresh(order, ["items"])
 
-    store_result = await db.execute(select(Store).where(Store.owner_id == customer.owner_id).limit(1))
-    store = store_result.scalar_one_or_none()
     if store:
         receipt = Receipt(
             receipt_number=f"RCPT-{order.id:08d}",
             order_id=order.id,
-            shopkeeper_id=customer.owner_id,
+            shopkeeper_id=shopkeeper_id,
             customer_id=customer.id,
             store_id=store.id,
             payment_method=order.payment_method,
@@ -171,6 +208,13 @@ async def _checkout_cart_impl(db, customer, cart, payment_method, notes):
 
     cart.status = CartStatus.COMPLETED
     await db.commit()
+
+    await emit_order_created(shopkeeper_id, {
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "total": order.total,
+        "customer_email": customer.email,
+    })
 
     return {
         "order": {
@@ -277,6 +321,23 @@ async def add_item(db, user_email, payload):
     cart = cart_result.scalar_one_or_none()
     previous_exists = cart is not None
 
+    # Single-store enforcement for B2C cart
+    if cart and cart.items:
+        first_prod = await db.execute(select(Product).where(Product.id == cart.items[0].product_id))
+        first_product = first_prod.scalar_one_or_none()
+        existing_store_id = first_product.store_id if first_product else None
+        if existing_store_id:
+            for item in payload.items:
+                prod = await db.execute(select(Product).where(Product.id == item.product_id))
+                product = prod.scalar_one_or_none()
+                if product and product.store_id and product.store_id != existing_store_id:
+                    s_result = await db.execute(select(Store.name).where(Store.id == product.store_id))
+                    s_name = s_result.scalar_one_or_none() or "another store"
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"This item belongs to '{s_name}'. Your cart only allows items from one store at a time. Please checkout or clear your cart first.",
+                    )
+
     if not cart:
         cart = CustomerCart(
             customer_id=customer.id,
@@ -372,7 +433,7 @@ async def update_item_quantity(db, cart_id, item_id, quantity, user_email):
     return _build_cart_item_response(item)
 
 
-async def delete_item(db, cart_id, item_id, user_email):
+async def delete_item(db, cart_id, item_id, user_email, product_id=None):
     customer = await _get_customer(db, user_email)
     if not customer:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer record not found")
@@ -384,9 +445,16 @@ async def delete_item(db, cart_id, item_id, user_email):
     if not cart:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cart not found")
 
-    item_result = await db.execute(
-        select(CustomerCartItem).where(CustomerCartItem.id == item_id, CustomerCartItem.cart_id == cart.id)
-    )
+    if item_id > 0:
+        item_result = await db.execute(
+            select(CustomerCartItem).where(CustomerCartItem.id == item_id, CustomerCartItem.cart_id == cart.id)
+        )
+    elif product_id is not None:
+        item_result = await db.execute(
+            select(CustomerCartItem).where(CustomerCartItem.product_id == product_id, CustomerCartItem.cart_id == cart.id)
+        )
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     item = item_result.scalar_one_or_none()
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
@@ -416,7 +484,7 @@ async def checkout_active_cart(db, user_email, payload):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No active cart found")
 
     payment_method = payload.payment_method or "credit"
-    return await _checkout_cart_impl(db, customer, cart, payment_method, payload.notes)
+    return await _checkout_cart_impl(db, customer, cart, payment_method, payload.notes, payload.store_id)
 
 
 async def checkout_cart(db, cart_id, user_email, payload):
@@ -434,7 +502,7 @@ async def checkout_cart(db, cart_id, user_email, payload):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cart not found")
 
     payment_method = payload.payment_method or "credit"
-    return await _checkout_cart_impl(db, customer, cart, payment_method, payload.notes)
+    return await _checkout_cart_impl(db, customer, cart, payment_method, payload.notes, payload.store_id)
 
 
 async def delete_cart(db, cart_id, user_email):

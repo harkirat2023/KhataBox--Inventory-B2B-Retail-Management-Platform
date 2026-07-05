@@ -1,0 +1,52 @@
+import enum
+from datetime import datetime, timezone
+
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.core.database import Base
+
+
+class B2COrderStatus(str, enum.Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+
+
+class B2COrder(Base):
+    __tablename__ = "b2c_orders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    order_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    customer_user_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    store_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    shopkeeper_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    customer_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    customer_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    payment_type: Mapped[str] = mapped_column(String(20), default="online")
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    subtotal: Mapped[float] = mapped_column(Float, default=0)
+    discount: Mapped[float] = mapped_column(Float, default=0)
+    gst: Mapped[float] = mapped_column(Float, default=0)
+    total: Mapped[float] = mapped_column(Float, default=0)
+    notes: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    items: Mapped[list["B2COrderItem"]] = relationship("B2COrderItem", back_populates="order", cascade="all, delete-orphan")
+
+
+class B2COrderItem(Base):
+    __tablename__ = "b2c_order_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    order_id: Mapped[int] = mapped_column(Integer, ForeignKey("b2c_orders.id"), nullable=False)
+    product_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    product_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    unit_price: Mapped[float] = mapped_column(Float, nullable=False)
+    total_price: Mapped[float] = mapped_column(Float, nullable=False)
+
+    order: Mapped["B2COrder"] = relationship("B2COrder", back_populates="items")

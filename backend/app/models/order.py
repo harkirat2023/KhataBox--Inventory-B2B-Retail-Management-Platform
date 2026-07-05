@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -10,6 +10,7 @@ from app.core.database import Base
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
+    COUNTER = "counter"
     PROCESSING = "processing"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
@@ -31,6 +32,7 @@ class Order(Base):
     customer_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus, values_callable=lambda x: [e.value for e in x]), default=OrderStatus.PENDING)
     payment_method: Mapped[PaymentMethod | None] = mapped_column(Enum(PaymentMethod, values_callable=lambda x: [e.value for e in x]), nullable=True)
+    is_b2c: Mapped[bool] = mapped_column(Boolean, default=False)
     subtotal: Mapped[float] = mapped_column(Float, default=0)
     discount: Mapped[float] = mapped_column(Float, default=0)
     gst: Mapped[float] = mapped_column(Float, default=0)

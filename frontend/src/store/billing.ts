@@ -19,6 +19,13 @@ export interface BillingCart {
   cancelledAt: string | null
 }
 
+export interface StoreSelectionState {
+  selectedStoreId: number | null
+  selectedStoreName: string | null
+  setSelectedStore: (store: { id: number; name: string }) => void
+  clearSelectedStore: () => void
+}
+
 interface BillingState {
   carts: BillingCart[]
   activeCartId: string | null
@@ -49,6 +56,18 @@ function createNewCart(name: string, status: "active" | "incomplete" = "active")
     cancelledAt: null,
   }
 }
+
+export const useStoreSelection = create<StoreSelectionState>()(
+  persist(
+    (set) => ({
+      selectedStoreId: null,
+      selectedStoreName: null,
+      setSelectedStore: (store) => set({ selectedStoreId: store.id, selectedStoreName: store.name }),
+      clearSelectedStore: () => set({ selectedStoreId: null, selectedStoreName: null }),
+    }),
+    { name: "khatabox-store-selection" }
+  )
+)
 
 export const useBillingStore = create<BillingState>()(
   persist(

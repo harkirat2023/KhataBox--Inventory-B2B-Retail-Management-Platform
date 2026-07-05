@@ -70,11 +70,18 @@ def _order_to_response(order, customers_by_id, products_by_id, default_customer_
     }
 
 
-async def list_orders(db, shopkeeper_id, page=None, page_size=None):
-    base_query = select(Order).where(Order.shopkeeper_id == shopkeeper_id).options(selectinload(Order.items)).order_by(Order.created_at.desc())
+async def list_orders(db, shopkeeper_id, page=None, page_size=None, b2c=None):
+    conditions = [Order.shopkeeper_id == shopkeeper_id]
+    if b2c is True:
+        conditions.append(Order.is_b2c == True)
+        conditions.append(Order.status.in_([OrderStatus.COUNTER, OrderStatus.CONFIRMED]))
+    elif b2c is False:
+        conditions.append(Order.is_b2c == False)
+    base_query = select(Order).where(*conditions).options(selectinload(Order.items)).order_by(Order.created_at.desc())
     total = None
     if page is not None and page_size is not None:
-        count_result = await db.execute(select(func.count()).select_from(Order).where(Order.shopkeeper_id == shopkeeper_id))
+        count_query = select(func.count()).select_from(Order).where(*conditions)
+        count_result = await db.execute(count_query)
         total = count_result.scalar()
         base_query = base_query.offset((page - 1) * page_size).limit(page_size)
     result = await db.execute(base_query)
@@ -317,11 +324,44 @@ async def create_bulk_order(db, payload, user_email):
     return _order_to_response(order, customers_by_id, products_by_id)
 
 
+async def approve_b2c_order(db, order_id, shopkeeper_id):
+    result = await db.execute(
+        select(Order)
+        .where(Order.id == order_id, Order.shopkeeper_id == shopkeeper_id, Order.is_b2c == True)
+        .options(selectinload(Order.items))
+    )
+    order = result.scalar_one_or_none()
+    if not order:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="B2C order not found")
+
+    if order.status not in (OrderStatus.COUNTER, OrderStatus.CONFIRMED):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"B2C order cannot be approved from status: {order.status.value}",
+        )
+
+    order.status = OrderStatus.COMPLETED
+    await db.commit()
+    await db.refresh(order, ["items"])
+
+    customers_by_id, products_by_id = await _enrich_orders(db, [order])
+    await invalidate_cache("dashboard:*")
+    await emit_order_status_changed(order.shopkeeper_id, order.id, "completed")
+    return _order_to_response(order, customers_by_id, products_by_id)
+
+
 async def get_my_orders(db, user_email, page=None, page_size=None):
     cust_result = await db.execute(select(Customer).where(Customer.email == user_email))
     customer = cust_result.scalar_one_or_none()
     if not customer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer record not found")
+        customer = Customer(
+            email=user_email,
+            company_name=user_email.split("@")[0],
+            contact_person=user_email.split("@")[0],
+            owner_id=0,
+        )
+        db.add(customer)
+        await db.flush()
 
     base_query = select(Order).where(Order.customer_id == customer.id).options(selectinload(Order.items)).order_by(Order.created_at.desc())
     total = None

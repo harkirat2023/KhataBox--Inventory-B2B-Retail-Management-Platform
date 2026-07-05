@@ -14,11 +14,12 @@ router = APIRouter()
 async def list_orders(
     page: int | None = Query(None, ge=1),
     page_size: int | None = Query(None, ge=1, le=100),
+    b2c: bool | None = Query(None, description="Filter B2C orders (true=pending, false=exclude)"),
     response: Response = None,
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):
-    result, total = await order_service.list_orders(db, current_user.id, page, page_size)
+    result, total = await order_service.list_orders(db, current_user.id, page, page_size, b2c)
     if total is not None and page and page_size and response:
         response.headers["X-Total-Count"] = str(total)
         response.headers["X-Page"] = str(page)
@@ -52,6 +53,11 @@ async def my_orders(
         response.headers["X-Page-Size"] = str(page_size)
         response.headers["X-Total-Pages"] = str(max(1, (total + page_size - 1) // page_size))
     return result
+
+
+@router.post("/{order_id}/approve-b2c", response_model=OrderResponse)
+async def approve_b2c_order(order_id: int, current_user: User = Depends(require_role("admin", "shopkeeper")), db: AsyncSession = Depends(get_db)):
+    return await order_service.approve_b2c_order(db, order_id, current_user.id)
 
 
 @router.get("/{order_id}", response_model=OrderResponse)

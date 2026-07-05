@@ -61,7 +61,7 @@ class StoreUpdate(BaseModel):
 class StoreResponse(BaseModel):
     id: int
     name: str
-    store_type: str
+    store_type: str | None = None
     address: str | None
     city: str | None
     state: str | None

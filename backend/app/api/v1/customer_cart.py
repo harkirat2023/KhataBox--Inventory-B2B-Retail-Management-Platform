@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,9 +59,13 @@ async def update_item_quantity(
 
 @router.delete("/{cart_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_item(
-    cart_id: int, item_id: int, current_user: User = Depends(require_role("customer")), db: AsyncSession = Depends(get_db)
+    cart_id: int,
+    item_id: int,
+    product_id: Optional[int] = Query(None, description="Alternative lookup by product_id if item_id is 0"),
+    current_user: User = Depends(require_role("customer")),
+    db: AsyncSession = Depends(get_db),
 ):
-    await cart_service.delete_item(db, cart_id, item_id, current_user.email)
+    await cart_service.delete_item(db, cart_id, item_id, current_user.email, product_id=product_id)
 
 
 @router.post("/checkout", response_model=dict)

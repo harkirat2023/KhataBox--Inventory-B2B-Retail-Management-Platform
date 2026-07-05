@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import {
   Table,
@@ -102,8 +103,10 @@ export default function ReportsPage() {
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([])
   const [repeatCustomers, setRepeatCustomers] = useState<RepeatCustomer[]>([])
   const [clvCustomers, setCLVCustomers] = useState<CLVCustomer[]>([])
+  const [customersLoading, setCustomersLoading] = useState(false)
 
   const loadCustomerReports = useCallback(async () => {
+    setCustomersLoading(true)
     try {
       const [top, repeat, clv] = await Promise.all([
         clientApi.get<TopCustomer[]>("/api/v1/reports/customers/top?limit=10"),
@@ -114,23 +117,24 @@ export default function ReportsPage() {
       setRepeatCustomers(repeat)
       setCLVCustomers(clv)
     } catch { toast.error("Failed to load customer reports") }
+    finally { setCustomersLoading(false) }
   }, [])
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Reports</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold text-slate-900">Reports</h1>
+        <p className="text-sm text-slate-500">
           View and analyze your business performance.
         </p>
       </div>
 
       <Tabs defaultValue="sales">
-        <TabsList>
-          <TabsTrigger value="sales">Sales</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="customers" onClick={loadCustomerReports}>Customers</TabsTrigger>
+        <TabsList className="rounded-xl bg-slate-100 p-1">
+          <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Sales</TabsTrigger>
+          <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Inventory</TabsTrigger>
+          <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Products</TabsTrigger>
+          <TabsTrigger value="customers" onClick={loadCustomerReports} className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Customers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6 pt-4">
@@ -138,13 +142,13 @@ export default function ReportsPage() {
             {salesSummaryData.map((item) => {
               const Icon = item.icon
               return (
-                <Card key={item.label}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium">{item.label}</CardTitle>
-                    <Icon className="size-4 text-muted-foreground" />
+                <Card key={item.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                  <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
+                    <CardTitle className="text-sm font-medium text-slate-700">{item.label}</CardTitle>
+                    <Icon className="size-4 text-slate-400" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{item.value}</div>
+                  <CardContent className="p-0">
+                    <div className="text-2xl font-bold text-slate-900">{item.value}</div>
                     <p className="mt-1 text-xs text-emerald-600">{item.change}</p>
                   </CardContent>
                 </Card>
@@ -152,11 +156,11 @@ export default function ReportsPage() {
             })}
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue & Orders Overview</CardTitle>
+          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <CardHeader className="p-0 pb-5">
+              <CardTitle className="text-base font-semibold text-slate-900">Revenue & Orders Overview</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height={300} minWidth={300}>
                   <BarChart data={salesChartData}>
@@ -186,11 +190,11 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock Status Distribution</CardTitle>
+          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <CardHeader className="p-0 pb-5">
+              <CardTitle className="text-base font-semibold text-slate-900">Stock Status Distribution</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height={300} minWidth={300}>
                   <PieChart>
@@ -224,11 +228,11 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="products" className="space-y-6 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Products by Category</CardTitle>
+          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <CardHeader className="p-0 pb-5">
+              <CardTitle className="text-base font-semibold text-slate-900">Products by Category</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height={300} minWidth={300}>
                   <BarChart data={productsChartData} layout="vertical">
@@ -256,89 +260,115 @@ export default function ReportsPage() {
         </TabsContent>
 
         <TabsContent value="customers" className="space-y-6 pt-4">
+          {customersLoading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[1,2,3].map((i) => (
+                <Card key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                  <CardHeader className="p-0 pb-3">
+                    <Skeleton className="h-4 w-32" />
+                  </CardHeader>
+                  <CardContent className="p-0 space-y-2">
+                    {[1,2,3,4].map((j) => (
+                      <Skeleton key={j} className="h-8 w-full" />
+                    ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Top Customers</CardTitle>
+            <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
+                <CardTitle className="text-sm font-medium text-slate-700">Top Customers</CardTitle>
                 <Star className="size-4 text-yellow-500" />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead className="text-right">Orders</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-slate-500">Company</TableHead>
+                      <TableHead className="text-right text-slate-500">Orders</TableHead>
+                      <TableHead className="text-right text-slate-500">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {topCustomers.map((c) => (
-                      <TableRow key={c.id}>
-                        <TableCell className="text-sm">{c.company_name}</TableCell>
-                        <TableCell className="text-right text-sm">{c.order_count}</TableCell>
-                        <TableCell className="text-right font-medium">₹{(c.total_spent).toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                    {topCustomers.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">No data</TableCell></TableRow>}
+                    {topCustomers.length === 0 ? (
+                      <TableRow><TableCell colSpan={3} className="text-center text-slate-500 py-8">No data available</TableCell></TableRow>
+                    ) : (
+                      topCustomers.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell className="text-sm text-slate-700">{c.company_name}</TableCell>
+                          <TableCell className="text-right text-sm text-slate-500">{c.order_count}</TableCell>
+                          <TableCell className="text-right font-medium text-slate-900">₹{(c.total_spent).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Repeat Purchases</CardTitle>
+            <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
+                <CardTitle className="text-sm font-medium text-slate-700">Repeat Purchases</CardTitle>
                 <Repeat className="size-4 text-blue-500" />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead className="text-right">Orders</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-slate-500">Company</TableHead>
+                      <TableHead className="text-right text-slate-500">Orders</TableHead>
+                      <TableHead className="text-right text-slate-500">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {repeatCustomers.map((c) => (
-                      <TableRow key={c.id}>
-                        <TableCell className="text-sm">{c.company_name}</TableCell>
-                        <TableCell className="text-right text-sm">{c.order_count}</TableCell>
-                        <TableCell className="text-right font-medium">₹{(c.total_spent).toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                    {repeatCustomers.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">No data</TableCell></TableRow>}
+                    {repeatCustomers.length === 0 ? (
+                      <TableRow><TableCell colSpan={3} className="text-center text-slate-500 py-8">No data available</TableCell></TableRow>
+                    ) : (
+                      repeatCustomers.map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell className="text-sm text-slate-700">{c.company_name}</TableCell>
+                          <TableCell className="text-right text-sm text-slate-500">{c.order_count}</TableCell>
+                          <TableCell className="text-right font-medium text-slate-900">₹{(c.total_spent).toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Customer Lifetime Value</CardTitle>
+            <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+              <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
+                <CardTitle className="text-sm font-medium text-slate-700">Customer Lifetime Value</CardTitle>
                 <Wallet className="size-4 text-emerald-500" />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead className="text-right">CLV</TableHead>
-                      <TableHead className="text-right">Avg Order</TableHead>
+                      <TableHead className="text-slate-500">Company</TableHead>
+                      <TableHead className="text-right text-slate-500">CLV</TableHead>
+                      <TableHead className="text-right text-slate-500">Avg Order</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {clvCustomers.slice(0, 10).map((c) => (
-                      <TableRow key={c.id}>
-                        <TableCell className="text-sm">{c.company_name}</TableCell>
-                        <TableCell className="text-right font-medium">₹{(c.lifetime_value).toFixed(2)}</TableCell>
-                        <TableCell className="text-right text-sm">₹{c.avg_order_value.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                    {clvCustomers.length === 0 && <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-4">No data</TableCell></TableRow>}
+                    {clvCustomers.length === 0 ? (
+                      <TableRow><TableCell colSpan={3} className="text-center text-slate-500 py-8">No data available</TableCell></TableRow>
+                    ) : (
+                      clvCustomers.slice(0, 10).map((c) => (
+                        <TableRow key={c.id}>
+                          <TableCell className="text-sm text-slate-700">{c.company_name}</TableCell>
+                          <TableCell className="text-right font-medium text-slate-900">₹{(c.lifetime_value).toFixed(2)}</TableCell>
+                          <TableCell className="text-right text-sm text-slate-500">₹{c.avg_order_value.toFixed(2)}</TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>

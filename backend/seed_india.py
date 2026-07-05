@@ -416,7 +416,8 @@ async def seed():
             print("\nExisting data found. Truncating all tables...")
             tables = [
                 "audit_logs", "notifications", "stock_transfers", "inventory_movements",
-                "purchase_order_items", "purchase_orders", "invoices", "order_items", "orders",
+                "purchase_order_items", "purchase_orders", "invoices",
+                "receipt_items", "receipts", "order_items", "orders",
                 "products", "suppliers", "customers", "stores",
             ]
             for t in tables:
@@ -1077,6 +1078,80 @@ async def seed():
                 session.add(al)
                 audit_logs_created += 1
         print(f"  ~{audit_logs_created} audit log entries")
+
+        # ---------------------------------------------------------------
+        # FINAL COMMIT
+        # ---------------------------------------------------------------
+        # ---------------------------------------------------------------
+        # 12. B2C ORDERS (after commit so we have product data)
+        # ---------------------------------------------------------------
+        print("Seeding B2C Orders...")
+        from app.models.b2c_order import B2COrder, B2COrderItem
+
+        b2c_orders_created = 0
+        if stores and customer_users and products:
+            for shop_idx, store in enumerate(stores[:5]):  # First 5 stores get B2C orders
+                shopkeeper_id = store.owner_id
+                # Get products belonging to this store
+                store_products = [p for p in products if p.store_id == store.id]
+                if not store_products:
+                    store_products = products[shop_idx * 5: shop_idx * 5 + 10]
+
+                # Create 3-6 B2C orders per store
+                num_orders = random.randint(3, 6)
+                for _ in range(num_orders):
+                    customer_user = random.choice(customer_users)
+                    payment_type = random.choice(["online", "counter"])
+                    status = "completed" if random.random() > 0.3 else payment_type  # 70% completed
+                    num_items = random.randint(1, 4)
+                    selected_prods = random.sample(store_products, min(num_items, len(store_products)))
+
+                    subtotal = 0
+                    items_list = []
+                    for sp in selected_prods:
+                        qty = random.randint(1, 5)
+                        unit_price = float(sp.selling_price)
+                        total_price = qty * unit_price
+                        subtotal += total_price
+                        items_list.append((sp, qty, unit_price, total_price))
+
+                    discount = round(random.choice([0, 0, 0, 10, 20, 50, 100]) * (1 if subtotal > 100 else 0), 2)
+                    gst = round(subtotal * 0.18, 2)
+                    total = round(max(0, subtotal + gst - discount), 2)
+                    hours_ago = random.randint(1, 720)
+
+                    order = B2COrder(
+                        order_number=f"B2C-{100000 + b2c_orders_created:06d}",
+                        customer_user_id=customer_user.id,
+                        customer_name=customer_user.name or customer_user.email.split("@")[0],
+                        customer_phone=customer_user.phone,
+                        store_id=store.id,
+                        shopkeeper_id=shopkeeper_id,
+                        payment_type=payment_type,
+                        status=status,
+                        subtotal=subtotal,
+                        discount=discount,
+                        gst=gst,
+                        total=total,
+                        notes=random.choice([None, "Please deliver before evening", None, None, "Call before arriving"]),
+                        created_at=datetime.now(timezone.utc) - timedelta(hours=hours_ago),
+                        updated_at=datetime.now(timezone.utc) - timedelta(hours=max(0, hours_ago - 2)),
+                    )
+                    session.add(order)
+                    await session.flush()
+
+                    for sp, qty, unit_price, total_price in items_list:
+                        oi = B2COrderItem(
+                            order_id=order.id,
+                            product_id=sp.id,
+                            product_name=sp.name,
+                            quantity=qty,
+                            unit_price=unit_price,
+                            total_price=total_price,
+                        )
+                        session.add(oi)
+                    b2c_orders_created += 1
+        print(f"  {b2c_orders_created} B2C orders")
 
         # ---------------------------------------------------------------
         # FINAL COMMIT
