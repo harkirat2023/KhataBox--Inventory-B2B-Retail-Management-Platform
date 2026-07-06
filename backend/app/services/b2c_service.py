@@ -167,7 +167,7 @@ async def place_order(
     payload,
     current_user: User,
 ):
-    """Customer places a B2C order. Status = pending (inventory deducted atomically)."""
+    """Customer places a B2C order. Status = pending (inventory NOT yet deducted; deducted on completion)."""
     if not payload.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order must have at least one item")
 
@@ -224,41 +224,6 @@ async def place_order(
             )
             db.add(order_item)
 
-        # Deduct inventory immediately for PENDING orders
-        for item in payload.items:
-            product_result = await db.execute(
-                select(Product).where(
-                    Product.id == item.product_id,
-                    Product.owner_id == shopkeeper_id,
-                )
-            )
-            product = product_result.scalar_one_or_none()
-            if not product:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Product '{item.product_name}' not found",
-                )
-
-            if product.stock_quantity < item.quantity:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Insufficient stock for {item.product_name}: have {product.stock_quantity}, need {item.quantity}",
-                )
-
-            product.stock_quantity -= item.quantity
-
-            movement = InventoryMovement(
-                product_id=item.product_id,
-                shopkeeper_id=shopkeeper_id,
-                movement_type=MovementType.CONSUME_OUT,
-                quantity=-item.quantity,
-                reference=f"B2C Order #{order.order_number}",
-            )
-            db.add(movement)
-
-            await db.flush()
-            await check_low_stock(item.product_id, shopkeeper_id, db)
-
         await db.flush()
         await db.refresh(order, ["items"])
         await db.commit()
@@ -290,9 +255,20 @@ async def get_shopkeeper_orders(
     status_filter: str | None = None,
 ):
     """Shopkeeper views their B2C orders, optionally filtered by status."""
+    # TEMP DEBUG (remove later)
+    try:
+        print(
+            f"[DEBUG][b2c_service.get_shopkeeper_orders] shopkeeper_id={shopkeeper_id} status_filter={status_filter}"
+        )
+    except Exception:
+        pass
+
     conditions = [B2COrder.shopkeeper_id == shopkeeper_id]
-    if status_filter:
+    if status_filter == "history":
+        conditions.append(B2COrder.status.in_(["completed", "cancelled", "rejected"]))
+    elif status_filter:
         conditions.append(B2COrder.status == status_filter)
+
 
     result = await db.execute(
         select(B2COrder)
@@ -302,7 +278,24 @@ async def get_shopkeeper_orders(
     )
     orders = result.scalars().all()
 
+    # TEMP DEBUG (remove later)
+    try:
+        print(f"[DEBUG][b2c_service.get_shopkeeper_orders] rows={len(orders)} ids={[o.id for o in orders]}")
+        if orders:
+            print(
+                "[DEBUG][b2c_service.get_shopkeeper_orders] sample="
+                + ", ".join(
+                    [
+                        f"{{id:{o.id}, store_id:{o.store_id}, status:{o.status}}}"
+                        for o in orders[:5]
+                    ]
+                )
+            )
+    except Exception:
+        pass
+
     return [await _order_to_response(db, o) for o in orders]
+
 
 
 async def approve_order(
@@ -356,7 +349,7 @@ async def complete_order(
     order_id: int,
     shopkeeper_id: int,
 ):
-    """Shopkeeper marks a confirmed B2C order as completed → generate receipt.
+    """Shopkeeper completes a pending or confirmed B2C order → generate receipt.
     Note: Inventory was already deducted when order was placed (PENDING status)."""
     result = await db.execute(
         select(B2COrder)
@@ -370,14 +363,45 @@ async def complete_order(
     if not order:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="B2C order not found")
 
-    if order.status != B2COrderStatus.CONFIRMED.value:
+    if order.status not in (B2COrderStatus.PENDING.value, B2COrderStatus.CONFIRMED.value):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Order cannot be completed from status: {order.status}. Expected: {B2COrderStatus.CONFIRMED.value}",
+            detail=f"Order cannot be completed from status: {order.status}. Expected: {B2COrderStatus.PENDING.value} or {B2COrderStatus.CONFIRMED.value}",
         )
 
     order.status = B2COrderStatus.COMPLETED.value
     await db.flush()
+
+    # Deduct inventory on completion
+    for oi in order.items:
+        product_result = await db.execute(
+            select(Product).where(
+                Product.id == oi.product_id,
+                Product.owner_id == shopkeeper_id,
+            )
+        )
+        product = product_result.scalar_one_or_none()
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Product '{oi.product_name}' not found",
+            )
+        if product.stock_quantity < oi.quantity:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Insufficient stock for {oi.product_name}: have {product.stock_quantity}, need {oi.quantity}",
+            )
+        product.stock_quantity -= oi.quantity
+        movement = InventoryMovement(
+            product_id=oi.product_id,
+            shopkeeper_id=shopkeeper_id,
+            movement_type=MovementType.CONSUME_OUT,
+            quantity=-oi.quantity,
+            reference=f"B2C Order #{order.order_number}",
+        )
+        db.add(movement)
+        await db.flush()
+        await check_low_stock(oi.product_id, shopkeeper_id, db)
 
     # Generate receipt linked via b2c_order_id
     store_result = await db.execute(
@@ -437,9 +461,9 @@ async def _restore_inventory_for_order_items(
     reference: str,
 ):
     """
-    Restore inventory for a cancelled/rejected order by adding back consumed quantities.
-    Since B2C inventory is deducted at PENDING placement via MovementType.CONSUME_OUT,
-    we restore using MovementType.RETURN.
+    Restore inventory for an order by adding back consumed quantities.
+    Note: Currently unused in the one-step approve flow (inventory deducted only on completion).
+    Kept for backward compatibility.
     """
     if not order.items:
         return
@@ -511,7 +535,7 @@ async def reject_order(
     order_id: int,
     shopkeeper_id: int,
 ):
-    """Shopkeeper rejects an order (returns reserved inventory)."""
+    """Shopkeeper rejects a pending B2C order (no inventory restore needed since not yet deducted)."""
     result = await db.execute(
         select(B2COrder)
         .where(
@@ -530,15 +554,8 @@ async def reject_order(
             detail=f"Order cannot be rejected from status: {order.status}",
         )
 
-    async with db.begin():
-        await _restore_inventory_for_order_items(
-            db=db,
-            order=order,
-            shopkeeper_id=shopkeeper_id,
-            reference=f"B2C Order #{order.order_number} rejected",
-        )
-        order.status = "rejected"
-        await db.flush()
+    order.status = "rejected"
+    await db.flush()
 
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")
@@ -552,7 +569,7 @@ async def cancel_order(
     order_id: int,
     shopkeeper_id: int,
 ):
-    """Shopkeeper cancels an order (returns reserved inventory)."""
+    """Shopkeeper cancels a pending B2C order."""
     result = await db.execute(
         select(B2COrder)
         .where(
@@ -571,15 +588,8 @@ async def cancel_order(
             detail=f"Order cannot be cancelled from status: {order.status}",
         )
 
-    async with db.begin():
-        await _restore_inventory_for_order_items(
-            db=db,
-            order=order,
-            shopkeeper_id=shopkeeper_id,
-            reference=f"B2C Order #{order.order_number} cancelled",
-        )
-        order.status = "cancelled"
-        await db.flush()
+    order.status = "cancelled"
+    await db.flush()
 
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")

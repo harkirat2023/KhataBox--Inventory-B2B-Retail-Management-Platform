@@ -92,9 +92,9 @@ export function EditStockModal({
 
         <div className="py-4 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">Action</label>
+            <label className="text-sm font-medium text-foreground/80">Action</label>
             <Select value={mode} onValueChange={(val) => setMode(val as EditStockMode)}>
-              <SelectTrigger className="rounded-xl border-slate-200 h-11">
+              <SelectTrigger className="rounded-xl border-border h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -107,21 +107,21 @@ export function EditStockModal({
 
           {mode === "add" && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Quantity to Add</label>
+              <label className="text-sm font-medium text-foreground/80">Quantity to Add</label>
               <Input
                 type="number"
                 min="1"
                 step="1"
                 value={addQty}
                 onChange={(e) => setAddQty(parseInt(e.target.value) || 0)}
-                className="rounded-xl border-slate-200 h-11"
+                className="rounded-xl border-border h-11"
               />
             </div>
           )}
 
           {mode === "remove" && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Quantity to Remove</label>
+              <label className="text-sm font-medium text-foreground/80">Quantity to Remove</label>
               <Input
                 type="number"
                 min="1"
@@ -129,15 +129,15 @@ export function EditStockModal({
                 step="1"
                 value={addQty}
                 onChange={(e) => setAddQty(parseInt(e.target.value) || 0)}
-                className="rounded-xl border-slate-200 h-11"
+                className="rounded-xl border-border h-11"
               />
-              <p className="text-xs text-slate-500">Maximum removable: {currentStock}</p>
+              <p className="text-xs text-muted-foreground">Maximum removable: {currentStock}</p>
             </div>
           )}
 
           {mode === "adjust" && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Set Stock To</label>
+              <label className="text-sm font-medium text-foreground/80">Set Stock To</label>
               <Input
                 type="number"
                 min="0"
@@ -151,13 +151,13 @@ export function EditStockModal({
                     onQtyValueChange(parsed)
                   }
                 }}
-                className="rounded-xl border-slate-200 h-11"
+                className="rounded-xl border-border h-11"
               />
             </div>
           )}
 
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <p className="text-sm text-slate-700">
+          <div className="bg-muted border border-border rounded-xl p-3">
+            <p className="text-sm text-foreground/80">
               <span className="font-medium">New stock will be:</span>{" "}
               <span className="font-semibold">
                 {mode === "add"
@@ -181,7 +181,7 @@ export function EditStockModal({
             Cancel
           </Button>
           <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+            className="bg-primary hover:bg-primary/90 text-white rounded-xl"
             onClick={handleConfirm}
             disabled={loading || !isValid()}
           >

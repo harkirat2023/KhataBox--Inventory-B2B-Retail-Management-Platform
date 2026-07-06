@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import {
   BarChart,
   Bar,
@@ -23,6 +23,7 @@ import {
   Star,
   Repeat,
   Wallet,
+  Store,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -38,38 +39,20 @@ import {
 } from "@/components/ui/table"
 import { clientApi } from "@/lib/client-api"
 import { toast } from "sonner"
+import { useStoreContext } from "@/lib/store-context"
 
-const salesSummaryData = [
-  { label: "Daily", value: "₹2,450", change: "+12%", icon: DollarSign },
-  { label: "Weekly", value: "₹18,200", change: "+8%", icon: TrendingUp },
-  { label: "Monthly", value: "₹72,500", change: "+15%", icon: ShoppingCart },
-  { label: "Yearly", value: "₹8,45,000", change: "+22%", icon: Package },
-]
-
-const salesChartData = [
-  { month: "Jan", revenue: 42000, orders: 180 },
-  { month: "Feb", revenue: 38000, orders: 160 },
-  { month: "Mar", revenue: 51000, orders: 210 },
-  { month: "Apr", revenue: 46000, orders: 190 },
-  { month: "May", revenue: 58000, orders: 240 },
-  { month: "Jun", revenue: 53000, orders: 220 },
-]
-
-const inventoryChartData = [
-  { name: "In Stock", value: 145 },
-  { name: "Low Stock", value: 28 },
-  { name: "Out of Stock", value: 12 },
-]
-
-const COLORS = ["hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--destructive))"]
-
-const productsChartData = [
-  { category: "Electronics", count: 45 },
-  { category: "Clothing", count: 32 },
-  { category: "Food", count: 28 },
-  { category: "Books", count: 18 },
-  { category: "Other", count: 24 },
-]
+interface DashboardData {
+  total_products: number
+  low_stock_count: number
+  out_of_stock_count: number
+  total_revenue_today: number
+  total_revenue_this_month: number
+  total_revenue_this_year: number
+  total_orders_today: number
+  total_orders_this_month: number
+  total_orders_this_year: number
+  sales_chart: { month: string; revenue: number; orders: number }[]
+}
 
 interface TopCustomer {
   id: number
@@ -99,11 +82,44 @@ interface CLVCustomer {
   last_order_date: string | null
 }
 
+const COLORS = ["hsl(var(--primary))", "hsl(var(--warning))", "hsl(var(--destructive))"]
+
 export default function ReportsPage() {
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   const [topCustomers, setTopCustomers] = useState<TopCustomer[]>([])
   const [repeatCustomers, setRepeatCustomers] = useState<RepeatCustomer[]>([])
   const [clvCustomers, setCLVCustomers] = useState<CLVCustomer[]>([])
+  const [loading, setLoading] = useState(true)
   const [customersLoading, setCustomersLoading] = useState(false)
+  const { activeStore } = useStoreContext()
+
+  useEffect(() => {
+    setLoading(true)
+    const url = activeStore?.id ? `/api/v1/dashboard/?store_id=${activeStore.id}` : "/api/v1/dashboard/"
+    clientApi.get<DashboardData>(url)
+      .then(setDashboard)
+      .catch(() => toast.error("Failed to load dashboard data"))
+      .finally(() => setLoading(false))
+  }, [activeStore])
+
+  const salesSummaryData = useMemo(() => dashboard ? [
+    { label: "Today", value: `₹${(dashboard.total_revenue_today || 0).toLocaleString()}`, change: `${dashboard.total_orders_today || 0} orders`, icon: DollarSign },
+    { label: "Monthly", value: `₹${(dashboard.total_revenue_this_month || 0).toLocaleString()}`, change: `${dashboard.total_orders_this_month || 0} orders`, icon: TrendingUp },
+    { label: "Yearly", value: `₹${(dashboard.total_revenue_this_year || 0).toLocaleString()}`, change: `${dashboard.total_orders_this_year || 0} orders`, icon: ShoppingCart },
+    { label: "Products", value: `${dashboard.total_products || 0}`, change: `${dashboard.low_stock_count} low stock`, icon: Package },
+  ] : [], [dashboard])
+
+  const rawInventory = useMemo(() => dashboard ? [
+    { name: "In Stock", value: Math.max(0, (dashboard.total_products || 0) - (dashboard.low_stock_count || 0) - (dashboard.out_of_stock_count || 0)) },
+    { name: "Low Stock", value: dashboard.low_stock_count || 0 },
+    { name: "Out of Stock", value: dashboard.out_of_stock_count || 0 },
+  ] : [], [dashboard])
+
+  const inventoryChartData = useMemo(() => rawInventory.filter(d => d.value > 0), [rawInventory])
+
+  const salesChartData = useMemo(() => (dashboard?.sales_chart?.length ? dashboard.sales_chart : []), [dashboard])
+
+  const productsChartData = useMemo(() => (dashboard?.sales_chart?.length ? dashboard.sales_chart.map(d => ({ category: d.month, count: d.orders })) : []), [dashboard])
 
   const loadCustomerReports = useCallback(async () => {
     setCustomersLoading(true)
@@ -123,138 +139,178 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Reports</h1>
-        <p className="text-sm text-slate-500">
+        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+        <p className="text-sm text-muted-foreground">
           View and analyze your business performance.
         </p>
       </div>
 
+      {activeStore?.id && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
+          <Store className="size-3" />
+          {activeStore.name}
+        </div>
+      )}
+
       <Tabs defaultValue="sales">
-        <TabsList className="rounded-xl bg-slate-100 p-1">
-          <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Sales</TabsTrigger>
-          <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Inventory</TabsTrigger>
-          <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Products</TabsTrigger>
-          <TabsTrigger value="customers" onClick={loadCustomerReports} className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">Customers</TabsTrigger>
+        <TabsList className="rounded-xl bg-muted p-1">
+          <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Sales</TabsTrigger>
+          <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Inventory</TabsTrigger>
+          <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Products</TabsTrigger>
+          <TabsTrigger value="customers" onClick={loadCustomerReports} className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Customers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6 pt-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {salesSummaryData.map((item) => {
-              const Icon = item.icon
-              return (
-                <Card key={item.label} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                  <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
-                    <CardTitle className="text-sm font-medium text-slate-700">{item.label}</CardTitle>
-                    <Icon className="size-4 text-slate-400" />
+          {loading ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                  <CardHeader className="p-0 pb-3">
+                    <Skeleton className="h-4 w-20" />
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="text-2xl font-bold text-slate-900">{item.value}</div>
-                    <p className="mt-1 text-xs text-emerald-600">{item.change}</p>
+                    <Skeleton className="h-8 w-28" />
                   </CardContent>
                 </Card>
-              )
-            })}
-          </div>
-
-          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-            <CardHeader className="p-0 pb-5">
-              <CardTitle className="text-base font-semibold text-slate-900">Revenue & Orders Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height={300} minWidth={300}>
-                  <BarChart data={salesChartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis
-                      dataKey="month"
-                      className="text-xs text-muted-foreground"
-                      tick={{ fontSize: 12 }}
-                    />
-                    <YAxis
-                      className="text-xs text-muted-foreground"
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "8px",
-                        border: "1px solid hsl(var(--border))",
-                        fontSize: "13px",
-                      }}
-                    />
-                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {salesSummaryData.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <Card key={item.label} className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                      <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
+                        <CardTitle className="text-sm font-medium text-foreground/80">{item.label}</CardTitle>
+                        <Icon className="size-4 text-muted-foreground" />
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="text-2xl font-bold text-foreground">{item.value}</div>
+                        <p className="mt-1 text-xs text-emerald-600">{item.change}</p>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
               </div>
-            </CardContent>
-          </Card>
+
+              <Card className="bg-card rounded-2xl border border-border shadow-sm p-5">
+                <CardHeader className="p-0 pb-5">
+                  <CardTitle className="text-base font-semibold text-foreground">Revenue & Orders Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {salesChartData.length === 0 ? (
+                    <div className="text-center py-16 text-sm text-muted-foreground">No revenue data available yet</div>
+                  ) : (
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height={300} minWidth={300}>
+                        <BarChart data={salesChartData}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis
+                            dataKey="month"
+                            className="text-xs text-muted-foreground"
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis
+                            className="text-xs text-muted-foreground"
+                            tick={{ fontSize: 12 }}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: "8px",
+                              border: "1px solid hsl(var(--border))",
+                              fontSize: "13px",
+                            }}
+                          />
+                          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="inventory" className="space-y-6 pt-4">
-          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <Card className="bg-card rounded-2xl border border-border shadow-sm p-5">
             <CardHeader className="p-0 pb-5">
-              <CardTitle className="text-base font-semibold text-slate-900">Stock Status Distribution</CardTitle>
+              <CardTitle className="text-base font-semibold text-foreground">Stock Status Distribution</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height={300} minWidth={300}>
-                  <PieChart>
-                    <Pie
-                      data={inventoryChartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={4}
-                      dataKey="value"
-                      label
-                    >
-                      {inventoryChartData.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "8px",
-                        border: "1px solid hsl(var(--border))",
-                        fontSize: "13px",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              {loading ? (
+                <Skeleton className="h-[300px]" />
+              ) : inventoryChartData.length === 0 ? (
+                <div className="text-center py-16 text-sm text-muted-foreground">No inventory data available</div>
+              ) : (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height={300} minWidth={300}>
+                    <PieChart>
+                      <Pie
+                        data={inventoryChartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={4}
+                        dataKey="value"
+                        label
+                      >
+                        {inventoryChartData.map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Legend />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "1px solid hsl(var(--border))",
+                          fontSize: "13px",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="products" className="space-y-6 pt-4">
-          <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <Card className="bg-card rounded-2xl border border-border shadow-sm p-5">
             <CardHeader className="p-0 pb-5">
-              <CardTitle className="text-base font-semibold text-slate-900">Products by Category</CardTitle>
+              <CardTitle className="text-base font-semibold text-foreground">Products by Category</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height={300} minWidth={300}>
-                  <BarChart data={productsChartData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis type="number" className="text-xs text-muted-foreground" tick={{ fontSize: 12 }} />
-                    <YAxis
-                      dataKey="category"
-                      type="category"
-                      className="text-xs text-muted-foreground"
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "8px",
-                        border: "1px solid hsl(var(--border))",
-                        fontSize: "13px",
-                      }}
-                    />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {loading ? (
+                <Skeleton className="h-[300px]" />
+              ) : productsChartData.length === 0 ? (
+                <div className="text-center py-16 text-sm text-muted-foreground">No product data available</div>
+              ) : (
+                <div className="h-[300px]">
+                  <ResponsiveContainer width="100%" height={300} minWidth={300}>
+                    <BarChart data={productsChartData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis type="number" className="text-xs text-muted-foreground" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        dataKey="category"
+                        type="category"
+                        className="text-xs text-muted-foreground"
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "1px solid hsl(var(--border))",
+                          fontSize: "13px",
+                        }}
+                      />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -263,7 +319,7 @@ export default function ReportsPage() {
           {customersLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[1,2,3].map((i) => (
-                <Card key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+                <Card key={i} className="bg-card rounded-2xl border border-border shadow-sm p-5">
                   <CardHeader className="p-0 pb-3">
                     <Skeleton className="h-4 w-32" />
                   </CardHeader>
@@ -277,29 +333,29 @@ export default function ReportsPage() {
             </div>
           ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <Card className="bg-card rounded-2xl border border-border shadow-sm p-5">
               <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
-                <CardTitle className="text-sm font-medium text-slate-700">Top Customers</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground/80">Top Customers</CardTitle>
                 <Star className="size-4 text-yellow-500" />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-slate-500">Company</TableHead>
-                      <TableHead className="text-right text-slate-500">Orders</TableHead>
-                      <TableHead className="text-right text-slate-500">Total</TableHead>
+                      <TableHead className="text-muted-foreground">Company</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Orders</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {topCustomers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-slate-500 py-8">No data available</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data available</TableCell></TableRow>
                     ) : (
                       topCustomers.map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell className="text-sm text-slate-700">{c.company_name}</TableCell>
-                          <TableCell className="text-right text-sm text-slate-500">{c.order_count}</TableCell>
-                          <TableCell className="text-right font-medium text-slate-900">₹{(c.total_spent).toFixed(2)}</TableCell>
+                          <TableCell className="text-sm text-foreground/80">{c.company_name}</TableCell>
+                          <TableCell className="text-right text-sm text-muted-foreground">{c.order_count}</TableCell>
+                          <TableCell className="text-right font-medium text-foreground">₹{(c.total_spent).toFixed(2)}</TableCell>
                         </TableRow>
                       ))
                     )}
@@ -307,29 +363,29 @@ export default function ReportsPage() {
                 </Table>
               </CardContent>
             </Card>
-            <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <Card className="bg-card rounded-2xl border border-border shadow-sm p-5">
               <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
-                <CardTitle className="text-sm font-medium text-slate-700">Repeat Purchases</CardTitle>
-                <Repeat className="size-4 text-blue-500" />
+                <CardTitle className="text-sm font-medium text-foreground/80">Repeat Purchases</CardTitle>
+                <Repeat className="size-4 text-primary" />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-slate-500">Company</TableHead>
-                      <TableHead className="text-right text-slate-500">Orders</TableHead>
-                      <TableHead className="text-right text-slate-500">Total</TableHead>
+                      <TableHead className="text-muted-foreground">Company</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Orders</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {repeatCustomers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-slate-500 py-8">No data available</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data available</TableCell></TableRow>
                     ) : (
                       repeatCustomers.map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell className="text-sm text-slate-700">{c.company_name}</TableCell>
-                          <TableCell className="text-right text-sm text-slate-500">{c.order_count}</TableCell>
-                          <TableCell className="text-right font-medium text-slate-900">₹{(c.total_spent).toFixed(2)}</TableCell>
+                          <TableCell className="text-sm text-foreground/80">{c.company_name}</TableCell>
+                          <TableCell className="text-right text-sm text-muted-foreground">{c.order_count}</TableCell>
+                          <TableCell className="text-right font-medium text-foreground">₹{(c.total_spent).toFixed(2)}</TableCell>
                         </TableRow>
                       ))
                     )}
@@ -337,29 +393,29 @@ export default function ReportsPage() {
                 </Table>
               </CardContent>
             </Card>
-            <Card className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <Card className="bg-card rounded-2xl border border-border shadow-sm p-5">
               <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
-                <CardTitle className="text-sm font-medium text-slate-700">Customer Lifetime Value</CardTitle>
+                <CardTitle className="text-sm font-medium text-foreground/80">Customer Lifetime Value</CardTitle>
                 <Wallet className="size-4 text-emerald-500" />
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-slate-500">Company</TableHead>
-                      <TableHead className="text-right text-slate-500">CLV</TableHead>
-                      <TableHead className="text-right text-slate-500">Avg Order</TableHead>
+                      <TableHead className="text-muted-foreground">Company</TableHead>
+                      <TableHead className="text-right text-muted-foreground">CLV</TableHead>
+                      <TableHead className="text-right text-muted-foreground">Avg Order</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {clvCustomers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-slate-500 py-8">No data available</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data available</TableCell></TableRow>
                     ) : (
                       clvCustomers.slice(0, 10).map((c) => (
                         <TableRow key={c.id}>
-                          <TableCell className="text-sm text-slate-700">{c.company_name}</TableCell>
-                          <TableCell className="text-right font-medium text-slate-900">₹{(c.lifetime_value).toFixed(2)}</TableCell>
-                          <TableCell className="text-right text-sm text-slate-500">₹{c.avg_order_value.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm text-foreground/80">{c.company_name}</TableCell>
+                          <TableCell className="text-right font-medium text-foreground">₹{(c.lifetime_value).toFixed(2)}</TableCell>
+                          <TableCell className="text-right text-sm text-muted-foreground">₹{c.avg_order_value.toFixed(2)}</TableCell>
                         </TableRow>
                       ))
                     )}

@@ -94,45 +94,45 @@ function RegisterForm() {
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }))
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="w-full max-w-lg mx-auto">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-blue-600 shadow-lg shadow-blue-200 mb-3">
+          <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-primary shadow-lg shadow-blue-200 mb-3">
             <Boxes className="size-6 text-white" />
           </div>
-          <h1 className="text-xl font-bold text-slate-900">{isCustomer ? "Create Customer Account" : "Create Shopkeeper Account"}</h1>
-          <p className="text-sm text-slate-500 mt-1">{isCustomer ? "Register to shop and track your orders" : "Register your shop on KhataBox"}</p>
+          <h1 className="text-xl font-bold text-foreground">{isCustomer ? "Create Customer Account" : "Create Shopkeeper Account"}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{isCustomer ? "Register to shop and track your orders" : "Register your shop on KhataBox"}</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
+        <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5">{error}</div>}
 
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <User className="size-4 text-slate-400" />
-                <span className="text-sm font-semibold text-slate-700">Personal Information</span>
+                <User className="size-4 text-muted-foreground" />
+                <span className="text-sm font-semibold text-foreground/80">Personal Information</span>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">Full Name *</label>
                   <Input placeholder="Your full name" value={form.name} onChange={(e) => handleChange("name", e.target.value)} required className="h-11 rounded-xl" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number *</label>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">Phone Number *</label>
                   <Input type="tel" placeholder="10-digit number" value={form.phone} onChange={(e) => handleChange("phone", e.target.value)} required pattern="[0-9]{10}" maxLength={10} className="h-11 rounded-xl" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Email *</label>
+                  <label className="block text-sm font-medium text-foreground/80 mb-1">Email *</label>
                   <Input type="email" placeholder="your@email.com" value={form.email} onChange={(e) => handleChange("email", e.target.value)} required className="h-11 rounded-xl" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Password *</label>
+                    <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
                     <Input type="password" placeholder="Min 6 chars" value={form.password} onChange={(e) => handleChange("password", e.target.value)} required minLength={6} className="h-11 rounded-xl" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Confirm *</label>
+                    <label className="block text-sm font-medium text-foreground/80 mb-1">Confirm *</label>
                     <Input type="password" placeholder="Re-enter" value={form.confirm_password} onChange={(e) => handleChange("confirm_password", e.target.value)} required className="h-11 rounded-xl" />
                   </div>
                 </div>
@@ -142,21 +142,21 @@ function RegisterForm() {
             {isCustomer && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <MapPin className="size-4 text-slate-400" />
-                  <span className="text-sm font-semibold text-slate-700">Optional: Address</span>
+                  <MapPin className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground/80">Optional: Address</span>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Address</label>
+                    <label className="block text-sm font-medium text-foreground/80 mb-1">Address</label>
                     <Input placeholder="Street address" value={form.address} onChange={(e) => handleChange("address", e.target.value)} className="h-11 rounded-xl" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">City</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">City</label>
                       <Input placeholder="City" value={form.city} onChange={(e) => handleChange("city", e.target.value)} className="h-11 rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">State</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">State</label>
                       <Input placeholder="State" value={form.state} onChange={(e) => handleChange("state", e.target.value)} className="h-11 rounded-xl" />
                     </div>
                   </div>
@@ -168,42 +168,42 @@ function RegisterForm() {
               <>
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <Building2 className="size-4 text-slate-400" />
-                    <span className="text-sm font-semibold text-slate-700">Business Information</span>
+                    <Building2 className="size-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground/80">Business Information</span>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Store Name *</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Store Name *</label>
                       <Input placeholder="Your store name" value={form.store_name} onChange={(e) => handleChange("store_name", e.target.value)} required className="h-11 rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Store Type *</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Store Type *</label>
                       <select value={form.store_type} onChange={(e) => handleChange("store_type", e.target.value)} required
-                        className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500">
+                        className="flex h-11 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary">
                         <option value="">Select store type</option>
                         {STORE_TYPES.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Address *</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Address *</label>
                       <Input placeholder="Street address" value={form.address} onChange={(e) => handleChange("address", e.target.value)} required className="h-11 rounded-xl" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">City *</label>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">City *</label>
                         <Input placeholder="City" value={form.city} onChange={(e) => handleChange("city", e.target.value)} required className="h-11 rounded-xl" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">State *</label>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">State *</label>
                         <select value={form.state} onChange={(e) => handleChange("state", e.target.value)} required
-                          className="flex h-11 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500">
+                          className="flex h-11 w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary">
                           <option value="">Select state</option>
                           {INDIAN_STATES.map(state => <option key={state} value={state}>{state}</option>)}
                         </select>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">PIN Code *</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">PIN Code *</label>
                       <Input placeholder="6-digit PIN code" value={form.pin_code} onChange={(e) => handleChange("pin_code", e.target.value)} required pattern="[0-9]{6}" maxLength={6} className="h-11 rounded-xl" />
                     </div>
                   </div>
@@ -211,22 +211,22 @@ function RegisterForm() {
 
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <CreditCard className="size-4 text-slate-400" />
-                    <span className="text-sm font-semibold text-slate-700">Optional: Business Details</span>
+                    <CreditCard className="size-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-foreground/80">Optional: Business Details</span>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">GST Number</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">GST Number</label>
                       <Input placeholder="15-digit GST number" value={form.gst_number} onChange={(e) => handleChange("gst_number", e.target.value)} maxLength={15} className="h-11 rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Monthly Revenue (₹)</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Monthly Revenue (₹)</label>
                       <Input type="number" placeholder="e.g., 50000" value={form.monthly_revenue} onChange={(e) => handleChange("monthly_revenue", e.target.value)} className="h-11 rounded-xl" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Business Description</label>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Business Description</label>
                       <textarea value={form.business_description} onChange={(e) => handleChange("business_description", e.target.value)} placeholder="Describe your business..."
-                        className="flex min-h-[80px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/20 focus-visible:border-blue-500" />
+                        className="flex min-h-[80px] w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground/80 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary" />
                     </div>
                   </div>
                 </div>
@@ -237,9 +237,9 @@ function RegisterForm() {
               {loading ? "Creating account..." : "Create Account"}
             </Button>
           </form>
-          <p className="text-center text-sm text-slate-500 mt-4">
+          <p className="text-center text-sm text-muted-foreground mt-4">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-600 font-medium hover:text-blue-700 transition-colors">Sign In</a>
+            <a href="/login" className="text-primary font-medium hover:text-primary transition-colors">Sign In</a>
           </p>
         </div>
       </div>
@@ -249,12 +249,12 @@ function RegisterForm() {
 
 function RegisterLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center w-full max-w-sm">
-        <div className="inline-flex items-center justify-center size-12 rounded-xl bg-blue-50 text-blue-600 animate-pulse mb-3">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-8 text-center w-full max-w-sm">
+        <div className="inline-flex items-center justify-center size-12 rounded-xl bg-primary/10 text-primary animate-pulse mb-3">
           <Boxes className="size-6" />
         </div>
-        <p className="text-sm text-slate-500">Loading...</p>
+        <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
     </div>
   )

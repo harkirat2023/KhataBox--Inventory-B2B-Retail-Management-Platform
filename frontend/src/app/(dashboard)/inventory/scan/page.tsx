@@ -148,25 +148,25 @@ export default function InventoryScanPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Inventory Scan</h1>
+        <h1 className="text-3xl font-bold text-foreground">Inventory Scan</h1>
         <Badge variant="outline" className="text-xs gap-1">
           <QrCode className="size-3" />
           QR Mode
         </Badge>
       </div>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm">
+      <Card className="rounded-2xl border-border shadow-sm">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <Camera className="size-4" />
             Scan QR Code
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="relative aspect-video rounded-xl border bg-slate-50 overflow-hidden">
+          <div className="relative aspect-video rounded-xl border bg-muted overflow-hidden">
             <div id="qr-inventory-scanner-static" className="w-full h-full" />
             {!cameraActive && !cameraError && (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400 pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground pointer-events-none">
                 <div className="text-center p-8">
                   <QrCode className="size-12 mx-auto mb-3 opacity-40" />
                   <p className="text-sm">Point camera at a product QR code</p>
@@ -185,12 +185,12 @@ export default function InventoryScanPage() {
 
           <div className="flex items-center gap-2">
             {!cameraActive ? (
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={startCamera}>
+              <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={startCamera}>
                 <Camera className="size-4 mr-1.5" />
                 Start Camera
               </Button>
             ) : (
-              <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={stopCamera}>
+              <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={stopCamera}>
                 <CameraOff className="size-4 mr-1.5" />
                 Stop Camera
               </Button>
@@ -199,10 +199,10 @@ export default function InventoryScanPage() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-200" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white px-2 text-slate-400">or enter UUID manually</span>
+              <span className="bg-card px-2 text-muted-foreground">or enter UUID manually</span>
             </div>
           </div>
 
@@ -211,9 +211,9 @@ export default function InventoryScanPage() {
               placeholder="Paste product UUID..."
               value={manualUuid}
               onChange={(e) => setManualUuid(e.target.value)}
-              className="rounded-xl border-slate-200 h-11"
+              className="rounded-xl border-border h-11"
             />
-            <Button type="submit" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl size-11 transition-all duration-200" disabled={!manualUuid.trim()}>
+            <Button type="submit" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl size-11 transition-all duration-200" disabled={!manualUuid.trim()}>
               <Search className="size-4" />
             </Button>
           </form>
@@ -221,9 +221,9 @@ export default function InventoryScanPage() {
       </Card>
 
       {loading && (
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <Card className="rounded-2xl border-border shadow-sm">
           <CardContent className="py-8 space-y-4">
-            <div className="flex items-center justify-center gap-2 text-slate-500">
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Loader2 className="size-5 animate-spin" />
               <span>Looking up product...</span>
             </div>
@@ -241,9 +241,9 @@ export default function InventoryScanPage() {
 
       {product && !loading && (
         <>
-          <Card className="rounded-2xl border-slate-200 shadow-sm">
+          <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900">
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <Package className="size-4" />
                 {product.name}
               </CardTitle>
@@ -251,28 +251,28 @@ export default function InventoryScanPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">SKU</span>
-                  <p className="font-mono font-medium text-slate-900">{product.sku}</p>
+                  <span className="text-sm font-medium text-foreground/80 mb-1.5 block">SKU</span>
+                  <p className="font-mono font-medium text-foreground">{product.sku}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">Category</span>
-                  <p className="font-medium text-slate-900">{product.category}</p>
+                  <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Category</span>
+                  <p className="font-medium text-foreground">{product.category}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">Current Stock</span>
-                  <p className="text-lg font-bold text-slate-900">{product.stock_quantity}</p>
+                  <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Current Stock</span>
+                  <p className="text-lg font-bold text-foreground">{product.stock_quantity}</p>
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-slate-700 mb-1.5 block">Store</span>
-                  <p className="font-medium text-slate-900">{product.store_name || "—"}</p>
+                  <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Store</span>
+                  <p className="font-medium text-foreground">{product.store_name || "—"}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-slate-200 shadow-sm">
+          <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-slate-900">Stock Update</CardTitle>
+              <CardTitle className="text-foreground">Stock Update</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-2">
@@ -283,9 +283,9 @@ export default function InventoryScanPage() {
                   const activeClass = a === "remove"
                     ? "bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
                     : a === "adjust"
-                      ? "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"
-                      : "bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
-                  const inactiveClass = "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"
+                      ? "bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200"
+                      : "bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200"
+                  const inactiveClass = "bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200"
                   return (
                     <Button
                       key={a}
@@ -301,7 +301,7 @@ export default function InventoryScanPage() {
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                  <label className="text-sm font-medium text-foreground/80 mb-1.5 block">
                     {action === "add"
                       ? "Quantity to add"
                       : action === "remove"
@@ -313,7 +313,7 @@ export default function InventoryScanPage() {
                     min={0}
                     value={quantity}
                     onChange={(e) => setQuantity(Math.max(0, parseInt(e.target.value) || 0))}
-                    className="rounded-xl border-slate-200 h-11"
+                    className="rounded-xl border-border h-11"
                   />
                 </div>
                 <div className="pt-5">
@@ -321,7 +321,7 @@ export default function InventoryScanPage() {
                     size="lg"
                     onClick={handleSubmit}
                     disabled={submitting || action === "remove" && quantity > product.stock_quantity}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+                    className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200"
                   >
                     {submitting ? "Updating..." : "Update Stock"}
                   </Button>
@@ -334,12 +334,12 @@ export default function InventoryScanPage() {
                 </p>
               )}
               {action === "adjust" && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Stock will be set to exactly {quantity} (was {product.stock_quantity})
                 </p>
               )}
               {action === "add" && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Stock will become {product.stock_quantity + quantity}
                 </p>
               )}
@@ -349,11 +349,11 @@ export default function InventoryScanPage() {
       )}
 
       {!product && !loading && (
-        <Card className="rounded-2xl border-slate-200 shadow-sm">
+        <Card className="rounded-2xl border-border shadow-sm">
           <CardContent className="py-16 text-center">
-            <QrCode className="size-16 mx-auto mb-4 text-slate-300" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-1">Scan a Product</h3>
-            <p className="text-sm text-slate-500">Point camera at a product QR code or enter a UUID to begin</p>
+            <QrCode className="size-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-foreground mb-1">Scan a Product</h3>
+            <p className="text-sm text-muted-foreground">Point camera at a product QR code or enter a UUID to begin</p>
           </CardContent>
         </Card>
       )}

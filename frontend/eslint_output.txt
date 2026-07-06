@@ -1,0 +1,271 @@
+﻿
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(customer)\payment-simulate\page.tsx
+   7:65  warning  'ShoppingCart' is defined but never used     @typescript-eslint/no-unused-vars
+  23:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  57:46  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  68:13  warning  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  69:32  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  73:32  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  81:17  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(customer)\receipts\[id]\page.tsx
+   58:45   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:48   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:31   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:84   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  257:107  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(customer)\scan\page.tsx
+   36:33  error    Unexpected any. Specify a different type                                                                        @typescript-eslint/no-explicit-any
+  103:6   warning  React Hook useEffect has a missing dependency: 'startCamera'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\admin\users\page.tsx
+  4:18  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\billing\page.tsx
+   17:10  warning  'Tabs' is defined but never used                   @typescript-eslint/no-unused-vars
+   17:16  warning  'TabsContent' is defined but never used            @typescript-eslint/no-unused-vars
+   17:29  warning  'TabsList' is defined but never used               @typescript-eslint/no-unused-vars
+   17:39  warning  'TabsTrigger' is defined but never used            @typescript-eslint/no-unused-vars
+   48:10  warning  'scanMode' is assigned a value but never used      @typescript-eslint/no-unused-vars
+   48:20  warning  'setScanMode' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  233:45  warning  'credit_limit' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\customers\page.tsx
+    4:60  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+  100:14  warning  'err' is defined but never used      @typescript-eslint/no-unused-vars
+  113:14  warning  'err' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\customers\scan\page.tsx
+    4:81  warning  'X' is defined but never used                     @typescript-eslint/no-unused-vars
+   25:11  warning  'CartItem' is defined but never used              @typescript-eslint/no-unused-vars
+   36:10  warning  'scannedUuid' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   46:33  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  104:19  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  151:19  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  164:41  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  166:43  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  168:51  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  178:19  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  191:41  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  193:43  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  195:51  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  209:19  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  227:19  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+  234:50  error    Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\dashboard\page.tsx
+    7:3   warning  'DollarSign' is defined but never used       @typescript-eslint/no-unused-vars
+   21:3   warning  'RefreshCw' is defined but never used        @typescript-eslint/no-unused-vars
+   35:10  warning  'Progress' is defined but never used         @typescript-eslint/no-unused-vars
+  105:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\forecasting\page.tsx
+    8:3   warning  'Truck' is defined but never used                @typescript-eslint/no-unused-vars
+  129:13  warning  'avgMonthly' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\inventory\movements\page.tsx
+  26:6  warning  'MovementType' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\inventory\page.tsx
+    5:66  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+  159:14  warning  'err' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\inventory\scan\page.tsx
+   13:7   warning  'API_URL' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   28:10  warning  'scannedUuid' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   37:9   warning  'scannerRef' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   38:33  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+   82:19  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+  133:7   error    Error: This value cannot be modified
+
+Modifying a value returned from 'useState()', which should not be modified directly. Use the setter function to update instead.
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\inventory\scan\page.tsx:133:7
+  131 |         `${product.name}: ${result.previous_stock} ΓåÆ ${result.new_stock} (${action})`,
+  132 |       )
+> 133 |       product.stock_quantity = result.new_stock
+      |       ^^^^^^^ `product` cannot be modified
+  134 |       setProduct({ ...product })
+  135 |     } catch (err: any) {
+  136 |       toast.error(err?.message || "Stock update failed")  react-hooks/immutability
+  135:19  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+  142:50  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\notifications\page.tsx
+  164:68  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  167:45  warning  'i' is defined but never used                                    @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\order-history\page.tsx
+    6:72   warning  'Receipt' is defined but never used                         @typescript-eslint/no-unused-vars
+    6:81   warning  'XCircle' is defined but never used                         @typescript-eslint/no-unused-vars
+    6:118  warning  'XIcon' is defined but never used                           @typescript-eslint/no-unused-vars
+   10:10   warning  'Card' is defined but never used                            @typescript-eslint/no-unused-vars
+   10:16   warning  'CardContent' is defined but never used                     @typescript-eslint/no-unused-vars
+   10:29   warning  'CardHeader' is defined but never used                      @typescript-eslint/no-unused-vars
+   10:41   warning  'CardTitle' is defined but never used                       @typescript-eslint/no-unused-vars
+  182:9    warning  'sourceCompletedOrders' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  241:9    warning  'isB2COrder' is assigned a value but never used             @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\orders\page.tsx
+   2:54  warning  'useMemo' is defined but never used         @typescript-eslint/no-unused-vars
+  12:3   warning  'Clock' is defined but never used           @typescript-eslint/no-unused-vars
+  14:3   warning  'BadgePercent' is defined but never used    @typescript-eslint/no-unused-vars
+  17:3   warning  'ChevronsUpDown' is defined but never used  @typescript-eslint/no-unused-vars
+  18:3   warning  'ArrowUpDown' is defined but never used     @typescript-eslint/no-unused-vars
+  24:3   warning  'Download' is defined but never used        @typescript-eslint/no-unused-vars
+  25:3   warning  'Trash2' is defined but never used          @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\purchase-orders\page.tsx
+  268:5   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+  313:14  warning  'err' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\qr-labels\edit-stock-modal.tsx
+  21:10  warning  'toast' is defined but never used                 @typescript-eslint/no-unused-vars
+  49:3   warning  'setStockQty' is defined but never used           @typescript-eslint/no-unused-vars
+  70:9   warning  'getQuantity' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\qr-labels\page.tsx
+   44:10  warning  'editStockQtyValue' is assigned a value but never used                                          @typescript-eslint/no-unused-vars
+   60:5   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+   86:14  warning  'err' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+  252:9   warning  'labelW' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+  253:9   warning  'labelH' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\reports\page.tsx
+  22:3   warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+  31:10  warning  'Badge' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\(dashboard)\settings\page.tsx
+  6:51  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\api\cart\summary\route.ts
+  27:62  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  34:57  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  38:53  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  41:63  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  43:13  warning  'storeId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  43:58  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  46:36  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  47:39  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  48:38  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  54:30  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  64:29  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  65:31  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  66:31  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  67:37  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+  72:57  error    Unexpected any. Specify a different type      @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\api\cart\validate\route.ts
+  29:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:63  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  53:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  67:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\app\page.tsx
+  15:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\customers\customer-cart.tsx
+   3:10  warning  'X' is defined but never used                   @typescript-eslint/no-unused-vars
+   5:10  warning  'Badge' is defined but never used               @typescript-eslint/no-unused-vars
+  14:46  warning  'clearCart' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\inventory\inventory-qr-scan-dialog.tsx
+   40:44  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\inventory\inventory-qr-scan-dialog.tsx:40:44
+  38 |   const [showEditForm, setShowEditForm] = useState(false)
+  39 |   const scannerRef = useRef<Html5Qrcode | null>(null)
+> 40 |   const containerId = useRef(`qr-scanner-${Math.random().toString(36).slice(2, 9)}`)
+     |                                            ^^^^^^^^^^^^^ Cannot call impure function
+  41 |
+  42 |   const handleScan = async (uuid: string) => {
+  43 |     setLoading(true)                                                                                                                                                                                                                                                      react-hooks/purity
+  109:6   warning  React Hook useEffect has missing dependencies: 'cameraActive' and 'startCamera'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/exhaustive-deps
+  174:24  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\inventory\inventory-qr-scan-dialog.tsx:174:24
+  172 |           <div className="space-y-4">
+  173 |             <div className="relative w-full bg-muted rounded-lg overflow-hidden" style={{ minHeight: "250px" }}>
+> 174 |               <div id={containerId.current} className="w-full" style={{ minHeight: "250px" }} />
+      |                        ^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  175 |               {!cameraActive && !cameraError && scanState === "none" && (
+  176 |                 <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm pointer-events-none">
+  177 |                   Camera idle  react-hooks/refs
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\layout\rename-store-dialog.tsx
+  9:10  warning  'useStoreContext' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\layout\sidebar.tsx
+  29:3  warning  'ChevronRight' is defined but never used    @typescript-eslint/no-unused-vars
+  40:3  warning  'Tooltip' is defined but never used         @typescript-eslint/no-unused-vars
+  41:3  warning  'TooltipContent' is defined but never used  @typescript-eslint/no-unused-vars
+  42:3  warning  'TooltipTrigger' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\layout\top-nav.tsx
+  6:38  warning  'User' is defined but never used       @typescript-eslint/no-unused-vars
+  6:86  warning  'Building2' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\products\product-form-dialog.tsx
+  84:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\products\product-qr-dialog.tsx
+   58:6   warning  React Hook useEffect has missing dependencies: 'loadQr' and 'qrDataUrl'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/exhaustive-deps
+  112:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  146:72  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\products\product-qr-dialog.tsx:146:72
+  144 |
+  145 |         <DialogFooter showCloseButton>
+> 146 |           <Button variant="outline" onClick={handleDownload} disabled={!qrBlobRef.current}>
+      |                                                                        ^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  147 |             <Download className="size-4 mr-1.5" />
+  148 |             Download PNG
+  149 |           </Button>                                                                                                                               react-hooks/refs
+  146:73  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\products\product-qr-dialog.tsx:146:73
+  144 |
+  145 |         <DialogFooter showCloseButton>
+> 146 |           <Button variant="outline" onClick={handleDownload} disabled={!qrBlobRef.current}>
+      |                                                                         ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  147 |             <Download className="size-4 mr-1.5" />
+  148 |             Download PNG
+  149 |           </Button>
+
+To initialize a ref only once, check that the ref is null with the pattern `if (ref.current == null) { ref.current = ... }`  react-hooks/refs
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\store-selector.tsx
+  4:50  warning  'Star' is defined but never used         @typescript-eslint/no-unused-vars
+  4:72  warning  'StoreIcon' is defined but never used    @typescript-eslint/no-unused-vars
+  4:83  warning  'ShoppingBag' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\ui\qr-scanner.tsx
+  22:36  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\components\ui\qr-scanner.tsx:22:36
+  20 |   const [isScanning, setIsScanning] = useState(false)
+  21 |   const scannerRef = useRef<Html5Qrcode | null>(null)
+> 22 |   const containerId = `qr-reader-${Math.random().toString(36).slice(2, 9)}`
+     |                                    ^^^^^^^^^^^^^ Cannot call impure function
+  23 |
+  24 |   const startScanner = useCallback(async () => {
+  25 |     if (!document.getElementById(containerId)) return  react-hooks/purity
+  66:6   warning  React Hook useCallback has a missing dependency: 'containerId'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+
+D:\1. PLACEMENT\1A. PROJECTS\KhataBox\frontend\src\store\customer-cart.ts
+  36:11  warning  'get' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 133 problems (53 errors, 80 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+

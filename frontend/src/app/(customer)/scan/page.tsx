@@ -104,8 +104,8 @@ function ScanContent() {
 
   if (status === "loading" || !session?.user || role !== "customer") {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="text-center"><QrCode className="size-8 animate-spin mx-auto text-blue-500" /><p className="text-slate-500 mt-2">Loading...</p></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center"><QrCode className="size-8 animate-spin mx-auto text-primary" /><p className="text-muted-foreground mt-2">Loading...</p></div>
       </div>
     )
   }
@@ -113,22 +113,22 @@ function ScanContent() {
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-20">
+    <div className="min-h-screen bg-background pb-20">
 
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 pt-4 pb-3">
+      <div className="bg-card border-b border-border px-4 pt-4 pb-3">
         <div className="flex items-center justify-center relative">
           <div className="flex-1 text-center">
-            <h1 className="font-bold text-lg text-slate-900">Scan Product</h1>
-            {selectedStore && <p className="text-base font-semibold text-blue-600 mt-0.5">{selectedStore.name}</p>}
+            <h1 className="font-bold text-lg text-foreground">Scan Product</h1>
+            {selectedStore && <p className="text-base font-semibold text-primary mt-0.5">{selectedStore.name}</p>}
           </div>
         </div>
       </div>
 
       <div className="px-4 mt-5 max-w-sm mx-auto">
         {/* Scanner */}
-        <div className={`bg-white rounded-2xl border p-3 shadow-sm transition-all duration-300 ${cameraActive ? "border-blue-300 ring-2 ring-blue-100" : "border-slate-200"}`}>
-          <div className="relative aspect-video rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 overflow-hidden">
+        <div className={`bg-card rounded-2xl border p-3 shadow-sm transition-all duration-300 ${cameraActive ? "border-primary/30 ring-2 ring-primary/10" : "border-border"}`}>
+          <div className="relative aspect-video rounded-xl bg-gradient-to-br from-muted to-primary/10 overflow-hidden">
             <div id="qr-customer-scanner" className="w-full h-full" />
             {cameraError && (
               <div className="absolute inset-0 flex items-center justify-center text-red-500 pointer-events-none">
@@ -139,7 +139,7 @@ function ScanContent() {
               </div>
             )}
             {!cameraActive && !cameraError && (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400 pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center text-muted-foreground pointer-events-none">
                 <div className="text-center p-8">
                   <QrCode className="size-12 mx-auto mb-3 opacity-40" />
                   <p className="text-sm">Point camera at a product QR code</p>
@@ -161,10 +161,10 @@ function ScanContent() {
         <div className="mt-5">
           <div className="relative mb-4">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-slate-200" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-[#F8FAFC] px-2 text-slate-400">or enter UUID manually</span>
+              <span className="bg-background px-2 text-muted-foreground">or enter UUID manually</span>
             </div>
           </div>
           <form onSubmit={handleManualSubmit} className="flex items-center gap-2">
@@ -174,20 +174,20 @@ function ScanContent() {
         </div>
 
         {loading && (
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-muted-foreground">
             <QrCode className="size-8 animate-spin mx-auto mb-2" />
             <p className="text-sm">Looking up product...</p>
           </div>
         )}
 
         {!loading && (
-          <div className="text-center py-12 text-slate-400 mt-4">
-            <div className="size-20 mx-auto mb-4 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
-              <QrCode className="size-10 text-slate-300" />
+          <div className="text-center py-12 text-muted-foreground mt-4">
+            <div className="size-20 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center border border-border">
+              <QrCode className="size-10 text-muted-foreground" />
             </div>
-            <p className="font-medium text-slate-700">Scan a product QR</p>
-            <p className="text-sm text-slate-500 mt-1">or enter the UUID manually</p>
-            {cartCount > 0 && <p className="text-xs text-blue-600 font-medium mt-2">{cartCount} item{cartCount !== 1 ? "s" : ""} in cart</p>}
+            <p className="font-medium text-foreground/80">Scan a product QR</p>
+            <p className="text-sm text-muted-foreground mt-1">or enter the UUID manually</p>
+            {cartCount > 0 && <p className="text-xs text-primary font-medium mt-2">{cartCount} item{cartCount !== 1 ? "s" : ""} in cart</p>}
           </div>
         )}
 
@@ -195,12 +195,12 @@ function ScanContent() {
         {cartCount > 0 && (
           <div className="fixed bottom-20 left-4 right-4 z-40 max-w-lg mx-auto">
             <Link href="/cart">
-              <div className="bg-blue-600 text-white rounded-2xl py-3.5 px-5 flex items-center justify-between shadow-lg shadow-blue-200/40 hover:shadow-xl hover:shadow-blue-300/50 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.99]">
+              <div className="bg-primary text-white rounded-2xl py-3.5 px-5 flex items-center justify-between shadow-lg shadow-blue-200/40 hover:shadow-xl hover:shadow-blue-300/50 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.99]">
                 <div className="flex items-center gap-2.5">
                   <ShoppingCart className="size-5" />
                   <span className="font-semibold">{cartCount} item{cartCount !== 1 ? "s" : ""}</span>
                 </div>
-                <span className="text-sm font-medium text-blue-200">View Cart →</span>
+                <span className="text-sm font-medium text-primary-foreground/60">View Cart →</span>
               </div>
             </Link>
           </div>
@@ -215,8 +215,8 @@ function ScanContent() {
 export default function CustomerScanPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="text-center"><QrCode className="size-8 animate-spin mx-auto text-blue-500" /><p className="text-slate-500 mt-2">Loading...</p></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center"><QrCode className="size-8 animate-spin mx-auto text-primary" /><p className="text-muted-foreground mt-2">Loading...</p></div>
       </div>
     }>
       <ScanContent />

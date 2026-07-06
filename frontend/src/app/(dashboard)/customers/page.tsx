@@ -118,25 +118,26 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Khata</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingCustomer(null); setDialogOpen(true) }}>
+        <h1 className="text-3xl font-bold text-foreground">Khata</h1>
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingCustomer(null); setDialogOpen(true) }}>
           <Plus className="size-4 mr-2" /> Add Customer
         </Button>
       </div>
 
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search by company, contact, or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
+            className="pl-10 rounded-xl bg-muted border-0 h-11"
+            inputMode="search"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -164,10 +165,10 @@ export default function CustomersPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-16">
                   <div className="flex flex-col items-center justify-center">
-                    <Users className="size-12 text-slate-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1">No customers found</h3>
-                    <p className="text-sm text-slate-500 mb-6 max-w-xs">Add your first customer to start tracking khata.</p>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingCustomer(null); setDialogOpen(true) }}>
+                    <Users className="size-12 text-muted-foreground/30 mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-1">No customers found</h3>
+                    <p className="text-sm text-muted-foreground mb-6 max-w-xs">Add your first customer to start tracking khata.</p>
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingCustomer(null); setDialogOpen(true) }}>
                       <Plus className="size-4 mr-2" /> Add Customer
                     </Button>
                   </div>
@@ -181,18 +182,18 @@ export default function CustomersPage() {
                 <TableCell className="text-sm">{customer.email || "—"}</TableCell>
                 <TableCell className="text-sm">{customer.phone || "—"}</TableCell>
                 <TableCell>
-                  <span className={customer.credit_used > 0 ? "text-amber-600 font-medium" : ""}>
+                  <span className={customer.credit_used > 0 ? "text-amber-600 font-medium" : "text-foreground"}>
                     ₹{customer.credit_used.toFixed(2)}
                   </span>
                   {customer.credit_limit > 0 && (
-                    <span className="text-slate-400 text-xs ml-1">
+                    <span className="text-muted-foreground text-xs ml-1">
                       / ₹{customer.credit_limit.toFixed(2)}
                     </span>
                   )}
                   {customer.credit_limit > 0 && (() => {
                     const remaining = customer.credit_limit - customer.credit_used
                     return (
-                      <div className={`text-xs mt-0.5 ${remaining < 0 ? "text-red-600 font-medium" : "text-green-600"}`}>
+                      <div className={`text-xs mt-0.5 ${remaining < 0 ? "text-destructive font-medium" : "text-success"}`}>
                         {remaining < 0 ? "Overdue: " : "Remaining: "}₹{remaining.toFixed(2)}
                       </div>
                     )
@@ -207,7 +208,7 @@ export default function CustomersPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 rounded-lg text-amber-500 hover:bg-slate-100 hover:text-amber-600"
+                        className="size-8 rounded-lg text-amber-500 hover:bg-accent hover:text-amber-600"
                         title="Clear Overdue"
                         onClick={() => handleClearOverdue(customer.id)}
                       >
@@ -217,7 +218,7 @@ export default function CustomersPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 rounded-lg text-green-500 hover:bg-slate-100 hover:text-green-600"
+                      className="size-8 rounded-lg text-green-500 hover:bg-accent hover:text-green-600"
                       title="Extend Credit"
                       onClick={() => { setExtendCreditId(customer.id); setExtendAmount(0) }}
                     >
@@ -226,7 +227,7 @@ export default function CustomersPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
                       onClick={() => { setEditingCustomer(customer); setDialogOpen(true) }}
                     >
                       <Pencil className="size-3.5" />
@@ -234,7 +235,7 @@ export default function CustomersPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-red-600"
+                      className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => setDeleteConfirmId(customer.id)}
                     >
                       <Trash2 className="size-3.5" />
@@ -262,19 +263,19 @@ export default function CustomersPage() {
             <DialogDescription>Enter the additional credit amount to add to the current limit.</DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-2">
-            <label className="text-sm font-medium text-slate-700 mb-1.5 block">Additional Credit Amount (₹)</label>
+            <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Additional Credit Amount (₹)</label>
             <Input
               type="number"
               step="0.01"
               min="0.01"
               value={extendAmount || ""}
               onChange={(e) => setExtendAmount(parseFloat(e.target.value) || 0)}
-              className="rounded-xl border-slate-200 h-11"
+              className="rounded-xl border-border h-11"
             />
           </div>
           <DialogFooter>
-            <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setExtendCreditId(null); setExtendAmount(0) }}>Cancel</Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={handleExtendCredit} disabled={extendAmount <= 0}>Extend</Button>
+            <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setExtendCreditId(null); setExtendAmount(0) }}>Cancel</Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={handleExtendCredit} disabled={extendAmount <= 0}>Extend</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -286,8 +287,8 @@ export default function CustomersPage() {
             <DialogDescription>Are you sure you want to delete this customer? This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
-            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}>Delete</Button>
+            <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+            <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -346,29 +347,29 @@ function CustomerFormDialog({
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Name *</label>
-              <Input value={form.company_name ?? ""} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="rounded-xl border-slate-200 h-11" required />
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Name *</label>
+              <Input value={form.company_name ?? ""} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="rounded-xl border-border h-11" required inputMode="text" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Contact Person *</label>
-              <Input value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} className="rounded-xl border-slate-200 h-11" required />
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Contact Person *</label>
+              <Input value={form.contact_person} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} className="rounded-xl border-border h-11" required inputMode="text" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Email</label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-xl border-slate-200 h-11" />
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Email</label>
+              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-xl border-border h-11" inputMode="email" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Phone</label>
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border-slate-200 h-11" />
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Phone</label>
+              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-xl border-border h-11" inputMode="tel" />
             </div>
             <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Credit Limit * (must be {">"} 0)</label>
-              <Input type="number" step="0.01" min="0.01" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: parseFloat(e.target.value) || 0 })} className="rounded-xl border-slate-200 h-11" required />
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Credit Limit * (must be {">"} 0)</label>
+              <Input type="number" step="0.01" min="0.01" value={form.credit_limit} onChange={(e) => setForm({ ...form, credit_limit: parseFloat(e.target.value) || 0 })} className="rounded-xl border-border h-11" required inputMode="decimal" />
             </div>
             <div className="col-span-2 space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Price Tier</label>
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Price Tier</label>
               <Select value={form.price_tier} onValueChange={(val) => setForm({ ...form, price_tier: val ?? "standard" })}>
-                <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                <SelectTrigger className="rounded-xl border-border h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -380,8 +381,8 @@ function CustomerFormDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200">{loading ? "Saving..." : customer ? "Update" : "Create"}</Button>
+            <Button type="button" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" disabled={loading} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200">{loading ? "Saving..." : customer ? "Update" : "Create"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

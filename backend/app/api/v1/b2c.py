@@ -84,13 +84,14 @@ async def get_shopkeeper_b2c_orders(
     return await b2c_service.get_shopkeeper_orders(db, current_user.id, status)
 
 
+
 @router.get("/shopkeeper/order-history", response_model=list[B2COrderResponse])
 async def get_shopkeeper_b2c_history(
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):
-    """Shopkeeper views completed B2C orders (history)."""
-    return await b2c_service.get_shopkeeper_orders(db, current_user.id, status_filter="completed")
+    """Shopkeeper views completed & cancelled B2C orders (history)."""
+    return await b2c_service.get_shopkeeper_orders(db, current_user.id, status_filter="history")
 
 
 @router.post("/shopkeeper/orders/{order_id}/approve", response_model=B2COrderResponse)

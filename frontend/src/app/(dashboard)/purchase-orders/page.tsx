@@ -66,7 +66,7 @@ const statusConfig: Record<POStatus, { label: string }> = {
 }
 
 const statusStyles: Record<POStatus, string> = {
-  draft: "bg-slate-100 text-slate-700 border-slate-200",
+  draft: "bg-muted text-foreground/80 border-border",
   sent: "bg-blue-50 text-blue-700 border-blue-200",
   received: "bg-green-50 text-green-700 border-green-200",
   cancelled: "bg-red-50 text-red-700 border-red-200",
@@ -111,29 +111,29 @@ export default function PurchaseOrdersPage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="space-y-6 max-w-7xl mx-auto">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-slate-900">Purchase Orders</h1>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
+          <h1 className="text-3xl font-bold text-foreground">Purchase Orders</h1>
+          <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
             <Plus className="size-4 mr-2" /> Create PO
           </Button>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search by PO number or supplier..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
+              className="pl-10 rounded-xl bg-muted border-0 h-11"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -160,16 +160,16 @@ export default function PurchaseOrdersPage() {
             </Table>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm">
-            <FileText className="size-12 text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900">No purchase orders found</h3>
-            <p className="text-sm text-slate-500 mt-1 mb-6">Create your first purchase order to get started.</p>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
+          <div className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl border border-border shadow-sm">
+            <FileText className="size-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold text-foreground">No purchase orders found</h3>
+            <p className="text-sm text-muted-foreground mt-1 mb-6">Create your first purchase order to get started.</p>
+            <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
               <Plus className="size-4 mr-2" /> Create PO
             </Button>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -211,7 +211,7 @@ export default function PurchaseOrdersPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="text-sm text-slate-500">
+                <TableCell className="text-sm text-muted-foreground">
                   {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
               </TableRow>
@@ -327,9 +327,9 @@ function CreatePODialog({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Supplier</label>
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Supplier</label>
               <Select value={supplierId} onValueChange={(val) => val && setSupplierId(val)}>
-                <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                <SelectTrigger className="rounded-xl border-border h-11">
                   <SelectValue placeholder="Select a supplier" />
                 </SelectTrigger>
                 <SelectContent>
@@ -342,23 +342,23 @@ function CreatePODialog({
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-medium text-slate-700 block">Items</label>
-                <Button type="button" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl h-9 px-4 text-sm transition-all duration-200" onClick={addLineItem}>
+                <label className="text-sm font-medium text-foreground/80 block">Items</label>
+                <Button type="button" className="bg-card border border-border text-foreground/80 hover:bg-muted hover:border-border rounded-xl h-9 px-4 text-sm transition-all duration-200" onClick={addLineItem}>
                   <Plus className="size-3 mr-1" /> Add Item
                 </Button>
               </div>
               {lineItems.length === 0 && (
-                <p className="text-sm text-slate-500 py-2">No items added yet.</p>
+                <p className="text-sm text-muted-foreground py-2">No items added yet.</p>
               )}
               {lineItems.map((item, idx) => (
                 <div key={idx} className="flex items-end gap-2">
                   <div className="flex-1">
-                    <label className="text-xs text-slate-500 mb-1 block">Product</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">Product</label>
                     <Select
                       value={String(item.product_id)}
                       onValueChange={(val) => val && updateLineItem(idx, "product_id", parseInt(val))}
                     >
-                      <SelectTrigger className="rounded-xl border-slate-200 h-11">
+                      <SelectTrigger className="rounded-xl border-border h-11">
                         <SelectValue placeholder="Select product" />
                       </SelectTrigger>
                       <SelectContent>
@@ -371,24 +371,24 @@ function CreatePODialog({
                     </Select>
                   </div>
                   <div className="w-20">
-                    <label className="text-xs text-slate-500 mb-1 block">Qty</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
                     <Input
                       type="number"
                       min={1}
                       value={item.quantity}
                       onChange={(e) => updateLineItem(idx, "quantity", parseInt(e.target.value) || 1)}
-                      className="rounded-xl border-slate-200 h-11"
+                      className="rounded-xl border-border h-11"
                     />
                   </div>
                   <div className="w-28">
-                    <label className="text-xs text-slate-500 mb-1 block">Unit Price</label>
+                    <label className="text-xs text-muted-foreground mb-1 block">Unit Price</label>
                     <Input
                       type="number"
                       step="0.01"
                       min={0}
                       value={item.unit_price}
                       onChange={(e) => updateLineItem(idx, "unit_price", parseFloat(e.target.value) || 0)}
-                      className="rounded-xl border-slate-200 h-11"
+                      className="rounded-xl border-border h-11"
                     />
                   </div>
                   <Button type="button" variant="ghost" size="icon" className="size-9 mb-0.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl" onClick={() => removeLineItem(idx)}>
@@ -399,9 +399,9 @@ function CreatePODialog({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Notes</label>
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Notes</label>
               <textarea
-                className="w-full min-h-[60px] rounded-xl border-slate-200 p-3 text-sm"
+                className="w-full min-h-[60px] rounded-xl border-border p-3 text-sm"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Optional notes..."
@@ -409,8 +409,8 @@ function CreatePODialog({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" disabled={loading}>{loading ? "Creating..." : "Create PO"}</Button>
+            <Button type="button" className="bg-card border border-border text-foreground/80 hover:bg-muted hover:border-border rounded-xl h-11 px-5 transition-all duration-200" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" disabled={loading}>{loading ? "Creating..." : "Create PO"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

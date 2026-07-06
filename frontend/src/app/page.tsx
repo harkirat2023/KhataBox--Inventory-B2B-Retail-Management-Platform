@@ -21,15 +21,15 @@ export default function RootRedirect() {
   }, [status, session, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
         <div className="relative size-14">
           <div className="absolute inset-0 bg-blue-500 rounded-xl animate-pulse opacity-30" />
-          <div className="relative size-full bg-white rounded-xl flex items-center justify-center shadow-sm border">
+          <div className="relative size-full bg-card rounded-xl flex items-center justify-center shadow-sm border">
             <Boxes className="size-7 text-blue-600" />
           </div>
         </div>
-        <p className="text-sm text-slate-400">Loading...</p>
+        <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
     </div>
   )

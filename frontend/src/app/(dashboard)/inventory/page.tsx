@@ -199,16 +199,16 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Inventory</h1>
+        <h1 className="text-3xl font-bold text-foreground">Inventory</h1>
         <div className="flex items-center gap-2">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportCsv} />
-          <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
             <Upload className="size-4 mr-2" /> {importing ? "Importing..." : "Import"}
           </Button>
-          <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setScanDialogOpen(true)}>
+          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setScanDialogOpen(true)}>
             <ScanLine className="size-4 mr-2" /> Scan QR
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
             <Plus className="size-4 mr-2" /> Add Product
           </Button>
         </div>
@@ -216,24 +216,26 @@ export default function InventoryPage() {
 
       <div className="flex items-center gap-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, SKU, or category..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
+            className="pl-10 rounded-xl bg-muted border-0 h-11"
+            inputMode="search"
           />
         </div>
         {stores.length <= 1 ? (
           stores.length === 1 ? (
             <Input
-              className="w-[180px] rounded-xl bg-slate-50 border-0 h-11"
+              className="w-[180px] rounded-xl bg-muted border-0 h-11"
               value={stores[0]?.name ?? ""}
               disabled
+              inputMode="text"
             />
           ) : (
             <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-              <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
+              <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -243,7 +245,7 @@ export default function InventoryPage() {
           )
         ) : (
           <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-            <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
+            <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
               <SelectValue placeholder="All Stores" />
             </SelectTrigger>
             <SelectContent>
@@ -256,7 +258,7 @@ export default function InventoryPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -285,10 +287,10 @@ export default function InventoryPage() {
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-16">
                   <div className="flex flex-col items-center justify-center">
-                    <Package className="size-12 text-slate-300 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1">No products found</h3>
-                    <p className="text-sm text-slate-500 mb-6 max-w-xs">Add your first product to get started with inventory tracking.</p>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
+                    <Package className="size-12 text-muted-foreground/30 mb-4" />
+                    <h3 className="text-lg font-semibold text-foreground mb-1">No products found</h3>
+                    <p className="text-sm text-muted-foreground mb-6 max-w-xs">Add your first product to get started with inventory tracking.</p>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
                       <Plus className="size-4 mr-2" /> Add Product
                     </Button>
                   </div>
@@ -300,9 +302,9 @@ export default function InventoryPage() {
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell className="font-mono text-sm">{product.sku}</TableCell>
                 <TableCell>{product.category}</TableCell>
-                <TableCell className="text-sm text-slate-500">{product.store_name || "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{product.store_name || "—"}</TableCell>
                 <TableCell>
-                  <span className={product.stock_quantity <= product.reorder_threshold ? "text-red-600 font-medium" : ""}>
+                  <span className={product.stock_quantity <= product.reorder_threshold ? "text-destructive font-medium" : ""}>
                     {product.stock_quantity}
                   </span>
                 </TableCell>
@@ -321,7 +323,7 @@ export default function InventoryPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
                       onClick={() => { setQrProduct(product) }}
                       title="QR Identity"
                     >
@@ -330,7 +332,7 @@ export default function InventoryPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
                       onClick={() => { setEditingProduct(product); setDialogOpen(true) }}
                     >
                       <Pencil className="size-3.5" />
@@ -338,7 +340,7 @@ export default function InventoryPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-red-600"
+                      className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => handleDelete(product.id)}
                     >
                       <Trash2 className="size-3.5" />

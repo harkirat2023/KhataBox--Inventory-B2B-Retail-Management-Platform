@@ -104,7 +104,18 @@ async def create_product(payload: ProductCreate, current_user: User = Depends(re
     existing = await db.execute(select(Product).where(Product.sku == payload.sku, Product.owner_id == current_user.id))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="SKU already exists")
-    product = Product(**payload.model_dump(), owner_id=current_user.id)
+
+    # Auto-assign store_id if user has exactly one store
+    data = payload.model_dump()
+    if data.get("store_id") is None:
+        store_result = await db.execute(select(Store).where(Store.owner_id == current_user.id, Store.is_active == True))
+        stores = store_result.scalars().all()
+        if len(stores) == 1:
+            data["store_id"] = stores[0].id
+        elif len(stores) >= 2:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Multiple stores found. Please specify a store_id.")
+
+    product = Product(**data, owner_id=current_user.id)
     db.add(product)
     await db.flush()
     await check_low_stock(product.id, current_user.id, db)

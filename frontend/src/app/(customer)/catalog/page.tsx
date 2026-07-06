@@ -52,7 +52,7 @@ function getInitials(name: string): string {
 
 function getStockInfo(qty: number): { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: LucideIcon; color: string } {
   if (qty <= 0) return { label: "Out of Stock", variant: "destructive", icon: CircleOff, color: "text-red-600 bg-red-50 border-red-200" }
-  if (qty <= 10) return { label: "Low Stock", variant: "outline", icon: CircleAlert, color: "text-amber-600 bg-amber-50 border-amber-200" }
+  if (qty <= 10) return { label: `only ${qty} left`, variant: "outline", icon: CircleAlert, color: "text-amber-600 bg-amber-50 border-amber-200" }
   return { label: "In Stock", variant: "outline", icon: CircleCheck, color: "text-green-600 bg-green-50 border-green-200" }
 }
 
@@ -65,15 +65,15 @@ function StoreSwitchModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in slide-in-from-bottom-4 fade-in duration-200">
+      <div className="relative bg-card rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-in slide-in-from-bottom-4 fade-in duration-200">
         <div className="size-12 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
           <AlertTriangle className="size-6 text-amber-600" />
         </div>
-        <h3 className="text-lg font-bold text-center text-slate-900 mb-2">Switch Store?</h3>
-        <p className="text-sm text-slate-500 text-center leading-relaxed">
-          Your cart currently has items from <strong className="text-slate-700">{currentStoreName}</strong>.
+        <h3 className="text-lg font-bold text-center text-foreground mb-2">Switch Store?</h3>
+        <p className="text-sm text-muted-foreground text-center leading-relaxed">
+          Your cart currently has items from <strong className="text-foreground/80">{currentStoreName}</strong>.
           <br /><br />
-          Continuing will clear your existing cart and start a new cart for <strong className="text-slate-700">{newStoreName}</strong>.
+          Continuing will clear your existing cart and start a new cart for <strong className="text-foreground/80">{newStoreName}</strong>.
         </p>
         <div className="flex gap-2 mt-6">
           <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={onCancel}>Cancel</Button>
@@ -183,21 +183,21 @@ function CatalogContent() {
 
   if (status === "loading" || role !== "customer") {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="text-center"><Package className="size-10 animate-pulse mx-auto text-blue-400" /><p className="text-slate-500 mt-3">Loading...</p></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center"><Package className="size-10 animate-pulse mx-auto text-primary" /><p className="text-muted-foreground mt-3">Loading...</p></div>
       </div>
     )
   }
 
   if (!storeId) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center pb-20">
+      <div className="min-h-screen bg-background flex items-center justify-center pb-20">
         <div className="text-center max-w-sm px-4">
-          <div className="size-20 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
-            <Store className="size-10 text-slate-300" />
+          <div className="size-20 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+            <Store className="size-10 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-1">No Store Selected</h2>
-          <p className="text-slate-500 text-sm mb-6">Please select a store to browse products</p>
+          <h2 className="text-xl font-bold text-foreground mb-1">No Store Selected</h2>
+          <p className="text-muted-foreground text-sm mb-6">Please select a store to browse products</p>
           <Link href="/customer"><Button className="rounded-xl h-11 px-6"><Store className="size-4 mr-2" />Select a Store</Button></Link>
         </div>
         <BottomNav />
@@ -210,48 +210,48 @@ function CatalogContent() {
   const storeInitials = storeData ? getInitials(storeData.name) : "ST"
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-28">
+    <div className="min-h-screen bg-background pb-28">
       <StoreSwitchModal open={switchModalOpen} currentStoreName={currentStoreName}
         newStoreName={storeData?.name || "this store"} onCancel={handleCancelSwitch} onConfirm={handleConfirmSwitch} />
 
       {/* Sticky Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <div className="bg-card border-b border-border sticky top-0 z-30 shadow-sm">
         <div className="px-4 pt-3 pb-3">
           <div className="flex items-center gap-3 mb-2.5">
-            <Link href="/customer" className="size-9 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors shrink-0">
-              <ArrowLeft className="size-4 text-slate-600" />
+            <Link href="/customer" className="size-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted transition-colors shrink-0">
+              <ArrowLeft className="size-4 text-muted-foreground" />
             </Link>
             <Avatar className="size-9 rounded-xl shrink-0 shadow-sm">
-              <AvatarFallback className="rounded-xl text-xs font-bold bg-blue-50 text-blue-700">
+              <AvatarFallback className="rounded-xl text-xs font-bold bg-primary/10 text-primary">
                 {storeInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h1 className="font-bold text-base text-slate-900 truncate leading-snug">{storeData?.name || "Catalog"}</h1>
+              <h1 className="font-bold text-base text-foreground truncate leading-snug">{storeData?.name || "Catalog"}</h1>
               {storeData?.city && (
-                <p className="text-xs text-slate-500 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <MapPin className="size-3 shrink-0" />
                   <span className="truncate">{storeData.city}{storeData.state ? `, ${storeData.state}` : ""}</span>
                 </p>
               )}
             </div>
-            <Link href="/cart" className="relative size-9 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors shrink-0">
-              <ShoppingCart className="size-4 text-slate-600" />
+            <Link href="/cart" className="relative size-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted transition-colors shrink-0">
+              <ShoppingCart className="size-4 text-muted-foreground" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 size-4 bg-blue-600 text-[9px] font-bold text-white rounded-full flex items-center justify-center shadow-sm shadow-blue-200">
+                <span className="absolute -top-1 -right-1 size-4 bg-primary text-[9px] font-bold text-white rounded-full flex items-center justify-center shadow-sm shadow-blue-200">
                   {cartCount > 9 ? "9+" : cartCount}
                 </span>
               )}
             </Link>
           </div>
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input placeholder={`Search in ${storeData?.name || "store"}...`} value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 pr-10 h-10 bg-slate-50 border-0 rounded-xl text-sm focus-visible:bg-white transition-colors" />
+              className="pl-10 pr-10 h-10 bg-muted border-0 rounded-xl text-sm focus-visible:bg-card transition-colors" />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded-full bg-slate-200 flex items-center justify-center hover:bg-slate-300 transition-colors">
-                <X className="size-3 text-slate-500" />
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 size-5 rounded-full bg-muted flex items-center justify-center hover:bg-accent transition-colors">
+                <X className="size-3 text-muted-foreground" />
               </button>
             )}
           </div>
@@ -260,13 +260,13 @@ function CatalogContent() {
 
       {/* Category Chips */}
       {categories.length > 0 && !loading && (
-        <div className="px-4 py-3 overflow-x-auto scrollbar-none sticky top-[108px] z-20 bg-[#F8FAFC] border-b border-slate-100">
+        <div className="px-4 py-3 overflow-x-auto scrollbar-none sticky top-[108px] z-20 bg-background border-b border-border">
           <div className="flex gap-2">
             <button onClick={() => setCategory("")}
               className={`shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-200 ${
                 category === ""
-                  ? "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200/40"
-                  : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600"
+                  ? "bg-primary text-white border-primary shadow-sm shadow-blue-200/40"
+                  : "bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-primary"
               }`}>
               All
             </button>
@@ -274,8 +274,8 @@ function CatalogContent() {
               <button key={cat} onClick={() => setCategory(cat)}
                 className={`shrink-0 px-4 py-2 rounded-full text-xs font-semibold border transition-all duration-200 capitalize whitespace-nowrap ${
                   category === cat
-                    ? "bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200/40"
-                    : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600"
+                    ? "bg-primary text-white border-primary shadow-sm shadow-blue-200/40"
+: "bg-card text-muted-foreground border-border hover:border-primary/30 hover:text-primary"
                 }`}>
                 {cat}
               </button>
@@ -287,14 +287,14 @@ function CatalogContent() {
       {/* Products */}
       <div className="px-4 mt-4">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             {loading ? "Loading products..." : (
               <>{filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""}
               {search && <> for &ldquo;{search}&rdquo;</>}</>
             )}
           </p>
           {!loading && filteredProducts.length > 0 && (
-            <Badge variant="outline" className="text-[11px] text-slate-500 border-slate-200 rounded-full px-3">
+            <Badge variant="outline" className="text-[11px] text-muted-foreground border-border rounded-full px-3">
               <Tag className="size-3 mr-1" />
               {category || "All"}
             </Badge>
@@ -304,7 +304,7 @@ function CatalogContent() {
         {loading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              <div key={i} className="bg-card rounded-2xl border border-border overflow-hidden">
                 <Skeleton className="aspect-[4/3] w-full rounded-none" />
                 <div className="p-3 space-y-2.5">
                   <Skeleton className="h-4 w-3/4" />
@@ -320,12 +320,12 @@ function CatalogContent() {
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center mt-2 shadow-sm max-w-sm mx-auto">
-            <div className="size-16 mx-auto mb-4 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
-              <Package className="size-8 text-slate-300" />
+          <div className="bg-card rounded-2xl border border-border p-10 text-center mt-2 shadow-sm max-w-sm mx-auto">
+            <div className="size-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center border border-border">
+              <Package className="size-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-1">{search ? "No products found" : "This store has no products yet"}</h3>
-            <p className="text-sm text-slate-500 mb-5">{search ? "Try a different search term" : "Check back later or browse another store"}</p>
+            <h3 className="text-lg font-semibold text-foreground mb-1">{search ? "No products found" : "This store has no products yet"}</h3>
+            <p className="text-sm text-muted-foreground mb-5">{search ? "Try a different search term" : "Check back later or browse another store"}</p>
             <div className="flex gap-2 justify-center">
               {search
                 ? <Button variant="outline" className="rounded-xl h-10 px-5" onClick={() => setSearch("")}>Clear Search</Button>
@@ -340,15 +340,15 @@ function CatalogContent() {
               const StockIcon = stockInfo.icon
               const isInStock = product.stock_quantity > 0
               return (
-                <div key={product.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-lg hover:shadow-slate-200/50 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
+                <div key={product.id} className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg hover:shadow-slate-200/50 hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
                   {/* Image Area */}
-                  <div className="aspect-[4/3] bg-gradient-to-br from-blue-50 via-white to-slate-50 flex items-center justify-center relative overflow-hidden">
-                    <div className="size-16 rounded-2xl bg-white/70 backdrop-blur-sm flex items-center justify-center shadow-sm border border-slate-100">
-                      <Package className="size-8 text-blue-300" />
+                  <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 via-card to-muted flex items-center justify-center relative overflow-hidden">
+                    <div className="size-16 rounded-2xl bg-card/70 backdrop-blur-sm flex items-center justify-center shadow-sm border border-border">
+                      <Package className="size-8 text-primary/40" />
                     </div>
                     {/* Stock Overlay Badge */}
                     {!isInStock && (
-                      <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-card/50 backdrop-blur-[2px] flex items-center justify-center">
                         <Badge variant="destructive" className="text-[10px] px-3 py-1 rounded-full shadow-sm">Out of Stock</Badge>
                       </div>
                     )}
@@ -356,13 +356,13 @@ function CatalogContent() {
 
                   {/* Content */}
                   <div className="p-3 flex flex-col flex-1 gap-1.5">
-                    <p className="font-semibold text-sm text-slate-900 leading-snug line-clamp-2">{product.name}</p>
+                    <p className="font-semibold text-sm text-foreground leading-snug line-clamp-2">{product.name}</p>
                     {product.category && (
-                      <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{product.category}</span>
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{product.category}</span>
                     )}
 
                     {/* Price */}
-                    <p className="font-bold text-lg text-slate-900 mt-auto">{formatCurrency(product.selling_price)}</p>
+                    <p className="font-bold text-lg text-foreground mt-auto">{formatCurrency(product.selling_price)}</p>
 
                     {/* Stock Badge */}
                     {isInStock && (
@@ -376,27 +376,27 @@ function CatalogContent() {
                     <div className="mt-1">
                       {isInStock ? (
                         inCart ? (
-                          <div className="flex items-center justify-between bg-blue-50 rounded-xl p-0.5 border border-blue-100">
+                          <div className="flex items-center justify-between bg-primary/10 rounded-xl p-0.5 border border-primary/20">
                             <button onClick={() => { const q = inCart.quantity - 1; if (q <= 0) useCustomerCartStore.getState().removeItem(product.id); else useCustomerCartStore.getState().updateQuantity(product.id, q) }}
-                              className="size-8 rounded-lg flex items-center justify-center hover:bg-blue-100 text-blue-600 transition-colors">
+                              className="size-8 rounded-lg flex items-center justify-center hover:bg-primary/10 text-primary transition-colors">
                               {inCart.quantity <= 1 ? <X className="size-3" /> : <Minus className="size-3" />}
                             </button>
-                            <span className="text-sm font-semibold text-blue-600 min-w-[24px] text-center">{inCart.quantity}</span>
+                            <span className="text-sm font-semibold text-primary min-w-[24px] text-center">{inCart.quantity}</span>
                             <button onClick={() => handleAddToCart(product)}
-                              className="size-8 rounded-lg flex items-center justify-center hover:bg-blue-100 text-blue-600 transition-colors">
+                              className="size-8 rounded-lg flex items-center justify-center hover:bg-primary/10 text-primary transition-colors">
                               <Plus className="size-3" />
                             </button>
                           </div>
                         ) : (
                           <button onClick={() => handleAddToCart(product)}
-                            className="w-full h-9 rounded-xl bg-blue-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-blue-700 transition-all duration-200 active:scale-[0.97] shadow-sm shadow-blue-200/40">
+                            className="w-full h-9 rounded-xl bg-primary text-white text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-all duration-200 active:scale-[0.97] shadow-sm shadow-blue-200/40">
                             <ShoppingCart className="size-3.5" />
                             Add
                           </button>
                         )
                       ) : (
                         <button disabled
-                          className="w-full h-9 rounded-xl bg-slate-100 text-slate-400 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed">
+                          className="w-full h-9 rounded-xl bg-muted text-muted-foreground text-xs font-semibold flex items-center justify-center gap-1.5 cursor-not-allowed">
                           <ShoppingCart className="size-3.5" />
                           Unavailable
                         </button>
@@ -413,16 +413,16 @@ function CatalogContent() {
       {/* Floating Cart Bar */}
       {cartCount > 0 && (
         <div className="fixed bottom-20 left-4 right-4 z-40 max-w-lg mx-auto">
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200 shadow-lg shadow-slate-200/50 p-3 flex items-center justify-between">
+          <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-lg shadow-slate-200/50 p-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm shadow-blue-200">
+              <div className="size-10 rounded-xl bg-primary flex items-center justify-center shadow-sm shadow-blue-200">
                 <ShoppingCart className="size-5 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-sm text-slate-900">
+                <p className="font-semibold text-sm text-foreground">
                   {cartCount} item{cartCount !== 1 ? "s" : ""}
                 </p>
-                <p className="text-xs text-slate-500">{formatCurrency(cartSubtotal)}</p>
+                <p className="text-xs text-muted-foreground">{formatCurrency(cartSubtotal)}</p>
               </div>
             </div>
             <Link href="/cart">
@@ -442,8 +442,8 @@ function CatalogContent() {
 export default function CustomerCatalog() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
-        <div className="text-center"><Package className="size-10 animate-pulse mx-auto text-blue-400" /><p className="text-slate-500 mt-3">Loading products...</p></div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center"><Package className="size-10 animate-pulse mx-auto text-primary" /><p className="text-muted-foreground mt-3">Loading products...</p></div>
       </div>
     }>
       <CatalogContent />

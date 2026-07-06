@@ -60,7 +60,7 @@ def _order_to_response(order, customers_by_id, products_by_id, default_customer_
                 "id": it.id,
                 "product_id": it.product_id,
                 "product_name": it.product_name,
-                "product_sku": products_by_id.get(it.product_id).sku if products_by_id.get(it.product_id) else None,
+                "product_sku": products_by_id.get(it.product_id).sku if products_by_id.get(it.product_id) else "UNPACKED",
                 "quantity": it.quantity,
                 "unit_price": it.unit_price,
                 "total": it.total_price,

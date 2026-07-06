@@ -15,6 +15,7 @@ from app.api.v1 import (
     forecasting,
     inventory,
     invoices,
+    customer_invoices,
     purchase_orders,
     receipts,
     qrcodes,
@@ -38,6 +39,7 @@ router.include_router(customers.router, prefix="/customers", tags=["Customers"])
 router.include_router(forecasting.router, prefix="/forecasting", tags=["Forecasting"])
 router.include_router(inventory.router, prefix="/inventory", tags=["Inventory"])
 router.include_router(invoices.router, prefix="/invoices", tags=["Invoices"])
+router.include_router(customer_invoices.router, prefix="", tags=["Customer Invoices"])
 router.include_router(receipts.router, prefix="/receipts", tags=["Receipts"])
 router.include_router(purchase_orders.router, prefix="/purchase-orders", tags=["Purchase Orders"])
 router.include_router(qrcodes.router, prefix="/qrcodes", tags=["QR Codes"])

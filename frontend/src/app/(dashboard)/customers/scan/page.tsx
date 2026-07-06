@@ -242,7 +242,7 @@ export default function CustomerScanPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">Customer Product Scan</h1>
+        <h1 className="text-3xl font-bold text-foreground">Customer Product Scan</h1>
         <Badge variant="outline" className="text-xs gap-1">
           <ShoppingCart className="size-3" />
           {items.length} item{items.length !== 1 ? "s" : ""}
@@ -251,9 +251,9 @@ export default function CustomerScanPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="rounded-2xl border-slate-200 shadow-sm">
+          <Card className="rounded-2xl border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-slate-900">
+              <CardTitle className="flex items-center gap-2 text-foreground">
                 <Camera className="size-4" />
                 Scan Product QR Code
               </CardTitle>
@@ -261,10 +261,10 @@ export default function CustomerScanPage() {
             <CardContent className="space-y-4">
               <div
                 ref={scannerRef}
-                className="relative aspect-video rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center"
+                className="relative aspect-video rounded-xl border border-border bg-muted overflow-hidden flex items-center justify-center"
               >
                 {!cameraActive && !cameraError && (
-                  <div className="text-center text-slate-400 p-8">
+                  <div className="text-center text-muted-foreground p-8">
                     <QrCode className="size-12 mx-auto mb-3 opacity-40" />
                     <p className="text-sm">Point camera at a product QR code</p>
                   </div>
@@ -279,12 +279,12 @@ export default function CustomerScanPage() {
 
               <div className="flex items-center gap-2">
                 {!cameraActive ? (
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={startCamera}>
+                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={startCamera}>
                     <Camera className="size-4 mr-1.5" />
                     Start Camera
                   </Button>
                 ) : (
-                  <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={stopCamera}>
+                  <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200 flex-1" onClick={stopCamera}>
                     <CameraOff className="size-4 mr-1.5" />
                     Stop Camera
                   </Button>
@@ -293,10 +293,10 @@ export default function CustomerScanPage() {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-slate-200" />
+                  <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-white px-2 text-slate-400">or enter UUID manually</span>
+                  <span className="bg-card px-2 text-muted-foreground">or enter UUID manually</span>
                 </div>
               </div>
 
@@ -305,9 +305,9 @@ export default function CustomerScanPage() {
                   placeholder="Paste product UUID..."
                   value={manualUuid}
                   onChange={(e) => setManualUuid(e.target.value)}
-                  className="rounded-xl border-slate-200 h-11"
+                  className="rounded-xl border-border h-11"
                 />
-                <Button type="submit" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl size-11 transition-all duration-200" disabled={!manualUuid.trim()}>
+                <Button type="submit" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl size-11 transition-all duration-200" disabled={!manualUuid.trim()}>
                   <Search className="size-4" />
                 </Button>
               </form>
@@ -315,9 +315,9 @@ export default function CustomerScanPage() {
           </Card>
 
           {loading && (
-            <Card className="rounded-2xl border-slate-200 shadow-sm">
+            <Card className="rounded-2xl border-border shadow-sm">
               <CardContent className="py-8 space-y-4">
-                <div className="flex items-center justify-center gap-2 text-slate-500">
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
                   <Loader2 className="size-5 animate-spin" />
                   <span>Looking up product...</span>
                 </div>
@@ -334,9 +334,9 @@ export default function CustomerScanPage() {
           )}
 
           {product && !loading && (
-            <Card className="rounded-2xl border-slate-200 shadow-sm">
+            <Card className="rounded-2xl border-border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-slate-900">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <Package className="size-4" />
                   {product.name}
                   {isInCart && (
@@ -347,34 +347,34 @@ export default function CustomerScanPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-sm font-medium text-slate-700 mb-1.5 block">SKU</span>
-                    <p className="font-mono font-medium text-slate-900">{product.sku}</p>
+                    <span className="text-sm font-medium text-foreground/80 mb-1.5 block">SKU</span>
+                    <p className="font-mono font-medium text-foreground">{product.sku}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-slate-700 mb-1.5 block">Category</span>
-                    <p className="font-medium text-slate-900">{product.category}</p>
+                    <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Category</span>
+                    <p className="font-medium text-foreground">{product.category}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-slate-700 mb-1.5 block">Price</span>
-                    <p className="text-lg font-bold text-slate-900">₹{product.selling_price.toFixed(2)}</p>
+                    <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Price</span>
+                    <p className="text-lg font-bold text-foreground">₹{product.selling_price.toFixed(2)}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-slate-700 mb-1.5 block">Available</span>
-                    <p className="text-lg font-bold text-slate-900">{product.stock_quantity}</p>
+                    <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Available</span>
+                    <p className="text-lg font-bold text-foreground">{product.stock_quantity}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-slate-700 mb-1.5 block">Store</span>
-                    <p className="font-medium text-slate-900">{product.store_name || "—"}</p>
+                    <span className="text-sm font-medium text-foreground/80 mb-1.5 block">Store</span>
+                    <p className="font-medium text-foreground">{product.store_name || "—"}</p>
                   </div>
                   <div>
-                    <span className="text-sm font-medium text-slate-700 mb-1.5 block">UUID</span>
-                    <p className="font-mono text-xs text-slate-500">{product.product_uuid}</p>
+                    <span className="text-sm font-medium text-foreground/80 mb-1.5 block">UUID</span>
+                    <p className="font-mono text-xs text-muted-foreground">{product.product_uuid}</p>
                   </div>
                 </div>
 
-                <Card className="rounded-2xl border-slate-200 shadow-sm">
+                <Card className="rounded-2xl border-border shadow-sm">
                   <CardHeader>
-                    <CardTitle className="text-slate-900">Cart Action</CardTitle>
+                    <CardTitle className="text-foreground">Cart Action</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -385,9 +385,9 @@ export default function CustomerScanPage() {
                         const activeClass = a === "remove"
                           ? "bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
                           : a === "adjust"
-                            ? "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"
-                            : "bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
-                        const inactiveClass = "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"
+                            ? "bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200"
+                            : "bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200"
+                        const inactiveClass = "bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200"
                         return (
                           <Button
                             key={a}
@@ -403,7 +403,7 @@ export default function CustomerScanPage() {
 
                     <div className="flex items-center gap-3">
                       <div className="flex-1">
-                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">
+                        <label className="text-sm font-medium text-foreground/80 mb-1.5 block">
                           {action === "add"
                             ? "Quantity to add"
                             : action === "remove"
@@ -416,7 +416,7 @@ export default function CustomerScanPage() {
                           max={action === "add" ? product.stock_quantity : undefined}
                           value={quantity}
                           onChange={(e) => setQuantity(Math.max(0, parseInt(e.target.value) || 0))}
-                          className="rounded-xl border-slate-200 h-11"
+                          className="rounded-xl border-border h-11"
                         />
                       </div>
                       <div className="pt-5">
@@ -424,7 +424,7 @@ export default function CustomerScanPage() {
                           size="lg"
                           onClick={action === "add" ? handleAddToCart : action === "remove" ? handleRemoveFromCart : handleUpdateCart}
                           disabled={submitting || (action === "add" && quantity > product.stock_quantity)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+                          className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200"
                         >
                           {submitting ? "Processing..." : action === "add" ? "Add to Cart" : action === "remove" ? "Remove from Cart" : "Update Cart"}
                         </Button>
@@ -443,11 +443,11 @@ export default function CustomerScanPage() {
           )}
 
           {!product && !loading && (
-            <Card className="rounded-2xl border-slate-200 shadow-sm">
+            <Card className="rounded-2xl border-border shadow-sm">
               <CardContent className="py-16 text-center">
-                <QrCode className="size-16 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">Scan a Product</h3>
-                <p className="text-sm text-slate-500">Point camera at a product QR code or enter a UUID to begin</p>
+                <QrCode className="size-16 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold text-foreground mb-1">Scan a Product</h3>
+                <p className="text-sm text-muted-foreground">Point camera at a product QR code or enter a UUID to begin</p>
               </CardContent>
             </Card>
           )}
@@ -455,47 +455,47 @@ export default function CustomerScanPage() {
 
         <div className="lg:col-span-1 space-y-6">
           {items.length > 0 && (
-            <Card className="rounded-2xl border-slate-200 shadow-sm">
+            <Card className="rounded-2xl border-border shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-slate-900">
+                <CardTitle className="flex items-center gap-2 text-foreground">
                   <ShoppingCart className="size-4" />
                   Cart ({items.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.product_id} className="flex items-center justify-between p-3 border border-slate-200 rounded-xl">
+                  <div key={item.product_id} className="flex items-center justify-between p-3 border border-border rounded-xl">
                     <div className="flex-1">
-                      <p className="font-medium text-sm text-slate-900">{item.name}</p>
-                      <p className="text-xs text-slate-500">{item.sku}</p>
+                      <p className="font-medium text-sm text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.sku}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-slate-900">₹{item.unit_price.toFixed(2)}</p>
-                      <p className="text-xs text-slate-500">x{item.quantity}</p>
+                      <p className="font-medium text-foreground">₹{item.unit_price.toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">x{item.quantity}</p>
                     </div>
-                    <div className="text-right font-medium text-slate-900">
+                    <div className="text-right font-medium text-foreground">
                       ₹{(item.unit_price * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 ))}
 
-                <div className="border-t border-slate-200 pt-4 space-y-2">
-                  <div className="flex justify-between text-sm text-slate-600">
+                <div className="border-t border-border pt-4 space-y-2">
+                  <div className="flex justify-between text-sm text-muted-foreground">
                     <span>Subtotal:</span>
                     <span>₹{items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-slate-600">
+                  <div className="flex justify-between text-sm text-muted-foreground">
                     <span>GST (18%):</span>
                     <span>₹{items.reduce((sum, item) => sum + item.unit_price * item.quantity * 0.18, 0).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-semibold text-lg border-t border-slate-200 pt-2 text-slate-900">
+                  <div className="flex justify-between font-semibold text-lg border-t border-border pt-2 text-foreground">
                     <span>Total:</span>
                     <span>₹{items.reduce((sum, item) => sum + item.unit_price * item.quantity * 1.18, 0).toFixed(2)}</span>
                   </div>
                 </div>
 
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200 w-full"
+                  className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200 w-full"
                   size="lg"
                   onClick={handleCheckout}
                   disabled={submitting || items.length === 0}
@@ -507,11 +507,11 @@ export default function CustomerScanPage() {
           )}
 
           {items.length === 0 && (
-            <Card className="rounded-2xl border-slate-200 shadow-sm">
+            <Card className="rounded-2xl border-border shadow-sm">
               <CardContent className="py-16 text-center">
-                <ShoppingCart className="size-12 mx-auto mb-4 text-slate-300" />
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">Your cart is empty</h3>
-                <p className="text-sm text-slate-500">Scan products to add them to your cart</p>
+                <ShoppingCart className="size-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold text-foreground mb-1">Your cart is empty</h3>
+                <p className="text-sm text-muted-foreground">Scan products to add them to your cart</p>
               </CardContent>
             </Card>
           )}

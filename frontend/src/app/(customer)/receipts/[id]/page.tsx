@@ -1,10 +1,9 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { redirect } from "next/navigation"
+import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import { ArrowLeft, LayoutDashboard, Printer, Share2, Receipt, Wallet, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/components/auth/role-guard"
@@ -64,8 +63,8 @@ const paymentLabels: Record<string, { icon: any; label: string }> = {
 function ReceiptContent() {
   const { data: session, status } = useSession()
   const { role } = useRole()
-  const searchParams = useSearchParams()
-  const orderId = searchParams.get("id")
+  const params = useParams()
+  const orderId = params?.id as string
   const [order, setOrder] = useState<Order | null>(null)
   const [store, setStore] = useState<Store | null>(null)
   const [loading, setLoading] = useState(true)
@@ -205,34 +204,34 @@ function ReceiptContent() {
       </div>
 
       {/* Receipt Card */}
-      <div className="bg-white rounded-xl border p-6 print:border-0 print:p-0">
+      <div className="bg-card rounded-xl border p-6 print:border-0 print:p-0">
         {/* Receipt Header */}
         <div className="text-center border-b pb-4 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">RECEIPT</h1>
-          <p className="text-sm text-gray-500">{receiptNumber}</p>
+          <h1 className="text-2xl font-bold text-foreground">RECEIPT</h1>
+          <p className="text-sm text-muted-foreground">{receiptNumber}</p>
         </div>
 
         {/* Store Info */}
         {store && (
           <div className="text-center mb-4">
-            <p className="font-semibold text-gray-900">{store.name}</p>
-            {store.address && <p className="text-sm text-gray-500">{store.address}</p>}
-            {store.phone && <p className="text-sm text-gray-500">{store.phone}</p>}
+            <p className="font-semibold text-foreground">{store.name}</p>
+            {store.address && <p className="text-sm text-muted-foreground">{store.address}</p>}
+            {store.phone && <p className="text-sm text-muted-foreground">{store.phone}</p>}
           </div>
         )}
 
         {/* Order Info */}
         <div className="mb-4">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Order Number</span>
+            <span className="text-muted-foreground">Order Number</span>
             <span className="font-mono font-medium">{order.order_number}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Date</span>
+            <span className="text-muted-foreground">Date</span>
             <span>{formatDate(order.created_at)}</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Payment</span>
+            <span className="text-muted-foreground">Payment</span>
             <span className="flex items-center gap-1">
               <PaymentIcon className="size-3" />
               {paymentInfo.label}
@@ -244,7 +243,7 @@ function ReceiptContent() {
         <div className="border-t border-b py-4 mb-4">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-sm text-gray-500">
+              <tr className="text-left text-sm text-muted-foreground">
                 <th className="pb-2">Item</th>
                 <th className="pb-2 text-right">Qty</th>
                 <th className="pb-2 text-right">Amount</th>
@@ -255,7 +254,8 @@ function ReceiptContent() {
                 <tr key={item.id}>
                   <td className="py-1 text-sm">{item.product_name}</td>
                   <td className="py-1 text-sm text-right">{item.quantity}</td>
-                  <td className="py-1 text-sm text-right">{formatCurrency(item.total_price)}</td>
+                  <td className="py-1 text-sm text-right">{formatCurrency((item as any).total ?? (item as any).total_price ?? 0)}</td>
+
                 </tr>
               ))}
             </tbody>
@@ -265,7 +265,7 @@ function ReceiptContent() {
         {/* Totals */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Subtotal</span>
+            <span className="text-muted-foreground">Subtotal</span>
             <span>{formatCurrency(order.subtotal)}</span>
           </div>
           {order.discount > 0 && (
@@ -276,7 +276,7 @@ function ReceiptContent() {
           )}
           {order.gst > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">GST (18%)</span>
+              <span className="text-muted-foreground">GST (18%)</span>
               <span>{formatCurrency(order.gst)}</span>
             </div>
           )}
@@ -288,7 +288,7 @@ function ReceiptContent() {
 
         {/* Footer */}
         <div className="text-center pt-4 mt-4 border-t">
-          <p className="text-sm text-gray-500">Thank you for your purchase!</p>
+          <p className="text-sm text-muted-foreground">Thank you for your purchase!</p>
         </div>
       </div>
 

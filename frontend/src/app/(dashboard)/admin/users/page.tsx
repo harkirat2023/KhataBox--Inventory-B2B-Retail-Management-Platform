@@ -88,14 +88,14 @@ export default function AdminUsersPage() {
   return (
     <RoleGuard allowedRoles={["admin"]}>
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
+        <h1 className="text-3xl font-bold text-foreground">User Management</h1>
 
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search users..."
-              className="pl-10 rounded-xl bg-slate-50 border-0 h-11"
+              className="pl-10 rounded-xl bg-muted border-0 h-11"
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value)
@@ -104,7 +104,7 @@ export default function AdminUsersPage() {
             />
           </div>
           <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v ?? "")}>
-            <SelectTrigger className="w-40 rounded-xl border-slate-200 h-11">
+            <SelectTrigger className="w-40 rounded-xl border-border h-11">
               <SelectValue placeholder="All roles" />
             </SelectTrigger>
             <SelectContent>
@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
           </Select>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -144,9 +144,9 @@ export default function AdminUsersPage() {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center justify-center">
-                      <Shield className="size-12 text-slate-300 mb-4" />
-                      <h3 className="text-lg font-semibold text-slate-900 mb-1">No users found</h3>
-                      <p className="text-sm text-slate-500 max-w-xs">No users match your search criteria.</p>
+                      <Shield className="size-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-1">No users found</h3>
+                      <p className="text-sm text-muted-foreground max-w-xs">No users match your search criteria.</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -160,7 +160,7 @@ export default function AdminUsersPage() {
                       defaultValue={user.role}
                       onValueChange={(v) => v && handleRoleChange(user.id, v)}
                     >
-                      <SelectTrigger className="w-32 h-8 text-xs rounded-lg border-slate-200">
+                      <SelectTrigger className="w-32 h-8 text-xs rounded-lg border-border">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -170,7 +170,7 @@ export default function AdminUsersPage() {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell className="text-sm text-slate-500">
+                  <TableCell className="text-sm text-muted-foreground">
                     {user.store_name || "—"}
                   </TableCell>
                   <TableCell>
@@ -178,12 +178,12 @@ export default function AdminUsersPage() {
                       {user.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-sm text-slate-500">
+                  <TableCell className="text-sm text-muted-foreground">
                     {new Date(user.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
-                      className={user.is_active ? "bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5 transition-all duration-200" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5 transition-all duration-200"}
+                      className={user.is_active ? "bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5 transition-all duration-200" : "bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200"}
                       size="sm"
                       onClick={() => handleToggleActive(user.id)}
                     >

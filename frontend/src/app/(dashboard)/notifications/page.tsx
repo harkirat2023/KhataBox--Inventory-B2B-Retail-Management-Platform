@@ -10,6 +10,7 @@ import {
   Clock,
   Filter,
   Bell,
+  LogOut,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { clientApi } from "@/lib/client-api"
+import { signOut } from "next-auth/react"
 
 type NotificationType = "low_stock" | "expiry" | "payment" | "ai_recommendation"
 
@@ -101,14 +103,14 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Notifications</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="text-3xl font-bold text-foreground">Notifications</h1>
+          <p className="text-sm text-muted-foreground">
             {loading ? "Loading..." : unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}` : "All caught up"}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-xl border border-slate-200 p-1 bg-white">
-            <Filter className="size-3.5 text-slate-400 ml-1" />
+          <div className="flex items-center gap-1 rounded-xl border border-border p-1 bg-card">
+            <Filter className="size-3.5 text-muted-foreground ml-1" />
             {typeLabels.map((t) => (
               <button
                 key={t.value}
@@ -116,8 +118,8 @@ export default function NotificationsPage() {
                 className={cn(
                   "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
                   typeFilter === t.value
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                    ? "bg-primary text-white"
+                    : "text-muted-foreground hover:text-foreground/80 hover:bg-muted"
                 )}
               >
                 {t.label}
@@ -125,10 +127,13 @@ export default function NotificationsPage() {
             ))}
           </div>
           {unreadCount > 0 && (
-            <Button className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5" onClick={markAllAsRead}>
+            <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5" onClick={markAllAsRead}>
               <CheckCheck className="size-4 mr-2" /> Mark All Read
             </Button>
           )}
+          <Button variant="ghost" className="text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl h-11 px-3" onClick={() => signOut({ redirect: true, callbackUrl: "/khatabox" })}>
+            <LogOut className="size-4" />
+          </Button>
         </div>
       </div>
 
@@ -137,7 +142,7 @@ export default function NotificationsPage() {
           {loading && (
             <div className="space-y-3">
               {[1,2,3,4,5].map((i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                <div key={i} className="bg-card rounded-2xl border border-border shadow-sm p-4">
                   <div className="flex items-start gap-4">
                     <Skeleton className="size-10 rounded-full shrink-0" />
                     <div className="flex-1 space-y-2">
@@ -152,11 +157,11 @@ export default function NotificationsPage() {
           )}
           {!loading && notifications.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="flex items-center justify-center size-14 rounded-2xl bg-slate-100 mb-4">
-                <Bell className="size-7 text-slate-400" />
+              <div className="flex items-center justify-center size-14 rounded-2xl bg-muted mb-4">
+                <Bell className="size-7 text-muted-foreground" />
               </div>
-              <p className="text-sm font-medium text-slate-900">No notifications yet</p>
-              <p className="text-sm text-slate-500 mt-1">You'll see notifications here when something needs your attention.</p>
+              <p className="text-sm font-medium text-foreground">No notifications yet</p>
+              <p className="text-sm text-muted-foreground mt-1">You'll see notifications here when something needs your attention.</p>
             </div>
           )}
           {notifications.map((notification, i) => {
@@ -166,8 +171,8 @@ export default function NotificationsPage() {
               <div
                 key={notification.id}
                 className={cn(
-                  "bg-white rounded-2xl border border-slate-200 shadow-sm p-4 transition-all duration-200 cursor-pointer",
-                  !notification.is_read && "ring-1 ring-blue-100"
+                  "bg-card rounded-2xl border border-border shadow-sm p-4 transition-all duration-200 cursor-pointer",
+                  !notification.is_read && "ring-1 ring-primary/20"
                 )}
                 onClick={() => markAsRead(notification.id)}
               >
@@ -177,16 +182,16 @@ export default function NotificationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className={cn("text-sm", !notification.is_read ? "font-semibold text-slate-900" : "text-slate-700")}>{notification.title}</p>
+                      <p className={cn("text-sm", !notification.is_read ? "font-semibold text-foreground" : "text-foreground/80")}>{notification.title}</p>
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0">{config.label}</Badge>
                     </div>
-                    <p className="text-sm text-slate-500 mt-0.5">{notification.message}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{notification.message}</p>
                     <div className="flex items-center gap-1 mt-1.5">
-                      <Clock className="size-3 text-slate-400" />
-                      <span className="text-xs text-slate-400">{timeAgo(notification.created_at)}</span>
+                      <Clock className="size-3 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{timeAgo(notification.created_at)}</span>
                     </div>
                   </div>
-                  {!notification.is_read && <span className="size-2 rounded-full bg-blue-600 shrink-0 mt-2" />}
+                  {!notification.is_read && <span className="size-2 rounded-full bg-primary shrink-0 mt-2" />}
                 </div>
               </div>
             )

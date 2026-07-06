@@ -29,7 +29,8 @@ def predict_demand(
     """Predict demand for a product.
 
     Args:
-        product_data: dict with keys — product_id, category, day_of_week, month, is_holiday
+        product_data: dict with keys — product_id, category, day_of_week, month,
+                       is_holiday, selling_price, stock_quantity, day_of_month, is_weekend
 
     Returns:
         dict with predicted_demand, recommended_order_qty, confidence_score, seasonality_factor
@@ -39,14 +40,19 @@ def predict_demand(
     cat_encoder = model_bundle["cat_encoder"]
     feature_cols = model_bundle["feature_cols"]
 
-    category_enc = cat_encoder.transform([product_data["category"].lower()])[0]
-    input_df = pd.DataFrame([{
+    category_enc = cat_encoder.transform([(product_data.get("category") or "unknown").lower()])[0]
+    row = {
         "product_id": product_data["product_id"],
-        "day_of_week": product_data["day_of_week"],
-        "month": product_data["month"],
-        "is_holiday": product_data["is_holiday"],
+        "day_of_week": product_data.get("day_of_week", 0),
+        "month": product_data.get("month", 1),
+        "is_holiday": product_data.get("is_holiday", 0),
+        "selling_price": product_data.get("selling_price", 0),
+        "stock_quantity": product_data.get("current_stock", 0),
+        "day_of_month": product_data.get("day_of_month", 1),
+        "is_weekend": product_data.get("is_weekend", 0),
         "category_enc": category_enc,
-    }])
+    }
+    input_df = pd.DataFrame([{col: row.get(col, 0) for col in feature_cols}])
 
     pred = float(model.predict(input_df)[0])
 

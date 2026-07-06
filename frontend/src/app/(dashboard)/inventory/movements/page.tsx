@@ -97,22 +97,22 @@ export default function MovementsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Inventory Movements</h1>
-        <p className="text-sm text-slate-500">Track all stock changes across your inventory</p>
+        <h1 className="text-3xl font-bold text-foreground">Inventory Movements</h1>
+        <p className="text-sm text-muted-foreground">Track all stock changes across your inventory</p>
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search product, SKU, or reference..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
+            className="rounded-xl bg-muted border-0 h-11 pl-10"
           />
         </div>
         <Select value={typeFilter} onValueChange={(val) => val && setTypeFilter(val)}>
-          <SelectTrigger className="w-[140px] rounded-xl border-slate-200 h-11">
+          <SelectTrigger className="w-[140px] rounded-xl border-border h-11">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -126,7 +126,7 @@ export default function MovementsPage() {
           </SelectContent>
         </Select>
         <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-          <SelectTrigger className="w-[180px] rounded-xl border-slate-200 h-11">
+          <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
             <SelectValue placeholder="All Stores" />
           </SelectTrigger>
           <SelectContent>
@@ -140,20 +140,20 @@ export default function MovementsPage() {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
-          className="w-[150px] rounded-xl border-slate-200 h-11"
+          className="w-[150px] rounded-xl border-border h-11"
           placeholder="From"
         />
         <Input
           type="date"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
-          className="w-[150px] rounded-xl border-slate-200 h-11"
+          className="w-[150px] rounded-xl border-border h-11"
           placeholder="To"
         />
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden divide-y divide-border">
           {[1,2,3,4,5].map((i) => (
             <div key={i} className="flex items-center gap-4 p-4">
               <Skeleton className="h-4 w-32" />
@@ -167,7 +167,7 @@ export default function MovementsPage() {
           ))}
         </div>
       ) : (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -185,11 +185,11 @@ export default function MovementsPage() {
               <TableRow>
                 <TableCell colSpan={7}>
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="flex items-center justify-center size-12 rounded-xl bg-slate-100 mb-4">
-                      <Package className="size-6 text-slate-400" />
+                    <div className="flex items-center justify-center size-12 rounded-xl bg-muted mb-4">
+                      <Package className="size-6 text-muted-foreground" />
                     </div>
-                    <p className="text-sm font-medium text-slate-900">No movements found</p>
-                    <p className="text-sm text-slate-500 mt-1">No inventory movements match your current filters.</p>
+                    <p className="text-sm font-medium text-foreground">No movements found</p>
+                    <p className="text-sm text-muted-foreground mt-1">No inventory movements match your current filters.</p>
                   </div>
                 </TableCell>
               </TableRow>

@@ -149,19 +149,19 @@ export default function QRLabelsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-900">QR Labels</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={handlePrint} disabled={selected.size === 0 || generating}>
+        <h1 className="text-3xl font-bold text-foreground">QR Labels</h1>
+        <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={handlePrint} disabled={selected.size === 0 || generating}>
           <Printer className="size-4 mr-2" /> {generating ? "Generating..." : `Print Labels (${selected.size})`}
         </Button>
       </div>
 
       <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-        <Input placeholder="Search products..." className="rounded-xl bg-slate-50 border-0 h-11 pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input placeholder="Search products..." className="rounded-xl bg-muted border-0 h-11 pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden divide-y divide-border">
           {[1,2,3,4,5].map((i) => (
             <div key={i} className="flex items-center gap-4 p-4">
               <Skeleton className="size-4 rounded" />
@@ -173,7 +173,7 @@ export default function QRLabelsPage() {
           ))}
         </div>
       ) : (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -194,14 +194,14 @@ export default function QRLabelsPage() {
                   <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="size-4" />
                 </TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell className="text-sm text-slate-500">{p.sku}</TableCell>
-                <TableCell className="text-slate-700">&#x20B9;{p.selling_price.toFixed(2)}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{p.sku}</TableCell>
+                <TableCell className="text-foreground/80">&#x20B9;{p.selling_price.toFixed(2)}</TableCell>
                 <TableCell>{p.stock_quantity}</TableCell>
                 <TableCell>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-9 px-3 text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-xl"
+                    className="h-9 px-3 text-foreground/80 hover:bg-muted hover:text-foreground rounded-xl"
                     onClick={() => openEditStock(p)}
                   >
                     Edit Stock
@@ -213,11 +213,11 @@ export default function QRLabelsPage() {
               <TableRow>
                 <TableCell colSpan={6}>
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="flex items-center justify-center size-12 rounded-xl bg-slate-100 mb-4">
-                      <QrCode className="size-6 text-slate-400" />
+                    <div className="flex items-center justify-center size-12 rounded-xl bg-muted mb-4">
+                      <QrCode className="size-6 text-muted-foreground" />
                     </div>
-                    <p className="text-sm font-medium text-slate-900">No products found</p>
-                    <p className="text-sm text-slate-500 mt-1">No products match your search query.</p>
+                    <p className="text-sm font-medium text-foreground">No products found</p>
+                    <p className="text-sm text-muted-foreground mt-1">No products match your search query.</p>
                   </div>
                 </TableCell>
               </TableRow>

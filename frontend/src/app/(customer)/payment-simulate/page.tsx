@@ -152,7 +152,7 @@ function PaymentContent() {
         </div>
 
         {/* Order Summary */}
-        <div className="bg-white rounded-2xl border p-4 space-y-2 shadow-sm">
+        <div className="bg-card rounded-2xl border p-4 space-y-2 shadow-sm">
           <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Order Total</p>
           <p className="text-3xl font-bold text-primary">{formatCurrency(totalAmount)}</p>
           {selectedStore && (
@@ -161,7 +161,7 @@ function PaymentContent() {
         </div>
 
         {/* Payment Form */}
-        <div className="bg-white rounded-2xl border p-5 space-y-4 shadow-sm">
+        <div className="bg-card rounded-2xl border p-5 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <CreditCard className="size-5 text-primary" />
             <h2 className="font-semibold">Simulated Card Payment</h2>

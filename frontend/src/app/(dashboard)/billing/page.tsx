@@ -56,6 +56,7 @@ export default function BillingPage() {
   const [unpackedPrice, setUnpackedPrice] = useState<number | null>(null)
   const [customerChangeModalOpen, setCustomerChangeModalOpen] = useState(false)
   const [pendingCustomerId, setPendingCustomerId] = useState<number | null>(null)
+  const [scannerActive, setScannerActive] = useState(false)
 
   const {
     carts,
@@ -295,124 +296,137 @@ export default function BillingPage() {
     : 0
 
   return (
-    <div className="space-y-6 bg-[#F8FAFC]">
+    <div className="space-y-6 bg-background">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Billing</h1>
-        <p className="text-sm text-slate-500 mt-1">Create bills and manage orders</p>
+        <h1 className="text-3xl font-bold text-foreground">Billing</h1>
+        <p className="text-sm text-muted-foreground mt-1">Create bills and manage orders</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* QR Scanner Section - Always visible at top */}
-          <Card className="rounded-2xl border border-slate-200 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base">Scan Product</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Scan & Unpacked buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant={scannerActive ? "default" : "outline"}
+              className="rounded-xl h-11 px-5"
+              onClick={() => setScannerActive(!scannerActive)}
+            >
+              <ScanBarcode className="size-4 mr-2" />
+              {scannerActive ? "Hide Scanner" : "Scan Product"}
+            </Button>
+            <Button
+              variant="outline"
+              className="rounded-xl h-11 px-5"
+              onClick={() => setUnpackedOpen(true)}
+            >
+              <Package className="size-4 mr-2" />
+              Unpacked Product
+            </Button>
+          </div>
+          {scannerActive && (
+            <div className="max-w-md">
               <QRScanner
                 onScan={handleQRScanned}
                 onError={handleScannerError}
               />
-              {lastScanned && (
-                <Card className="rounded-2xl border border-blue-200 bg-blue-50/30 shadow-sm mt-4">
-                  <CardHeader className="pb-3 flex-row items-center justify-between">
-                    <CardTitle className="text-base">Last Scanned</CardTitle>
-                    <Button variant="ghost" size="icon-xs" className="size-6 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl" onClick={() => setLastScanned(null)}>
-                      <X className="size-3" />
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{lastScanned.name}</p>
-                        <p className="text-sm text-slate-500">
-                          SKU: {lastScanned.sku} &bull; ₹{lastScanned.selling_price.toFixed(2)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className={`text-sm font-medium ${lastScanned.stock_quantity <= lastScanned.reorder_threshold ? "text-red-600" : ""}`}>
-                          Stock: {lastScanned.stock_quantity}
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          In cart: {getCartQty(lastScanned.id)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl" onClick={() => {
-                        const currentQty = getCartQty(lastScanned.id)
-                        if (currentQty <= 1) {
-                          removeItemFromActiveCart(lastScanned.id)
-                        } else {
-                          updateQtyInActiveCart(lastScanned.id, currentQty - 1)
-                        }
-                      }}>
-                        <Minus className="size-4" />
-                      </Button>
-                      <span className="w-12 text-center font-medium">{getCartQty(lastScanned.id)}</span>
-                      <Button variant="outline" size="icon" className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl" onClick={() => {
-                        const maxStock = stockMap.get(lastScanned.id) ?? Infinity
-                        const currentQty = getCartQty(lastScanned.id)
-                        if (currentQty + 1 > maxStock) {
-                          toast.error(`Only ${maxStock} of "${lastScanned.name}" available`)
-                          return
-                        }
-                        addItemToActiveCart(
-                          {
-                            product_id: lastScanned.id,
-                            name: lastScanned.name,
-                            sku: lastScanned.sku,
-                            unit_price: lastScanned.selling_price,
-                          },
-                          1
-                        )
-                      }}>
-                        <Plus className="size-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          )}
+          {lastScanned && (
+            <Card className="rounded-2xl border border-primary/20 bg-primary/5 shadow-sm">
+              <CardHeader className="pb-3 flex-row items-center justify-between">
+                <CardTitle className="text-base">Last Scanned</CardTitle>
+                <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => setLastScanned(null)}>
+                  <X className="size-3" />
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{lastScanned.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      SKU: {lastScanned.sku} &bull; ₹{lastScanned.selling_price.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-medium ${lastScanned.stock_quantity <= lastScanned.reorder_threshold ? "text-red-600" : ""}`}>
+                      Stock: {lastScanned.stock_quantity}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      In cart: {getCartQty(lastScanned.id)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={() => {
+                    const currentQty = getCartQty(lastScanned.id)
+                    if (currentQty <= 1) {
+                      removeItemFromActiveCart(lastScanned.id)
+                    } else {
+                      updateQtyInActiveCart(lastScanned.id, currentQty - 1)
+                    }
+                  }}>
+                    <Minus className="size-4" />
+                  </Button>
+                  <span className="w-12 text-center font-medium">{getCartQty(lastScanned.id)}</span>
+                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={() => {
+                    const maxStock = stockMap.get(lastScanned.id) ?? Infinity
+                    const currentQty = getCartQty(lastScanned.id)
+                    if (currentQty + 1 > maxStock) {
+                      toast.error(`Only ${maxStock} of "${lastScanned.name}" available`)
+                      return
+                    }
+                    addItemToActiveCart(
+                      {
+                        product_id: lastScanned.id,
+                        name: lastScanned.name,
+                        sku: lastScanned.sku,
+                        unit_price: lastScanned.selling_price,
+                      },
+                      1
+                    )
+                  }}>
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Search Products Section */}
-          <Card className="rounded-2xl border border-slate-200 shadow-sm">
+          <Card className="rounded-2xl border border-border shadow-sm">
             <CardHeader>
               <CardTitle>Search Products</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by name, SKU, or category..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
+                  inputMode="search"
+                  className="rounded-xl bg-muted border-0 h-11 pl-10"
                 />
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                  <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
                     placeholder="Scan / enter SKU or name..."
                     value={scanInput}
                     onChange={(e) => setScanInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleScan()}
-                    className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
+                    inputMode="search"
+                    className="rounded-xl bg-muted border-0 h-11 pl-10"
                   />
                 </div>
-                <Button onClick={handleScan} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5">Lookup</Button>
-                <Button onClick={() => setUnpackedOpen(true)} className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5">
-                  <Package className="size-4 mr-2" />
-                  Unpacked Product
-                </Button>
+                <Button onClick={handleScan} className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5">Lookup</Button>
               </div>
             </CardContent>
           </Card>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -428,9 +442,9 @@ export default function BillingPage() {
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-16">
                       <div className="flex flex-col items-center gap-2">
-                        <Search className="size-10 text-slate-300" />
-                        <p className="text-sm font-medium text-slate-900">No products found</p>
-                        <p className="text-sm text-slate-500">Try a different search term or scan a QR code</p>
+                        <Search className="size-10 text-muted-foreground" />
+                        <p className="text-sm font-medium text-foreground">No products found</p>
+                        <p className="text-sm text-muted-foreground">Try a different search term or scan a QR code</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -438,7 +452,7 @@ export default function BillingPage() {
                 {filtered.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="font-mono text-sm text-slate-500">{product.sku}</TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">{product.sku}</TableCell>
                     <TableCell>
                       <span className={product.stock_quantity <= product.reorder_threshold ? "text-red-600 font-medium" : ""}>
                         {product.stock_quantity}
@@ -449,7 +463,7 @@ export default function BillingPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl"
+                        className="size-8 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl"
                         onClick={() => {
                           const maxStock = stockMap.get(product.id) ?? Infinity
                           const currentQty = getCartQty(product.id)
@@ -476,74 +490,26 @@ export default function BillingPage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="rounded-2xl border border-slate-200 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Khata Customer</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Select
-                value={selectedCustomerId ? String(selectedCustomerId) : ""}
-                onValueChange={(val) => {
-                  const newCustomerId = val ? parseInt(val) : null
-                  // If cart has items and trying to change customer, show modal
-                  if (newCustomerId !== selectedCustomerId && items.length > 0 && selectedCustomerId !== null) {
-                    setPendingCustomerId(newCustomerId)
-                    setCustomerChangeModalOpen(true)
-                  } else {
-                    setSelectedCustomerId(newCustomerId)
-                  }
-                }}
-              >
-                <SelectTrigger className="rounded-xl border-slate-200 h-11">
-                  <SelectValue>
-                    {selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.company_name || customers.find(c => c.id === selectedCustomerId)?.contact_person || `Customer #${selectedCustomerId}`) : "Walk-in (no khata)"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Walk-in (no khata)</SelectItem>
-                  {customers.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.company_name || c.contact_person || c.email || `Customer #${c.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedCustomer && (
-                <div className="text-xs space-y-1 bg-slate-50 border border-slate-200 p-3 rounded-xl">
-                  <p>Limit: <span className="font-medium">₹{selectedCustomer.credit_limit.toFixed(2)}</span></p>
-                  <p>Used: <span className="font-medium">₹{selectedCustomer.credit_used.toFixed(2)}</span></p>
-                  <p>Remaining: <span className={`font-medium ${creditRemaining < 0 ? "text-red-600" : "text-green-600"}`}>
-                    ₹{creditRemaining.toFixed(2)}
-                  </span></p>
-                  {total > 0 && creditRemaining - total < 0 && (
-                    <p className="text-red-600 font-medium text-xs mt-1">
-                      Bill exceeds remaining credit by ₹{Math.abs(creditRemaining - total).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-2xl border border-slate-200 shadow-sm">
+          {/* Cart — moved to top */}
+          <Card className="rounded-2xl border border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle>Cart</CardTitle>
                 <div className="flex items-center gap-1">
                   {navigableCount > 1 && (
                     <>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl" onClick={switchToPrev} title="Previous cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={switchToPrev} title="Previous cart">
                         <ChevronLeft className="size-3.5" />
                       </Button>
-                      <span className="text-xs text-slate-500 min-w-[4rem] text-center tabular-nums">
+                      <span className="text-xs text-muted-foreground min-w-[4rem] text-center tabular-nums">
                         {activeIdx + 1} of {navigableCount}
                       </span>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl" onClick={switchToNext} title="Next cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={switchToNext} title="Next cart">
                         <ChevronRight className="size-3.5" />
                       </Button>
                     </>
                   )}
-                  <Button variant="ghost" size="icon-xs" className="size-7 text-red-600 hover:bg-slate-100 hover:text-red-700 rounded-xl" onClick={() => {
+                  <Button variant="ghost" size="icon-xs" className="size-7 text-destructive hover:bg-accent hover:text-destructive rounded-xl" onClick={() => {
                     if (items.length === 0) {
                       toast.error("Cart is already empty")
                       return
@@ -562,7 +528,7 @@ export default function BillingPage() {
                   }} title="Delete current cart">
                     <Trash2 className="size-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon-xs" className="size-7 text-blue-600 hover:bg-slate-100 hover:text-blue-700 rounded-xl" onClick={() => {
+                  <Button variant="ghost" size="icon-xs" className="size-7 text-primary hover:bg-accent hover:text-primary rounded-xl" onClick={() => {
                     if (items.length === 0) {
                       toast.error("Add items to the current cart first")
                       return
@@ -574,15 +540,15 @@ export default function BillingPage() {
                 </div>
               </div>
               {activeCart && (
-                <p className="text-xs text-slate-500 mt-1">{activeCart.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">{activeCart.name}</p>
               )}
             </CardHeader>
             <CardContent className="space-y-4">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 py-8 text-center">
-                  <Receipt className="size-10 text-slate-300" />
-                  <p className="text-sm font-medium text-slate-900">Cart is empty</p>
-                  <p className="text-sm text-slate-500">Search or scan products to add</p>
+                  <Receipt className="size-10 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground">Cart is empty</p>
+                  <p className="text-sm text-muted-foreground">Search or scan products to add</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -590,14 +556,14 @@ export default function BillingPage() {
                     <div key={item.product_id} className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.name}</p>
-                        <p className="text-xs text-slate-500">₹{item.unit_price.toFixed(2)} each</p>
+                        <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl" onClick={() => { if (item.quantity - 1 <= 0) { removeItemFromActiveCart(item.product_id); return }; updateQtyInActiveCart(item.product_id, item.quantity - 1); }}>
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => { if (item.quantity - 1 <= 0) { removeItemFromActiveCart(item.product_id); return }; updateQtyInActiveCart(item.product_id, item.quantity - 1); }}>
                           <Minus className="size-3" />
                         </Button>
                         <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl" onClick={() => {
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => {
                           const maxStock = stockMap.get(item.product_id) ?? Infinity
                           if (item.quantity + 1 > maxStock) {
                             toast.error(`Only ${maxStock} of "${item.name}" available in stock`)
@@ -611,7 +577,7 @@ export default function BillingPage() {
                       <p className="text-sm font-medium w-20 text-right tabular-nums">
                         ₹{(item.unit_price * item.quantity).toFixed(2)}
                       </p>
-                      <Button variant="ghost" size="icon-xs" className="size-6 text-red-600 hover:bg-slate-100 hover:text-red-700 rounded-xl shrink-0" onClick={() => {
+                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:bg-accent hover:text-destructive rounded-xl shrink-0" onClick={() => {
                         if (item.quantity <= 1) {
                           removeItemFromActiveCart(item.product_id)
                         } else {
@@ -628,34 +594,35 @@ export default function BillingPage() {
             {items.length > 0 && (
               <CardFooter className="flex-col gap-3">
                 <div className="flex items-center justify-between w-full text-sm">
-                  <span className="text-slate-500">Discount</span>
+                  <span className="text-muted-foreground">Discount</span>
                   <Input
                     type="number"
                     min="0"
                     step="0.01"
                     value={discount}
                     onChange={(e) => setDiscountOnActiveCart(parseFloat(e.target.value) || 0)}
-                    className="w-24 h-7 text-right text-sm rounded-xl border-slate-200"
+                    inputMode="decimal"
+                    className="w-24 h-7 text-right text-sm rounded-xl border-border"
                   />
                 </div>
                 <div className="flex items-center justify-between w-full text-sm">
-                  <span className="text-slate-500">Subtotal</span>
+                  <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium tabular-nums">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between w-full text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="text-slate-500">GST (18%)</span>
+                    <span className="text-muted-foreground">GST (18%)</span>
                     <button
                       type="button"
                       onClick={() => setApplyGst(!applyGst)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${applyGst ? "bg-blue-600" : "bg-slate-300"}`}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${applyGst ? "bg-primary" : "bg-muted-foreground/30"}`}
                     >
                       <span className={`inline-block size-3.5 rounded-full bg-white transition-transform ${applyGst ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
                     </button>
                   </div>
                   <span className="font-medium tabular-nums">₹{gst.toFixed(2)}</span>
                 </div>
-                <div className="flex items-center justify-between w-full font-semibold text-base border-t border-slate-200 pt-2">
+                <div className="flex items-center justify-between w-full font-semibold text-base border-t border-border pt-2">
                   <span>Total</span>
                   <span className="tabular-nums">₹{total.toFixed(2)}</span>
                 </div>
@@ -663,9 +630,61 @@ export default function BillingPage() {
             )}
           </Card>
 
+          {/* Khata Customer — with gradient accent */}
+          <Card className="rounded-2xl border-0 shadow-sm relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
+            <CardContent className="space-y-3 pl-5 pt-5">
+              <CardTitle className="text-base flex items-center gap-2">
+                <span className="size-2 rounded-full bg-gradient-to-b from-blue-500 to-purple-500 inline-block" />
+                Khata Customer
+              </CardTitle>
+              <Select
+                value={selectedCustomerId ? String(selectedCustomerId) : ""}
+                onValueChange={(val) => {
+                  const newCustomerId = val ? parseInt(val) : null
+                  // If cart has items and trying to change customer, show modal
+                  if (newCustomerId !== selectedCustomerId && items.length > 0 && selectedCustomerId !== null) {
+                    setPendingCustomerId(newCustomerId)
+                    setCustomerChangeModalOpen(true)
+                  } else {
+                    setSelectedCustomerId(newCustomerId)
+                  }
+                }}
+              >
+                <SelectTrigger className="rounded-xl border-border h-11">
+                  <SelectValue>
+                    {selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.company_name || customers.find(c => c.id === selectedCustomerId)?.contact_person || `Customer #${selectedCustomerId}`) : "Walk-in (no khata)"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Walk-in (no khata)</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.company_name || c.contact_person || c.email || `Customer #${c.id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedCustomer && (
+                <div className="text-xs space-y-1 bg-muted border border-border p-3 rounded-xl">
+                  <p>Limit: <span className="font-medium">₹{selectedCustomer.credit_limit.toFixed(2)}</span></p>
+                  <p>Used: <span className="font-medium">₹{selectedCustomer.credit_used.toFixed(2)}</span></p>
+                  <p>Remaining: <span className={`font-medium ${creditRemaining < 0 ? "text-red-600" : "text-green-600"}`}>
+                    ₹{creditRemaining.toFixed(2)}
+                  </span></p>
+                  {total > 0 && creditRemaining - total < 0 && (
+                    <p className="text-red-600 font-medium text-xs mt-1">
+                      Bill exceeds remaining credit by ₹{Math.abs(creditRemaining - total).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {items.length > 0 && !lastOrderId && (
             <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200"
               onClick={handleGenerateBill}
               disabled={loading}
             >
@@ -677,7 +696,7 @@ export default function BillingPage() {
           {lastOrderId && (
             <>
               <Button
-                className="w-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl h-11 px-5"
+                className="w-full bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5"
                 onClick={handleDownloadInvoice}
                 disabled={downloading}
               >
@@ -687,7 +706,7 @@ export default function BillingPage() {
               <button
                 type="button"
                 onClick={handleSkip}
-                className="text-sm text-slate-500 hover:text-slate-700 underline"
+                className="text-sm text-muted-foreground hover:text-foreground/80 underline"
               >
                 Skip
               </button>
@@ -695,7 +714,7 @@ export default function BillingPage() {
           )}
 
           {incompleteCarts.length > 0 && (
-            <Card className="rounded-2xl border border-slate-200 shadow-sm">
+            <Card className="rounded-2xl border border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Orders</CardTitle>
               </CardHeader>
@@ -703,18 +722,18 @@ export default function BillingPage() {
                 {incompleteCarts.map((cart) => {
                   const cartTotal = cart.items.reduce((s, i) => s + i.unit_price * i.quantity, 0)
                   return (
-                    <div key={cart.id} className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm">
+                    <div key={cart.id} className="flex items-center justify-between gap-2 bg-muted border border-border p-3 rounded-xl text-sm">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-xs">{cart.name}</p>
-                        <p className="text-xs text-slate-500">{cart.items.length} item{cart.items.length !== 1 ? "s" : ""} &bull; ₹{cartTotal.toFixed(2)}</p>
-                        <p className="text-[10px] text-slate-500">{new Date(cart.createdAt).toLocaleDateString()}</p>
+                        <p className="text-xs text-muted-foreground">{cart.items.length} item{cart.items.length !== 1 ? "s" : ""} &bull; ₹{cartTotal.toFixed(2)}</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(cart.createdAt).toLocaleDateString()}</p>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-[10px] uppercase text-amber-600 font-medium px-1.5 py-0.5 bg-amber-50 rounded-lg">Incomplete</span>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl" onClick={() => switchToCart(cart.id)} title="Switch to this cart">
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => switchToCart(cart.id)} title="Switch to this cart">
                           <ChevronRight className="size-3" />
                         </Button>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-red-600 hover:bg-slate-100 hover:text-red-700 rounded-xl" onClick={() => deleteCart(cart.id)} title="Delete cart">
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:bg-accent hover:text-destructive rounded-xl" onClick={() => deleteCart(cart.id)} title="Delete cart">
                           <Trash2 className="size-3" />
                         </Button>
                       </div>
@@ -738,11 +757,11 @@ export default function BillingPage() {
 
           <div className="py-2 space-y-3">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Name (optional)</label>
-              <Input value={unpackedName} onChange={(e) => setUnpackedName(e.target.value)} className="rounded-xl border-slate-200 h-11" />
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Name (optional)</label>
+              <Input value={unpackedName} onChange={(e) => setUnpackedName(e.target.value)} className="rounded-xl border-border h-11" inputMode="text" />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 mb-1.5 block">Price *</label>
+              <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Price *</label>
               <Input
                 type="number"
                 min="0"
@@ -752,7 +771,8 @@ export default function BillingPage() {
                   const v = e.target.value
                   setUnpackedPrice(v === "" ? null : parseFloat(v))
                 }}
-                className="rounded-xl border-slate-200 h-11"
+                className="rounded-xl border-border h-11"
+                inputMode="decimal"
               />
             </div>
           </div>
@@ -761,7 +781,7 @@ export default function BillingPage() {
             <Button variant="outline" className="rounded-xl" onClick={() => setUnpackedOpen(false)}>
               Cancel
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={handleAddUnpackedToCart}>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" onClick={handleAddUnpackedToCart}>
               Add to Cart
             </Button>
           </DialogFooter>
@@ -784,7 +804,7 @@ export default function BillingPage() {
             }}>
               Cancel
             </Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={() => {
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" onClick={() => {
               if (pendingCustomerId !== null) {
                 setSelectedCustomerId(pendingCustomerId)
               }

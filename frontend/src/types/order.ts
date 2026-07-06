@@ -1,4 +1,4 @@
-export type OrderStatus = "pending" | "confirmed" | "counter" | "processing" | "completed" | "cancelled"
+export type OrderStatus = "pending" | "confirmed" | "counter" | "processing" | "completed" | "cancelled" | "rejected" | "B2C-pending"
 
 export interface OrderItem {
   id: number

@@ -7,9 +7,19 @@ import Link from "next/link"
 import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Wallet, CreditCard, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/components/auth/role-guard"
-import { clientApi } from "@/lib/client-api"
+import { clientApi, getToken } from "@/lib/client-api"
 import { useCustomerStore } from "@/store/customer-store"
 import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface OrderItem {
   id: number
@@ -65,6 +75,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
   completed: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
   received: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
   cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
+  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
 }
 
 const paymentLabels: Record<string, { icon: LucideIcon; label: string }> = {
@@ -80,6 +91,7 @@ function OrderDetailContent() {
   const { selectedStore } = useCustomerStore()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
 
   useEffect(() => {
     if (status === "loading") return
@@ -148,7 +160,7 @@ function OrderDetailContent() {
             Back to Orders
           </Button>
         </Link>
-        <div className="bg-white rounded-2xl border p-8 text-center">
+        <div className="bg-card rounded-2xl border p-8 text-center">
           <Package className="size-16 mx-auto mb-4 text-muted-foreground/20" />
           <p className="font-semibold">Order not found</p>
         </div>
@@ -163,12 +175,12 @@ function OrderDetailContent() {
   const paymentInfo = paymentLabels[order.payment_method] || paymentLabels.credit
   const PaymentIcon = paymentInfo.icon
   const currentStep = statusSteps.findIndex((s) => s.key === (displayStatus === "received" ? "completed" : displayStatus))
-  const isPastOrder = ["completed", "cancelled"].includes(order.status)
+  const isPastOrder = ["completed", "cancelled", "rejected"].includes(order.status)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background pb-8">
       {/* Header */}
-      <div className="bg-white border-b px-4 pt-3 pb-3">
+      <div className="bg-card border-b px-4 pt-3 pb-3">
         <div className="flex items-center gap-3">
           <Link href="/my-orders">
             <Button variant="ghost" size="sm" className="h-8">
@@ -182,7 +194,7 @@ function OrderDetailContent() {
 
       <div className="px-4 mt-4 space-y-4">
         {/* Status Card */}
-        <div className="bg-white rounded-2xl border p-4">
+        <div className="bg-card rounded-2xl border p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground">Order Number</p>
@@ -217,16 +229,18 @@ function OrderDetailContent() {
             </div>
           )}
 
-          {order.status === "cancelled" && (
+          {(order.status === "cancelled" || order.status === "rejected") && (
             <div className="mt-4 p-3 bg-red-50 rounded-xl flex items-center gap-2">
               <XCircle className="size-4 text-red-500" />
-              <p className="text-sm text-red-700 font-medium">This order has been cancelled</p>
+              <p className="text-sm text-red-700 font-medium">
+                {order.status === "rejected" ? "This order has been rejected by the shopkeeper" : "This order has been cancelled"}
+              </p>
             </div>
           )}
         </div>
 
         {/* Order Info */}
-        <div className="bg-white rounded-2xl border p-4">
+        <div className="bg-card rounded-2xl border p-4">
           <h2 className="font-semibold text-sm mb-3">Order Information</h2>
           <div className="space-y-2.5 text-sm">
             <div className="flex justify-between">
@@ -250,7 +264,7 @@ function OrderDetailContent() {
         </div>
 
         {/* Items */}
-        <div className="bg-white rounded-2xl border p-4">
+        <div className="bg-card rounded-2xl border p-4">
           <h2 className="font-semibold text-sm mb-3">Items ({order.items?.length || 0})</h2>
           <div className="space-y-3">
             {order.items?.map((item) => (
@@ -294,12 +308,55 @@ function OrderDetailContent() {
 
         {/* Actions */}
         <div className="flex gap-2">
-          <Link href={`/receipts/${order.id}`} className="flex-1">
-            <Button variant="outline" className="w-full rounded-xl h-11">
-              <Package className="size-4 mr-2" />
-              View Receipt
-            </Button>
-          </Link>
+          {isPastOrder ? (
+            <a
+              className="flex-1"
+              href="#"
+              onClick={async (e) => {
+                e.preventDefault()
+                try {
+                  const token = await getToken()
+                  const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${order.id}`,
+                    { method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {} }
+                  )
+
+                  if (!resp.ok) {
+                    const body = await resp.json().catch(() => null)
+                    const detail = body?.detail
+                    if (resp.status === 400 && String(detail || "").toLowerCase().includes("received")) {
+                      setInvoiceDialogOpen(true)
+                      return
+                    }
+                    throw new Error("Failed to generate invoice")
+                  }
+
+                  const blob = await resp.blob()
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement("a")
+                  a.href = url
+                  a.download = `invoice_${order.order_number}.pdf`
+                  document.body.appendChild(a)
+                  a.click()
+                  a.remove()
+                  URL.revokeObjectURL(url)
+                } catch {
+                  toast.error("Failed to load invoice")
+                }
+              }}
+            >
+              <Button variant="outline" className="w-full rounded-xl h-11">
+                <Package className="size-4 mr-2" />
+                Download Invoice
+              </Button>
+            </a>
+          ) : (
+            <div className="flex-1">
+              <Button variant="outline" className="w-full rounded-xl h-11" disabled>
+                <Package className="size-4 mr-2" />
+                Receipt available in Past
+              </Button>
+            </div>
+          )}
           <Link href={selectedStore ? `/catalog?store_id=${selectedStore.id}` : "/catalog"} className="flex-1">
             <Button className="w-full rounded-xl h-11">
               Order Again
@@ -308,6 +365,35 @@ function OrderDetailContent() {
           </Link>
         </div>
       </div>
+
+      {/* Invoice availability modal */}
+      <Dialog open={invoiceDialogOpen} onOpenChange={setInvoiceDialogOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Invoice not available yet</DialogTitle>
+            <DialogDescription>
+              Your order is not in <b>received</b> state. Invoice can be downloaded after the shopkeeper marks the order as completed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              onClick={() => setInvoiceDialogOpen(false)}
+            >
+              Close
+            </Button>
+            <Button
+              className="rounded-xl h-11"
+              onClick={() => {
+                setInvoiceDialogOpen(false)
+              }}
+            >
+              Wait & Try Again
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { ArrowLeft, Search } from "lucide-react"
+import { useEffect, useState, useMemo } from "react"
+import { ArrowLeft, Search, TrendingUp, TrendingDown, Minus, Store } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,10 +15,12 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { SupplierPriceAnalysis } from "@/types/price-analysis"
 import { clientApi } from "@/lib/client-api"
+import { useStoreContext } from "@/lib/store-context"
 
 function MarginBadge({ margin }: { margin: number }) {
   if (margin >= 35) return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">{margin}%</Badge>
@@ -31,6 +33,8 @@ export default function PriceAnalysisPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [activeTab, setActiveTab] = useState("all")
+  const [sortBy, setSortBy] = useState<string>("margin_desc")
+  const { activeStore } = useStoreContext()
 
   useEffect(() => {
     clientApi.get<SupplierPriceAnalysis[]>("/api/v1/suppliers/price-analysis")
@@ -39,17 +43,32 @@ export default function PriceAnalysisPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const allItems = data.flatMap((s) => s.items)
-  const filteredItems = allItems.filter(
-    (i) =>
-      i.product_name.toLowerCase().includes(search.toLowerCase()) ||
-      i.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
-      i.product_sku.toLowerCase().includes(search.toLowerCase())
-  )
+  const allItems = useMemo(() => {
+    return data.flatMap((s) => s.items).filter(
+      (i) =>
+        i.product_name.toLowerCase().includes(search.toLowerCase()) ||
+        i.supplier_name.toLowerCase().includes(search.toLowerCase()) ||
+        i.product_sku.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [data, search])
 
-  const bySupplier = activeTab === "all"
-    ? data
-    : data.filter((s) => s.supplier_id.toString() === activeTab)
+  const sortedItems = useMemo(() => {
+    const sorted = [...allItems]
+    switch (sortBy) {
+      case "margin_asc": return sorted.sort((a, b) => a.margin_percent - b.margin_percent)
+      case "margin_desc": return sorted.sort((a, b) => b.margin_percent - a.margin_percent)
+      case "price_asc": return sorted.sort((a, b) => a.current_selling_price - b.current_selling_price)
+      case "price_desc": return sorted.sort((a, b) => b.current_selling_price - a.current_selling_price)
+      default: return sorted
+    }
+  }, [allItems, sortBy])
+
+  const tableItems = useMemo(() => {
+    if (activeTab === "all") return sortedItems
+    const supplier = data.find((s) => s.supplier_id.toString() === activeTab)
+    if (!supplier) return []
+    return sortedItems.filter((i) => i.supplier_id === supplier.supplier_id)
+  }, [sortedItems, activeTab, data])
 
   const totalAvgMargin = allItems.length
     ? (allItems.reduce((sum, i) => sum + i.margin_percent, 0) / allItems.length).toFixed(1)
@@ -71,138 +90,147 @@ export default function PriceAnalysisPage() {
   }
 
   return (
-    <div className="space-y-6 bg-[#F8FAFC]">
+    <div className="space-y-6 bg-background">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/suppliers">
-            <Button variant="ghost" size="icon" className="size-8 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-xl">
+            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground hover:bg-muted hover:text-foreground/80 rounded-xl">
               <ArrowLeft className="size-4" />
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Price Analysis</h1>
-            <p className="text-sm text-slate-500">Compare supplier pricing and margins</p>
+            <h1 className="text-3xl font-bold text-foreground">Price Analysis</h1>
+            <p className="text-sm text-muted-foreground">Compare supplier pricing and margins</p>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="rounded-2xl border border-slate-200 shadow-sm">
+        <Card className="rounded-2xl border border-border shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">Average Margin</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Average Margin</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{totalAvgMargin}%</div>
-            <p className="text-xs text-slate-500 mt-1">Across {allItems.length} products</p>
+            <div className="text-2xl font-bold text-foreground">{totalAvgMargin}%</div>
+            <p className="text-xs text-muted-foreground mt-1">Across {allItems.length} products</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl border border-slate-200 shadow-sm">
+        <Card className="rounded-2xl border border-border shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">High Margin (&ge;35%)</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">High Margin (&ge;35%)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{highMargin}</div>
-            <p className="text-xs text-slate-500 mt-1">Products with good profitability</p>
+            <div className="text-2xl font-bold text-emerald-600">{highMargin}</div>
+            <p className="text-xs text-muted-foreground mt-1">Products with good profitability</p>
           </CardContent>
         </Card>
-        <Card className="rounded-2xl border border-slate-200 shadow-sm">
+        <Card className="rounded-2xl border border-border shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">Low Margin (&lt;20%)</CardTitle>
+            <CardTitle className="text-sm text-muted-foreground">Low Margin (&lt;20%)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{lowMargin}</div>
-            <p className="text-xs text-slate-500 mt-1">Products needing price review</p>
+            <p className="text-xs text-muted-foreground mt-1">Products needing price review</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Search product, supplier, or SKU..."
+            placeholder="Search products, suppliers, or SKU..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="rounded-xl bg-slate-50 border-0 h-11 pl-10"
+            className="rounded-xl bg-card border-border h-11 pl-10"
           />
         </div>
+        <Select value={sortBy} onValueChange={(v) => v && setSortBy(v)}>
+          <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="margin_desc">Margin: High to Low</SelectItem>
+            <SelectItem value="margin_asc">Margin: Low to High</SelectItem>
+            <SelectItem value="price_desc">Price: High to Low</SelectItem>
+            <SelectItem value="price_asc">Price: Low to High</SelectItem>
+          </SelectContent>
+        </Select>
+        {activeStore?.id && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
+            <Store className="size-3" />
+            {activeStore.name}
+          </div>
+        )}
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-slate-100 p-1 rounded-xl">
-          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">All Suppliers</TabsTrigger>
-          {data.filter((s) => s.total_items > 0).map((s) => (
-            <TabsTrigger key={s.supplier_id} value={s.supplier_id.toString()} className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              {s.supplier_name}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        <TabsContent value={activeTab} className="mt-4">
-          {bySupplier.map((group) => {
-            const groupItems = search
-              ? group.items.filter(
-                  (i) =>
-                    i.product_name.toLowerCase().includes(search.toLowerCase()) ||
-                    i.product_sku.toLowerCase().includes(search.toLowerCase())
-                )
-              : group.items
-
-            if (groupItems.length === 0) return null
-
-            return (
-              <div key={group.supplier_id} className="mb-6">
-                {activeTab === "all" && (
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="font-semibold text-slate-900">{group.supplier_name}</h3>
-                    <span className="text-sm text-slate-500">
-                      Avg Margin: <strong>{group.avg_margin_percent}%</strong> &middot; {group.total_items} products
-                    </span>
-                  </div>
-                )}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead className="text-right">Supplier Price</TableHead>
-                        <TableHead className="text-right">Selling Price</TableHead>
-                        <TableHead className="text-right">Profit/Unit</TableHead>
-                        <TableHead className="text-right">Margin</TableHead>
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="px-4 pt-3">
+            <TabsList className="rounded-xl bg-muted p-1">
+              <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">All Suppliers</TabsTrigger>
+              {data.map((s) => (
+                <TabsTrigger key={s.supplier_id} value={String(s.supplier_id)} className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                  {s.supplier_name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          <TabsContent value={activeTab} className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-muted-foreground">Product</TableHead>
+                  <TableHead className="text-muted-foreground">SKU</TableHead>
+                  <TableHead className="text-muted-foreground">Supplier</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Cost Price</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Selling Price</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Margin</TableHead>
+                  <TableHead className="text-right text-muted-foreground">Savings</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tableItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-16 text-sm text-muted-foreground">
+                      No products match your search
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  tableItems.map((item, i) => {
+                    const savings = item.current_selling_price - item.current_cost_price
+                    const savingPct = item.current_cost_price > 0 ? ((item.current_selling_price - item.current_cost_price) / item.current_cost_price * 100) : 0
+                    return (
+                      <TableRow key={`${item.product_id}-${item.supplier_id}-${i}`}>
+                        <TableCell className="font-medium text-foreground">{item.product_name}</TableCell>
+                        <TableCell className="font-mono text-sm text-muted-foreground">{item.product_sku}</TableCell>
+                        <TableCell className="text-foreground/80">{item.supplier_name}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground">₹{item.current_cost_price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-mono font-medium">₹{item.current_selling_price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                          <MarginBadge margin={item.margin_percent} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <span className="font-mono text-sm">₹{savings.toFixed(2)}</span>
+                            {savingPct > 30 ? (
+                              <TrendingUp className="size-3.5 text-emerald-500" />
+                            ) : savingPct > 15 ? (
+                              <Minus className="size-3.5 text-amber-500" />
+                            ) : (
+                              <TrendingDown className="size-3.5 text-red-500" />
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {groupItems.map((item) => (
-                        <TableRow key={`${item.product_id}-${item.supplier_id}`}>
-                          <TableCell className="font-medium">{item.product_name}</TableCell>
-                          <TableCell className="text-sm text-slate-500">{item.product_sku}</TableCell>
-                          <TableCell className="text-sm">{item.category}</TableCell>
-                          <TableCell className="text-right">₹{item.last_supplier_price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">₹{item.current_selling_price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right font-medium">₹{item.profit_per_unit.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">
-                            <MarginBadge margin={item.margin_percent} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            )
-          })}
-
-          {search && filteredItems.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <Search className="size-10 text-slate-300" />
-              <p className="text-sm font-medium text-slate-900">No products found</p>
-              <p className="text-sm text-slate-500">Try a different search term</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                    )
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import io
 import os
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -16,9 +17,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user, require_role
-from app.models.order import Order, OrderItem
+from app.core.dependencies import require_role
+
+from app.models.order import Order
+
 from app.models.user import User
+from app.models.b2c_order import B2COrder
+
 
 # Register a font that supports the Indian Rupee symbol
 try:
@@ -37,20 +42,126 @@ except:
 router = APIRouter()
 
 
+def _assert_user_can_generate_order_invoice(order, current_user: User) -> None:
+    """Raise 404/403 if invoice generation is not allowed for the current user."""
+    # Legacy orders
+    if hasattr(order, "shopkeeper_id") and hasattr(order, "customer_id"):
+        # shopkeeper/admin: shopkeeper_id matches auth user id
+        if order.shopkeeper_id == current_user.id:
+            return
+
+        # customer: order.customer_id matches B2B Customer.id (NOT auth user id)
+        # We must resolve Customer by email in the route handler.
+        if current_user.role == "customer":
+            # signal "unauthorized" using a conservative check
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+        # other roles
+        if order.customer_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+        return
+
+
+
+    # B2C orders
+    if hasattr(order, "shopkeeper_id") and hasattr(order, "customer_user_id"):
+        if order.shopkeeper_id != current_user.id and order.customer_user_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+        return
+
+
+
 @router.post("/generate/{order_id}")
 async def generate_invoice(
     order_id: int,
-    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    current_user: User = Depends(require_role("admin", "shopkeeper", "customer")),
     db: AsyncSession = Depends(get_db),
 ):
+
+    # Supports BOTH:
+    # - legacy regular orders (app.models.order.Order)
+    # - B2C orders (app.models.b2c_order.B2COrder)
+
+    # 1) Try legacy order first
     result = await db.execute(
         select(Order)
-        .where(Order.id == order_id, Order.shopkeeper_id == current_user.id)
+        .where(Order.id == order_id)
         .options(selectinload(Order.items))
     )
     order = result.scalar_one_or_none()
-    if not order:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+    is_b2c = False
+    b2c_order = None
+
+    if order is not None:
+        # Special-case legacy orders for customers: resolve B2B Customer by email.
+        if current_user.role == "customer" and hasattr(order, "customer_id"):
+            from app.models.customer import Customer  # local import to keep helper signature unchanged
+
+            cust_result = await db.execute(
+                select(Customer).where(Customer.email == current_user.email)
+            )
+            customer = cust_result.scalar_one_or_none()
+            if not customer or order.customer_id != customer.id:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+        else:
+            _assert_user_can_generate_order_invoice(order, current_user)
+
+        # Customer rule: only allow invoice download when status is "received"
+        # (frontend maps B2C completed->received; backend stores B2C as "completed").
+        if str(getattr(order, "status", "")).lower() not in {"completed", "received"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invoice is not available until order is received',
+            )
+
+    else:
+        # 2) Try B2C order
+        b2c_result = await db.execute(
+            select(B2COrder)
+            .where(B2COrder.id == order_id)
+            .options(selectinload(B2COrder.items))
+        )
+        b2c_order = b2c_result.scalar_one_or_none()
+        if not b2c_order:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+
+        _assert_user_can_generate_order_invoice(b2c_order, current_user)
+
+        # Customer rule: only allow invoice download when customer sees "received"
+        # which corresponds to backend B2C status "completed".
+        if str(getattr(b2c_order, "status", "")).lower() != "completed":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Invoice is not available until order is received',
+            )
+
+        is_b2c = True
+
+
+    # Normalize fields for invoice rendering
+    if is_b2c:
+        order_number = b2c_order.order_number
+        order_items = b2c_order.items or []
+        created_at = b2c_order.created_at
+        status = b2c_order.status
+        subtotal = b2c_order.subtotal
+        discount = b2c_order.discount
+        gst = b2c_order.gst
+        total = b2c_order.total
+        notes = b2c_order.notes
+    else:
+        order_number = order.order_number
+        order_items = order.items or []
+        created_at = order.created_at
+        status = order.status
+        subtotal = order.subtotal
+        discount = order.discount
+        gst = order.gst
+        total = order.total
+        notes = order.notes
+
+
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
@@ -66,15 +177,17 @@ async def generate_invoice(
     elements.append(Spacer(1, 12))
 
     elements.append(Paragraph(f"<b>Invoice</b>", styles["Heading2"]))
-    elements.append(Paragraph(f"Order #: {order.order_number}", styles["Normal"]))
+    elements.append(Paragraph(f"Order #: {order_number}", styles["Normal"]))
     elements.append(
-        Paragraph(f"Date: {order.created_at.strftime('%d-%b-%Y %I:%M %p')}", styles["Normal"])
+        Paragraph(f"Date: {created_at.strftime('%d-%b-%Y %I:%M %p')}", styles["Normal"])
     )
-    elements.append(Paragraph(f"Status: {order.status.upper()}", styles["Normal"]))
+    elements.append(Paragraph(f"Status: {str(status).upper()}", styles["Normal"]))
+
     elements.append(Spacer(1, 12))
 
     data = [["#", "Product", "Qty", "Unit Price", "Total"]]
-    for i, item in enumerate(order.items, 1):
+    for i, item in enumerate(order_items, 1):
+
         data.append([
             str(i),
             item.product_name,
@@ -100,12 +213,14 @@ async def generate_invoice(
     elements.append(Spacer(1, 12))
 
     totals_data = [
-        ["Subtotal:", f"\u20b9{order.subtotal:.2f}"],
+        ["Subtotal:", f"\u20b9{subtotal:.2f}"],
     ]
-    if order.discount:
-        totals_data.append(["Discount:", f"-\u20b9{order.discount:.2f}"])
-    totals_data.append(["GST (18%):", f"\u20b9{order.gst:.2f}"])
-    totals_data.append(["Total:", f"\u20b9{order.total:.2f}"])
+
+    if discount:
+        totals_data.append(["Discount:", f"-\u20b9{discount:.2f}"])
+    totals_data.append(["GST (18%):", f"\u20b9{gst:.2f}"])
+    totals_data.append(["Total:", f"\u20b9{total:.2f}"])
+
 
     totals_table = Table(totals_data, colWidths=[2.5 * inch, 1.5 * inch])
     totals_table.setStyle(TableStyle([
@@ -119,9 +234,10 @@ async def generate_invoice(
     ]))
     elements.append(totals_table)
 
-    if order.notes:
+    if notes:
         elements.append(Spacer(1, 12))
-        elements.append(Paragraph(f"Notes: {order.notes}", styles["Normal"]))
+        elements.append(Paragraph(f"Notes: {notes}", styles["Normal"]))
+
 
     doc.build(elements)
     buf.seek(0)
@@ -130,6 +246,7 @@ async def generate_invoice(
         buf,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f'attachment; filename="invoice_{order.order_number}.pdf"',
+            "Content-Disposition": f'attachment; filename="invoice_{order_number}.pdf"',
         },
     )
+
