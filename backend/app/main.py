@@ -63,9 +63,9 @@ async def add_performance_headers(request: Request, call_next):
     return response
 
 
+@app.get("/")
 @app.get("/health")
 @app.get("/api/v1/health")
 async def health():
-    # NOTE: railway.json expects /api/v1/health — this endpoint is at /health.
-    # Keep both in sync if Railway healthchecks are configured.
+    # Render / Railway healthchecks ping / and /health
     return {"status": "ok", "service": "KhataBox API"}

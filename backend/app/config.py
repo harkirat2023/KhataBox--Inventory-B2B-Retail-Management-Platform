@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -22,8 +22,9 @@ class Settings(BaseSettings):
     CLERK_PUBLISHABLE_KEY: str = ""
     CLERK_JWKS_URL: str = ""
     CLERK_WEBHOOK_SECRET: str = ""
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: str 
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ".env","env_file_encoding": "utf-8", "extra": "ignore"}
 
 
 settings = Settings()
