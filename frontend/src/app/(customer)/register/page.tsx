@@ -2,8 +2,8 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSignUp, useUser } from "@clerk/nextjs"
-import { Boxes, User, MapPin, Building2, CreditCard, Mail } from "lucide-react"
+import { useSignUp, useAuth } from "@clerk/nextjs"
+import { Boxes, User, MapPin, Building2, CreditCard, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LandingNav } from "@/components/layout/landing-nav"
@@ -36,17 +36,19 @@ function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const roleFromUrl = searchParams.get("role") as "customer" | "shopkeeper" | "admin" | null
-  const role = roleFromUrl === "customer" || roleFromUrl === "shopkeeper" ? roleFromUrl : "shopkeeper"
+  const role = roleFromUrl === "customer" || roleFromUrl === "shopkeeper" || roleFromUrl === "admin" ? roleFromUrl : "shopkeeper"
   const isCustomer = role === "customer"
+  const isAdmin = role === "admin"
 
   const { signUp, isLoaded: clerkLoaded } = useSignUp()
-  const { user, isSignedIn } = useUser()
+  const { getToken } = useAuth()
 
   const [form, setForm] = useState({
     name: "", email: "", phone: "", address: "", city: "", state: "",
     store_name: "", store_type: "", pin_code: "", gst_number: "",
     monthly_revenue: "", business_description: "",
   })
+  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<"form" | "otp" | "complete">("form")
@@ -77,6 +79,55 @@ function RegisterForm() {
       if (clerkCode === "form_identifier_exists") setError("An account with this email already exists. Please sign in instead.")
     }
     setOtpLoading(false)
+  }
+
+  async function exchangeClerkToken() {
+    try {
+      const clerkToken = await getToken()
+      if (!clerkToken) return
+      const res = await fetch(`${API_URL}/api/v1/auth/clerk-token`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${clerkToken}` },
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      document.cookie = `clerk_jwt=${data.access_token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
+    } catch { /* non-blocking */ }
+  }
+
+  async function handlePasswordRegister(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.name || !form.email || !password) { setError("Name, email, and password are required"); return }
+    setError("")
+    setLoading(true)
+    try {
+      const res = await fetch(`${API_URL}/api/v1/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password, name: form.name, phone: form.phone, role: "admin" }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.detail || "Registration failed")
+        setLoading(false)
+        return
+      }
+      const data = await res.json()
+      // Log in the admin automatically
+      const loginRes = await fetch(`${API_URL}/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password }),
+      })
+      if (loginRes.ok) {
+        const loginData = await loginRes.json()
+        document.cookie = `admin_token=${loginData.access_token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
+      }
+      window.location.href = "/admin/users"
+    } catch {
+      setError("Network error. Please try again.")
+    }
+    setLoading(false)
   }
 
   async function handleVerifyOtp() {
@@ -119,10 +170,11 @@ function RegisterForm() {
         if (form.business_description) payload.business_description = form.business_description
       }
       await clientApi.post("/api/v1/auth/clerk-register", payload)
+      // Exchange Clerk token for backend JWT so API calls work immediately
+      await exchangeClerkToken()
       setStep("complete")
       setTimeout(() => {
-        if (role === "shopkeeper") router.push(`/setup-inventory?store_type=${form.store_type || "other"}`)
-        else router.push("/customer")
+        window.location.href = role === "shopkeeper" ? `/setup-inventory?store_type=${form.store_type || "other"}` : "/customer"
       }, 500)
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || err?.message || "Verification failed")
@@ -224,11 +276,11 @@ function RegisterForm() {
             <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-primary shadow-lg shadow-blue-200 mb-3">
               <Boxes className="size-6 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-foreground">{isCustomer ? "Create Customer Account" : "Create Shopkeeper Account"}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{isCustomer ? "Register to shop and track your orders" : "Register your shop on KhataBox"}</p>
+            <h1 className="text-xl font-bold text-foreground">{isAdmin ? "Create Admin Account" : isCustomer ? "Create Customer Account" : "Create Shopkeeper Account"}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{isAdmin ? "Register as an administrator" : isCustomer ? "Register to shop and track your orders" : "Register your shop on KhataBox"}</p>
           </div>
           <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8">
-            <form onSubmit={handleSendOtp} className="space-y-5">
+            <form onSubmit={isAdmin ? handlePasswordRegister : handleSendOtp} className="space-y-5">
               {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5">{error}</div>}
               <div>
                 <div className="flex items-center gap-2 mb-3">
@@ -248,6 +300,12 @@ function RegisterForm() {
                     <label className="block text-sm font-medium text-foreground/80 mb-1">Email *</label>
                     <Input type="email" placeholder="your@email.com" value={form.email} onChange={(e) => handleChange("email", e.target.value)} required className="h-11 rounded-xl" />
                   </div>
+                  {isAdmin && (
+                    <div>
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
+                      <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
+                    </div>
+                  )}
                 </div>
               </div>
               {isCustomer && (
@@ -265,7 +323,7 @@ function RegisterForm() {
                   </div>
                 </div>
               )}
-              {!isCustomer && (
+              {!isCustomer && !isAdmin && (
                 <>
                   <div>
                     <div className="flex items-center gap-2 mb-3">
@@ -314,10 +372,16 @@ function RegisterForm() {
                   </div>
                 </>
               )}
-              <div id="clerk-captcha" />
-              <Button type="submit" className="w-full h-11 rounded-xl text-base" disabled={otpLoading || !clerkLoaded}>
-                {otpLoading ? "Sending OTP..." : "Send Verification OTP"}
-              </Button>
+              {!isAdmin && <div id="clerk-captcha" />}
+              {isAdmin ? (
+                <Button type="submit" className="w-full h-11 rounded-xl text-base" disabled={loading}>
+                  {loading ? "Creating account..." : "Create Admin Account"}
+                </Button>
+              ) : (
+                <Button type="submit" className="w-full h-11 rounded-xl text-base" disabled={otpLoading || !clerkLoaded}>
+                  {otpLoading ? "Sending OTP..." : "Send Verification OTP"}
+                </Button>
+              )}
             </form>
             <p className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{" "}

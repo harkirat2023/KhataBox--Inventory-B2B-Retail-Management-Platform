@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useSignIn } from "@clerk/nextjs"
+import { useSignIn, useAuth } from "@clerk/nextjs"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Boxes, User, Store, Shield, Mail, Lock, KeyRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,6 +24,8 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const roleParam = searchParams.get("role") as Role | null
   const { signIn, isLoaded: clerkLoaded } = useSignIn()
+
+  const { getToken } = useAuth()
 
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [email, setEmail] = useState("")
@@ -82,7 +84,8 @@ function LoginForm() {
     try {
       const result = await signIn.attemptFirstFactor({ strategy: "email_code", code: otpStr })
       if (result.status === "complete") {
-        router.push(selectedRole === "customer" ? "/customer" : "/dashboard")
+        await exchangeClerkToken()
+        window.location.href = selectedRole === "customer" ? "/customer" : "/dashboard"
       } else {
         setError("Verification failed")
       }
@@ -90,6 +93,20 @@ function LoginForm() {
       setError(err?.errors?.[0]?.message || "Invalid code")
     }
     setLoading(false)
+  }
+
+  async function exchangeClerkToken() {
+    try {
+      const clerkToken = await getToken()
+      if (!clerkToken) return
+      const res = await fetch(`${API_URL}/api/v1/auth/clerk-token`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${clerkToken}` },
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      document.cookie = `clerk_jwt=${data.access_token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
+    } catch { /* non-blocking */ }
   }
 
   function setAdminCookie(token: string) {

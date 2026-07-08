@@ -1,6 +1,12 @@
-/** Client-side API client. Callers must pass the Clerk session token explicitly. */
+/** Client-side API client. Auto-reads clerk_jwt or admin_token cookie for auth. */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
+
+function getCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : undefined
+}
 
 function extractError(text: string): string {
   try {
@@ -17,9 +23,10 @@ function extractError(text: string): string {
 }
 
 function headers(clerkToken?: string): Record<string, string> {
+  const token = clerkToken || getCookie("clerk_jwt") || getCookie("admin_token")
   return {
     "Content-Type": "application/json",
-    ...(clerkToken ? { Authorization: `Bearer ${clerkToken}` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   }
 }
 

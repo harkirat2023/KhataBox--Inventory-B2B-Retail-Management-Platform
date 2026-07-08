@@ -2,10 +2,12 @@ import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.core.clerk import verify_clerk_token
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.core.security import create_access_token, create_refresh_token, decode_token, hash_password, verify_password
@@ -19,6 +21,8 @@ from app.schemas.user import (
     UserLogin,
     UserResponse,
 )
+
+bearer_scheme = HTTPBearer()
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -264,3 +268,23 @@ async def clerk_webhook(request: Request, db: AsyncSession = Depends(get_db)):
                 logger.info(f"Deactivated user {user.id} from Clerk webhook")
 
     return {"ok": True}
+
+
+@router.post("/clerk-token", response_model=TokenResponse)
+async def clerk_token(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+):
+    payload = verify_clerk_token(credentials.credentials)
+    if not payload:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Clerk token")
+    clerk_id = payload.get("sub")
+    if not clerk_id:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Clerk token payload")
+    result = await db.execute(select(User).where(User.clerk_id == clerk_id))
+    user = result.scalar_one_or_none()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    access_token = create_access_token({"sub": str(user.id), "role": user.role})
+    refresh_token = create_refresh_token({"sub": str(user.id)})
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token, user=UserResponse.model_validate(user))
