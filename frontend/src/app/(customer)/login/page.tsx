@@ -85,6 +85,10 @@ function LoginForm() {
     setLoading(false)
   }
 
+  function setAdminCookie(token: string) {
+    document.cookie = `admin_token=${token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
+  }
+
   // --- Login via Password (backend /api/v1/auth/login) ---
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -102,6 +106,10 @@ function LoginForm() {
         setError(data.detail || "Invalid email or password")
         setLoading(false)
         return
+      }
+      const data = await res.json()
+      if (selectedRole === "admin" && data.access_token) {
+        setAdminCookie(data.access_token)
       }
       router.push(selectedRole === "customer" ? "/customer" : "/dashboard")
     } catch {
