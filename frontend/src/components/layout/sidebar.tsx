@@ -26,9 +26,20 @@ import {
   Camera,
   ChevronDown,
   History,
-  ChevronRight,
   Pencil,
 } from "lucide-react"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
 import {
   Select,
   SelectContent,
@@ -36,11 +47,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { useRole } from "@/components/auth/role-guard"
 import { useStoreContext } from "@/lib/store-context"
@@ -52,7 +58,6 @@ interface Store {
   name: string
 }
 
-// Navigation groups for admin/shopkeeper
 const staffNavGroups = [
   {
     label: "Dashboard",
@@ -109,7 +114,7 @@ const customerNavGroups = [
   {
     label: "Shop",
     items: [
-      { label: "Home", href: "/", icon: LayoutDashboard, roles: ["customer"] },
+      { label: "Home", href: "/customer", icon: LayoutDashboard, roles: ["customer"] },
       { label: "Quick Scan", href: "/scan", icon: ScanLine, roles: ["customer"] },
       { label: "Catalog", href: "/catalog", icon: ShoppingBag, roles: ["customer"] },
       { label: "Cart", href: "/cart", icon: ShoppingCart, roles: ["customer"] },
@@ -125,7 +130,7 @@ const customerNavGroups = [
   },
 ]
 
-export function Sidebar() {
+export function AppSidebar() {
   const pathname = usePathname()
   const { role } = useRole()
   const { activeStore, setActiveStore } = useStoreContext()
@@ -133,7 +138,6 @@ export function Sidebar() {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [renamingStore, setRenamingStore] = useState<{ id: number; name: string } | null>(null)
   const navGroups = role === "customer" ? customerNavGroups : staffNavGroups
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(role === "customer" ? ["Shop", "Account"] : ["Dashboard", "B2C", "B2B", "Inventory", "Analytics", "Administration"]))
 
   useEffect(() => {
     if (role && ["admin", "shopkeeper"].includes(role)) {
@@ -141,132 +145,98 @@ export function Sidebar() {
     }
   }, [role])
 
-  const toggleGroup = (label: string) => {
-    setExpandedGroups(prev => {
-      const next = new Set(prev)
-      if (next.has(label)) next.delete(label)
-      else next.add(label)
-      return next
-    })
-  }
-
-  const filteredGroups = navGroups.map(group => ({
-    ...group,
-    items: group.items.filter(item => role && item.roles.includes(role))
-  })).filter(group => group.items.length > 0)
-
-  const isActiveRoute = (href: string) => pathname === href || pathname.startsWith(href + "/")
+  const filteredGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => role && item.roles.includes(role)),
+    }))
+    .filter((group) => group.items.length > 0)
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] border-r bg-sidebar shrink-0">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 h-[72px] px-6 border-b border-sidebar-border">
-        <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
-          <Boxes className="size-5 text-primary" />
-        </div>
-        <span className="font-semibold text-lg tracking-tight">KhataBox</span>
-      </div>
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:!p-0" asChild href="/dashboard">
+              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 shrink-0">
+                <Boxes className="size-5 text-primary" />
+              </div>
+              <span className="font-semibold text-lg tracking-tight group-data-[collapsible=icon]:hidden">KhataBox</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
 
-      {/* Store Selector */}
-      {role && ["admin", "shopkeeper"].includes(role) && (
-        <div className="px-3 py-3 border-b border-sidebar-border">
-          <div className="flex items-center justify-between mb-1.5 ml-1">
-            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-              Active Store
-            </label>
-            {activeStore.id && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  const store = stores.find((s) => s.id === activeStore.id)
-                  if (store) {
-                    setRenamingStore({ id: store.id, name: store.name })
-                    setRenameDialogOpen(true)
-                  }
-                }}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                title="Rename Store"
-              >
-                <Pencil className="size-3" />
-              </button>
-            )}
-          </div>
-          <Select
-            value={activeStore.id ? String(activeStore.id) : ""}
-            onValueChange={(val) => {
-              const store = stores.find((s) => String(s.id) === val)
-              setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
-            }}
-          >
-            <SelectTrigger className="w-full h-8 text-sm rounded-lg border-sidebar-border bg-sidebar-accent/50">
-              <SelectValue placeholder="All Stores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">All Stores</SelectItem>
-              {stores.map((s) => (
-                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto scrollbar-none">
-        {filteredGroups.map((group) => {
-          const isExpanded = expandedGroups.has(group.label)
-          return (
-            <div key={group.label} className="mb-0.5">
-              <button
-                onClick={() => toggleGroup(group.label)}
-                className={cn(
-                  "flex items-center gap-2 w-full px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors rounded-md",
-                  "hover:bg-sidebar-accent/50"
-                )}
-              >
-                <ChevronDown
-                  className={cn(
-                    "size-3 transition-transform duration-200",
-                    isExpanded ? "" : "-rotate-90"
-                  )}
-                />
-                {group.label}
-              </button>
-              {isExpanded && (
-                <div className="mt-0.5 space-y-0.5">
-                  {group.items.map((item) => {
-                    const Icon = item.icon
-                    const active = isActiveRoute(item.href)
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2 ml-1 rounded-lg text-sm font-medium transition-all duration-150",
-                          active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                            : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                        )}
-                      >
-                        <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "")} />
-                        <span>{item.label}</span>
-                        {active && (
-                          <span className="ml-auto size-1.5 rounded-full bg-primary" />
-                        )}
-                      </Link>
-                    )
-                  })}
-                </div>
+        {role && ["admin", "shopkeeper"].includes(role) && (
+          <div className="px-1 pt-1 group-data-[collapsible=icon]:hidden">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Store</span>
+              {activeStore.id && (
+                <button
+                  onClick={() => {
+                    const store = stores.find((s) => s.id === activeStore.id)
+                    if (store) {
+                      setRenamingStore({ id: store.id, name: store.name })
+                      setRenameDialogOpen(true)
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Pencil className="size-3" />
+                </button>
               )}
             </div>
-          )
-        })}
-      </nav>
+            <Select
+              value={activeStore.id ? String(activeStore.id) : ""}
+              onValueChange={(val) => {
+                const store = stores.find((s) => String(s.id) === val)
+                setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
+              }}
+            >
+              <SelectTrigger className="w-full h-8 text-sm rounded-lg border-sidebar-border bg-sidebar-accent/50">
+                <SelectValue placeholder="All Stores" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Stores</SelectItem>
+                {stores.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </SidebarHeader>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-sidebar-border">
-        <p className="text-xs text-muted-foreground text-center">KhataBox v1.0</p>
-      </div>
+      <SidebarContent>
+        {filteredGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const Icon = item.icon
+                  const active = pathname === item.href || pathname.startsWith(item.href + "/")
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton isActive={active} tooltip={item.label} asChild href={item.href}>
+                            <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "")} />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarFooter>
+        <div className="px-2 py-1">
+          <p className="text-xs text-muted-foreground text-center group-data-[collapsible=icon]:hidden">KhataBox v1.0</p>
+        </div>
+      </SidebarFooter>
 
       {renamingStore && (
         <RenameStoreDialog
@@ -274,13 +244,13 @@ export function Sidebar() {
           onOpenChange={setRenameDialogOpen}
           store={renamingStore}
           onRenamed={(newName) => {
-            setStores((prev) => prev.map((s) => s.id === renamingStore.id ? { ...s, name: newName } : s))
+            setStores((prev) => prev.map((s) => (s.id === renamingStore.id ? { ...s, name: newName } : s)))
             if (activeStore.id === renamingStore.id) {
               setActiveStore({ id: renamingStore.id, name: newName })
             }
           }}
         />
       )}
-    </aside>
+    </Sidebar>
   )
 }

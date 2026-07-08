@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -18,7 +18,7 @@ function formatCurrency(amount: number) {
 }
 
 function PaymentContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
   const { role } = useRole()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -38,14 +38,14 @@ function PaymentContent() {
   const { clearCart } = useCustomerCartStore()
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) {
+    if (!isLoaded) return
+    if (!isSignedIn) {
       redirect("/login")
     }
     if (role !== "customer") {
       redirect("/dashboard")
     }
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   const totalAmount = totalParam ? parseFloat(totalParam) : 0
 
@@ -85,7 +85,7 @@ function PaymentContent() {
     }
   }
 
-  if (status === "loading" || !session?.user || role !== "customer") {
+  if (!isLoaded || !isSignedIn || role !== "customer") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-background">
         <div className="text-center">

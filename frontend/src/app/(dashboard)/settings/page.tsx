@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { Download, User, Mail, Shield, Building2, Settings, Sun, Moon } from "lucide-react"
@@ -25,10 +25,9 @@ function exportAsCsv(rows: Record<string, unknown>[], filename: string) {
 }
 
 export default function SettingsPage() {
-  const { data: session } = useSession()
+  const { user: clerkUser } = useUser()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const user = session?.user
 
   useEffect(() => setMounted(true), [])
 
@@ -71,7 +70,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <User className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium text-foreground">{user?.name || "N/A"}</p>
+              <p className="text-sm font-medium text-foreground">{clerkUser?.fullName || "N/A"}</p>
               <p className="text-xs text-muted-foreground">Name</p>
             </div>
           </div>
@@ -79,7 +78,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Mail className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium text-foreground">{user?.email || "N/A"}</p>
+              <p className="text-sm font-medium text-foreground">{clerkUser?.emailAddresses?.[0]?.emailAddress || "N/A"}</p>
               <p className="text-xs text-muted-foreground">Email</p>
             </div>
           </div>
@@ -87,7 +86,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Shield className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium capitalize text-foreground">{user?.role || "N/A"}</p>
+              <p className="text-sm font-medium capitalize text-foreground">Shopkeeper</p>
               <p className="text-xs text-muted-foreground">Role</p>
             </div>
           </div>
@@ -95,7 +94,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Building2 className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium text-foreground">{user?.name ? `${user.name}'s Shop` : "N/A"}</p>
+              <p className="text-sm font-medium text-foreground">{clerkUser?.fullName ? `${clerkUser.fullName}'s Shop` : "N/A"}</p>
               <p className="text-xs text-muted-foreground">Business</p>
             </div>
           </div>

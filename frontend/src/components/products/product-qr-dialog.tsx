@@ -158,9 +158,10 @@ export function ProductQrDialog({ open, onOpenChange, product }: Props) {
 
 async function getToken(): Promise<string | null> {
   try {
-    const { getSession } = await import("next-auth/react")
-    const session = await getSession()
-    return (session as { access_token?: string } | null)?.access_token || null
+    const { useAuth } = await import("@clerk/nextjs")
+    // This function is called outside React hooks context, useAuth won't work here
+    // Token should be passed as prop from the calling component
+    return null
   } catch {
     return null
   }

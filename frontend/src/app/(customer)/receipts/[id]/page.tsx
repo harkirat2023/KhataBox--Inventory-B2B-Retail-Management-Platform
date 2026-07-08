@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -61,7 +61,7 @@ const paymentLabels: Record<string, { icon: any; label: string }> = {
 }
 
 function ReceiptContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
   const { role } = useRole()
   const params = useParams()
   const orderId = params?.id as string
@@ -70,14 +70,14 @@ function ReceiptContent() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) {
+    if (!isLoaded) return
+    if (!isSignedIn) {
       redirect("/login")
     }
     if (role !== "customer") {
       redirect("/dashboard")
     }
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   useEffect(() => {
     async function fetchOrder() {
@@ -150,7 +150,7 @@ function ReceiptContent() {
     }
   }
 
-  if (status === "loading" || loading || !session?.user || role !== "customer") {
+  if (!isLoaded || loading || !isSignedIn || role !== "customer") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">

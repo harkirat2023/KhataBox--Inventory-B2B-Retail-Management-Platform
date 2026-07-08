@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
@@ -19,7 +19,7 @@ function formatCurrency(amount: number) {
 }
 
 export function CartContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
   const { role } = useRole()
   const router = useRouter()
   const [placing, setPlacing] = useState(false)
@@ -85,10 +85,10 @@ export function CartContent() {
   }
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) redirect("/login")
+    if (!isLoaded) return
+    if (!isSignedIn) redirect("/login")
     if (role !== "customer") redirect("/dashboard")
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   const handleUpdateQuantity = async (productId: number, newQuantity: number) => {
     if (newQuantity < 0) return

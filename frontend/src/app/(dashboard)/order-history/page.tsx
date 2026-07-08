@@ -32,9 +32,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Order, OrderStatus } from "@/types/order"
-import { clientApi, getToken } from "@/lib/client-api"
+import { useAuth } from "@clerk/nextjs"
+import { clientApi } from "@/lib/client-api"
 import { useBillingStore } from "@/store/billing"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
@@ -58,29 +60,10 @@ interface BillingDisplayItem {
   order_number_display?: string
 }
 
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  pending: { label: "Pending", variant: "outline" },
-  confirmed: { label: "Confirmed", variant: "default" },
-  counter: { label: "Counter", variant: "secondary" },
-  processing: { label: "Ready", variant: "secondary" },
-  completed: { label: "Completed", variant: "outline" },
-  cancelled: { label: "Cancelled", variant: "destructive" },
-  rejected: { label: "Rejected", variant: "destructive" },
-}
-
-const statusStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-300",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-300",
-  counter: "bg-orange-100 text-orange-800 border-orange-300",
-  processing: "bg-purple-100 text-purple-800 border-purple-300",
-  completed: "bg-green-100 text-green-800 border-green-300",
-  cancelled: "bg-red-100 text-red-800 border-red-300",
-  rejected: "bg-red-100 text-red-800 border-red-300",
-}
-
 type HistoryTab = "all" | "regular" | "b2c"
 
 export default function OrderHistoryPage() {
+  const { getToken } = useAuth()
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [b2cOrders, setB2cOrders] = useState<Order[]>([])
@@ -596,8 +579,8 @@ export default function OrderHistoryPage() {
                   <TableCell className="font-medium text-foreground">₹{order.total.toFixed(2)}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-2">
-                      <Badge variant="outline" className={`text-xs px-2 py-0 ${statusStyles[order.status]}`}>
-                        {isBilling ? "Cancelled (Billing)" : statusConfig[order.status]?.label || order.status}
+                      <Badge variant="outline" className={`text-xs px-2 py-0 ${ORDER_STATUS_CONFIG[order.status]?.color || ""}`}>
+                        {isBilling ? "Cancelled (Billing)" : ORDER_STATUS_CONFIG[order.status]?.label || order.status}
                       </Badge>
                       {!isBilling && historyTab === "b2c" && getB2CActionButtons(order as unknown as { status: string; id: number })}
                     </div>

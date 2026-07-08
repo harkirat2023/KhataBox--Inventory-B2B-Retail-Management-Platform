@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -145,7 +145,7 @@ function StoreCard({
 }
 
 export default function CustomerHome() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn, user } = useUser()
   const { role } = useRole()
   const router = useRouter()
   const { items } = useCustomerCartStore()
@@ -154,10 +154,10 @@ export default function CustomerHome() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) redirect("/login")
+    if (!isLoaded) return
+    if (!isSignedIn) redirect("/login")
     if (role && ["admin", "shopkeeper"].includes(role)) redirect("/dashboard")
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   const { data: stores, isLoading: storesLoading, isError: storesError } = useQuery({
     queryKey: ["stores", "public"],
@@ -181,7 +181,7 @@ export default function CustomerHome() {
     ? stores?.filter((s) => s.store_type === selectedCategory)
     : stores
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
-  const userName = session?.user?.name || "there"
+  const userName = user?.fullName || "there"
   const todayDate = getTodayDate()
 
   return (

@@ -1,23 +1,25 @@
-import { auth } from "@/lib/auth"
+import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { apiGet } from "./api"
 
 type Role = "admin" | "shopkeeper" | "customer"
 
 export async function requireAuth(roles?: Role[]) {
   const session = await auth()
 
-  if (!session?.user) {
+  if (!session?.userId) {
     redirect("/login")
   }
 
-  const userRole = session.user.role as Role
-
-  if (roles && !roles.includes(userRole)) {
-    // Break infinite loop: redirect customer to /customer, others to /login
-    if (userRole === "customer") {
-      redirect("/customer")
+  if (roles) {
+    try {
+      const user = await apiGet<{ role: string }>("/api/v1/auth/me")
+      if (!roles.includes(user.role as Role)) {
+        redirect("/dashboard")
+      }
+    } catch {
+      redirect("/login")
     }
-    redirect("/login")
   }
 
   return session

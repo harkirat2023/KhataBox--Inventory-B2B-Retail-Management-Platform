@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { clientApi } from "@/lib/client-api"
-import { signOut } from "next-auth/react"
+
 
 type NotificationType = "low_stock" | "expiry" | "payment" | "ai_recommendation"
 
@@ -131,7 +131,7 @@ export default function NotificationsPage() {
               <CheckCheck className="size-4 mr-2" /> Mark All Read
             </Button>
           )}
-          <Button variant="ghost" className="text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl h-11 px-3" onClick={() => signOut({ redirect: true, callbackUrl: "/khatabox" })}>
+                          <Button variant="ghost" className="text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded-xl h-11 px-3" onClick={() => window.location.href = "/khatabox"}>
             <LogOut className="size-4" />
           </Button>
         </div>

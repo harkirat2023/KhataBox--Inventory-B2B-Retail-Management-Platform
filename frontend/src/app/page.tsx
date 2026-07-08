@@ -1,24 +1,29 @@
 "use client"
 
 import { useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { Boxes } from "lucide-react"
+import { clientApi } from "@/lib/client-api"
 
 export default function RootRedirect() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { user, isLoaded, isSignedIn } = useUser()
 
   useEffect(() => {
-    if (status === "loading") return
-    if (status === "authenticated" && session?.user) {
-      const userRole = (session.user as any).role
-      if (userRole === "customer") router.replace("/customer")
-      else if (["admin", "shopkeeper"].includes(userRole)) router.replace("/dashboard")
+    if (!isLoaded) return
+
+    if (isSignedIn && user) {
+      clientApi.get<{ role: string }>("/api/v1/auth/me")
+        .then((dbUser) => {
+          if (dbUser.role === "customer") router.replace("/customer")
+          else router.replace("/dashboard")
+        })
+        .catch(() => router.replace("/khatabox"))
     } else {
       router.replace("/khatabox")
     }
-  }, [status, session, router])
+  }, [isLoaded, isSignedIn, user, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

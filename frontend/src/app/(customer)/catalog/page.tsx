@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { Suspense, useEffect, useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -85,7 +85,7 @@ function StoreSwitchModal({
 }
 
 function CatalogContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
   const { role } = useRole()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -108,10 +108,10 @@ function CatalogContent() {
   const redirectToHome = useCallback(() => router.push("/customer"), [router])
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) { router.push("/login"); return }
+    if (!isLoaded) return
+    if (!isSignedIn) { router.push("/login"); return }
     if (role !== "customer") { router.push("/dashboard"); return }
-  }, [session, status, role, router])
+  }, [isLoaded, isSignedIn, role, router])
 
   useEffect(() => {
     if (!storeId && role === "customer" && !loading) redirectToHome()

@@ -3,6 +3,8 @@ import os
 import sys
 from logging.config import fileConfig
 from os.path import abspath, dirname
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
 from dotenv import load_dotenv
 
 # Dynamically add the backend folder to the Python path
@@ -26,9 +28,20 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
+def _clean_db_url(raw: str | None) -> str | None:
+    """Strip query params that asyncpg does not accept (sslmode, channel_binding)."""
+    if not raw:
+        return raw
+    parsed = urlparse(raw)
+    qs = parse_qs(parsed.query, keep_blank_values=True)
+    for key in ("sslmode", "channel_binding"):
+        qs.pop(key, None)
+    clean_query = urlencode(qs, doseq=True)
+    return urlunparse(parsed._replace(query=clean_query))
+
+
 def run_migrations_offline() -> None:
-    # Use DATABASE_URL from your .env file instead of alembic.ini
-    url = os.getenv("DATABASE_URL")
+    url = _clean_db_url(os.getenv("DATABASE_URL"))
     context.configure(url=url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})
     with context.begin_transaction():
         context.run_migrations()
@@ -42,10 +55,9 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     configuration = config.get_section(config.config_ini_section, {})
-    
-    # Overwrite the sqlalchemy.url dynamically using your .env value
-    configuration["sqlalchemy.url"] = os.getenv("DATABASE_URL")
-    
+
+    configuration["sqlalchemy.url"] = _clean_db_url(os.getenv("DATABASE_URL"))
+
     connectable = async_engine_from_config(configuration, prefix="sqlalchemy.", poolclass=pool.NullPool)
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

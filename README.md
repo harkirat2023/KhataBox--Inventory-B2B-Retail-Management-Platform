@@ -2,19 +2,6 @@
 
 KhataBox is a full-stack B2B retail management platform for Indian small-to-medium businesses. It enables shopkeepers to manage inventory, customers, orders, suppliers, and stores from a single dashboard. Customers can browse a product catalog, scan QR codes, place bulk orders with credit limits, and track their order history.
 
-## Problem Statement
-
-Small Indian retailers (kirana stores, pharmacies, electronics shops) lack affordable digital tools to manage their supply chain, customer relationships, and inventory across multiple store locations. Existing solutions are either too expensive, too complex, or do not support Indian business requirements like GST, credit-based B2B ordering, and multi-store operations.
-
-## Solution
-
-KhataBox provides a web-based platform with role-based access for admins, shopkeepers, and customers. It offers real-time inventory tracking, order lifecycle management, supplier price analysis, ML-based demand forecasting, QR code product labeling, receipt generation, and bulk data export/import. The system is built with modern technologies (Next.js 16, FastAPI, PostgreSQL) and designed for production deployment on Railway and Vercel.
-
-<!-- ![Screenshot](assets/screenshots/dashboard.png) -->
-<!-- ![Screenshot](assets/screenshots/inventory.png) -->
-<!-- ![Screenshot](assets/screenshots/orders.png) -->
-<!-- ![Screenshot](assets/screenshots/forecasting.png) -->
-
 ## Architecture
 
 ```mermaid
@@ -97,7 +84,7 @@ KhataBox/
 ├── src/                # Next.js frontend
 │   ├── app/            # App Router pages + layouts
 │   │   ├── (dashboard)/  # Admin/shopkeeper routes (20 pages)
-│   │   ├── (customer)/   # Customer route group (empty placeholders)
+│   │   ├── (customer)/   # Customer route group
 │   │   ├── api/auth/     # NextAuth route handler
 │   │   ├── cart/         # Cart page
 │   │   ├── catalog/      # Public catalog page
@@ -127,7 +114,7 @@ KhataBox/
 │   │   ├── services/   # 10 service modules
 │   │   ├── config.py   # Pydantic settings
 │   │   └── main.py     # FastAPI app entrypoint
-│   ├── alembic/        # 12 database migrations
+│   ├── alembic/        # 17 database migrations
 │   ├── tests/          # 3 test files (39+ endpoint tests)
 │   └── seed_india.py   # Demo data seeder
 ├── config/             # .env.example files
@@ -135,40 +122,85 @@ KhataBox/
 └── scripts/            # Start/stop scripts
 ```
 
-## Installation
+## Prerequisites
 
-### Prerequisites
+- **Node.js** 20+
+- **Python** 3.11+
+- **Docker Desktop** (for local PostgreSQL + Redis)
+- **npm**
 
-- Node.js 20+
-- Python 3.11+
-- Docker Desktop (for PostgreSQL + Redis)
-- npm
+## Quick Start (One Command)
 
-### Setup
+```powershell
+# From repo root:
+scripts\start-khatabox.bat
+```
+
+This handles everything: checks Docker, runs PostgreSQL + Redis, applies 17 migrations, seeds demo data (1500+ orders, 178 seed products), and starts both servers.
+
+## Manual Setup
+
+### 1. Clone and Configure Environment
 
 ```bash
-# Clone the repository
 git clone <repo-url> && cd KhataBox
 
-# Install frontend dependencies
-npm install
+# Backend environment
+copy backend\.env.example backend\.env
+# Edit backend\.env — set DATABASE_URL to your local PostgreSQL:
+# DATABASE_URL=postgresql+asyncpg://khatabox:khatabox123@localhost:5432/khatabox
 
-# Install backend dependencies
-cd backend
-pip install -r requirements.txt
-cd ..
+# Frontend environment
+copy .env.example frontend\.env.local
+```
 
-# Start database services
+### 2. Start Database Services
+
+```bash
 docker compose up -d
+# Starts PostgreSQL on :5432, Redis on :6379
+```
 
-# Run database migrations
+### 3. Backend Setup
+
+```bash
 cd backend
+
+# Create virtual environment
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run migrations (creates 18 tables)
 alembic upgrade head
 
 # Seed demo data
 python seed_india.py
-cd ..
 ```
+
+### 4. Frontend Setup
+
+```bash
+cd frontend
+npm install
+```
+
+### 5. Run Both Servers
+
+```powershell
+# Terminal 1 — Backend (from backend/)
+.\venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
+
+# Terminal 2 — Frontend (from frontend/)
+npm run dev -- --webpack
+```
+
+Open http://localhost:3000
 
 ## Configuration
 
@@ -193,7 +225,7 @@ cd ..
 | `R2_BUCKET_NAME` | No | khatabox | R2 bucket name |
 | `R2_PUBLIC_URL` | No | — | R2 public bucket URL |
 
-### Frontend (`.env.local`)
+### Frontend (`frontend/.env.local`)
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -201,31 +233,130 @@ cd ..
 | `AUTH_SECRET` | Yes | NextAuth JWT encryption secret |
 | `AUTH_URL` | Yes | Frontend public URL |
 
+### Local Development Values
+
+- **PostgreSQL:** `postgresql+asyncpg://khatabox:khatabox123@localhost:5432/khatabox`
+- **Redis:** `redis://localhost:6379/0`
+- **CORS Origins:** `http://localhost:3000,http://localhost:8002`
+
 ## Running Locally
 
-```bash
-# Start backend (from project root)
-cd backend
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8002
+### Via the Start Script (Recommended)
 
-# Start frontend (from project root, in another terminal)
-cd frontend
-npm run dev
+```powershell
+scripts\start-khatabox.bat
 ```
 
-- Frontend: http://localhost:3000
-- API docs: http://localhost:8002/docs
-- Health check: http://localhost:8002/health
+This auto-detects whether you're using a local Docker database or a remote Neon database. It checks Docker, applies migrations, seeds data if empty, and starts both servers with one command.
+
+### Manual Start
+
+| Service | Command | URL |
+|---------|---------|-----|
+| Backend | `cd backend; python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8002` | http://localhost:8002 |
+| Backend Docs | (auto) | http://localhost:8002/docs |
+| Frontend | `cd frontend; npm run dev -- --webpack` | http://localhost:3000 |
+| Health Check | (auto) | http://localhost:8002/health |
+
+**Note:** Use `--webpack` flag (not Turbopack) to avoid a path-encoding bug with spaces in Windows project paths.
+
+### Demo Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@khatabox.com | Admin@123 |
+| Shopkeeper | {shop_name}@khatabox.com | Shop@123 |
+| Customer | contact.{...}@client.com | customer123 |
+
+## Development Workflow
+
+### Local → Git → Deploy
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. Make changes locally                                 │
+│  2. Test with: scripts\start-khatabox.bat               │
+│  3. Run backend tests: cd backend; pytest tests/ -v     │
+│  4. Build frontend: cd frontend; npm run build          │
+│  5. Commit and push to GitHub                            │
+│  6. Railway auto-deploys backend (Dockerfile)            │
+│  7. Vercel auto-deploys frontend (root dir detected)     │
+│  8. Verify on production URLs                            │
+└─────────────────────────────────────────────────────────┘
+```
 
 ## Deployment
 
 ### Backend (Railway)
 
-The backend is deployed via Docker. The included `Dockerfile` runs the FastAPI app with Uvicorn. Railway auto-detects the Dockerfile. Set the health check path to `/health`.
+The backend is deployed via Docker. Railway auto-detects the `Dockerfile` at the project root.
+
+**Steps:**
+1. Push to GitHub
+2. Create a Railway project linked to your repo
+3. Set these environment variables in Railway dashboard:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | `postgresql+asyncpg://user:pass@host:5432/db` (Neon/SUPABASE) |
+| `SECRET_KEY` | (generate a random string) |
+| `CORS_ORIGINS` | `https://your-frontend.vercel.app` |
+| `REDIS_URL` | `redis://...` (Upstash or Redis Cloud) |
+| `RESEND_API_KEY` | (your Resend API key) |
+
+4. Railway builds and deploys — health check endpoint: `/health`
 
 ### Frontend (Vercel)
 
-The frontend is deployed from the repository root. Vercel auto-detects Next.js. Set the environment variables `NEXT_PUBLIC_API_URL`, `AUTH_SECRET`, and `AUTH_URL`.
+**Steps:**
+1. In Vercel, import the same GitHub repo
+2. Framework preset: **Next.js** (auto-detected)
+3. Root directory: `frontend/` (set in Vercel project settings)
+4. Environment variables:
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_API_URL` | `https://your-backend.railway.app` |
+| `AUTH_SECRET` | (same as NextAuth secret) |
+| `AUTH_URL` | `https://your-frontend.vercel.app` |
+
+5. Deploy — Vercel auto-detects Next.js 16
+
+### Database (Neon)
+
+1. Create a Neon project
+2. Get the connection string (asyncpg format):
+   ```
+   postgresql+asyncpg://user:pass@ep-xxx.us-east-2.aws.neon.tech/khatabox
+   ```
+3. **Important:** Neon adds `?sslmode=require&channel_binding=require` to the URL automatically. The backend strips these parameters before connecting (asyncpg rejects them; SSL is auto-enabled).
+4. Run migrations against Neon:
+   ```bash
+   cd backend
+   $env:DATABASE_URL="postgresql+asyncpg://..."  # Windows
+   alembic upgrade head
+   python seed_india.py
+   ```
+
+### Verifying Deployed Version
+
+After deployment:
+
+1. Backend: `https://your-backend.railway.app/docs` — should load Swagger UI
+2. Frontend: `https://your-frontend.vercel.app` — should load login page
+3. Health: `https://your-backend.railway.app/health` — should return `{"status":"healthy"}`
+4. Login with demo credentials
+5. Test key flows:
+   - Register a new shopkeeper → auto-redirect to `/setup-inventory`
+   - Browse catalog → add to cart → checkout
+   - Create orders, manage inventory
+
+## Known Deployment Notes
+
+- **Neon DB URL:** The auto-added `sslmode=require` and `channel_binding=require` query params are stripped by both `backend/app/core/database.py` and `backend/alembic/env.py` before engine creation.
+- **Migrations are idempotent:** Migration `0017_seed_products_table.py` uses `CREATE TABLE IF NOT EXISTS` — safe to re-run.
+- **Redis on Railway:** Use Upstash Redis or Redis Cloud. Set `REDIS_URL` in Railway env vars.
+- **Start script auto-detection:** `scripts/start-khatabox.bat` checks if `backend/.env` contains `localhost:5432` — if yes, uses local Docker; if not, skips Docker checks and uses remote DB directly.
 
 ## Authentication Flow
 
@@ -265,57 +396,6 @@ The backend exposes 22 route modules under `/api/v1/`:
 | Customer Cart | `/cart` | JWT | customer |
 | Data Management | `/data` | JWT | admin |
 
-## Major Features
-
-- Multi-tenant architecture (admin owns all, shopkeeper owns store data)
-- Role-based access control (admin, shopkeeper, customer)
-- Multi-store inventory management with stock transfers
-- B2B customer management (credit limits, GST, price tiers)
-- Order lifecycle: Pending -> Confirmed (reserve stock) -> Processing -> Completed (consume stock) -> Cancelled (release stock)
-- Inventory reservation system
-- QR code product labeling with batch printing
-- ML-based demand forecasting (scikit-learn RandomForest)
-- Expiry tracking for batch-managed products
-- Full-text search on products (PostgreSQL TSVECTOR + GIN index)
-- Real-time notifications via Socket.IO
-- PDF invoice and receipt generation (ReportLab)
-- Supplier price margin analysis
-- Audit logging for all entity changes
-- Bulk data export (XLSX) and import (CSV/XLSX)
-- Cloud backup and restore via Cloudflare R2
-
-## Role-Based Access Control
-
-| Feature | Admin | Shopkeeper | Customer |
-|---------|-------|------------|----------|
-| Dashboard | Yes | Yes | No |
-| Products CRUD | Yes | Yes | No |
-| Catalog (browse) | Yes | Yes | Yes |
-| Orders (manage) | Yes | Yes | No |
-| My Orders | Yes | Yes | Yes |
-| Bulk Orders | Yes | Yes | Yes |
-| Suppliers | Yes | Yes | No |
-| Customers CRUD | Yes | Yes | No |
-| Purchase Orders | Yes | Yes | No |
-| Stock Transfers | Yes | Yes | No |
-| Forecasting | Yes | Yes | No |
-| Reports | Yes | Yes | No |
-| Notifications | Yes | Yes | Yes |
-| Admin User Mgmt | Yes | No | No |
-| Stores CRUD | Yes | Yes | No |
-| Data Export/Import | Yes | No | No |
-| QR Labels | Yes | Yes | No |
-| Settings | Yes | Yes | No |
-
-## ML Features
-
-The ML pipeline in `backend/app/ml/` uses scikit-learn's RandomForestRegressor trained on synthetic data. It predicts demand for a product based on product ID, category, day of week, month, and holiday status. The pre-trained model (`model.pkl`) is loaded by `predict.py`. If the model file is unavailable, the forecast endpoint falls back to a heuristic based on historical sales.
-
-- Training script: `train.py` (generates 2000 synthetic samples, trains RandomForest)
-- Prediction: `predict.py` (predict_demand, is_model_ready)
-- API: `GET /api/v1/forecasting/demand/{product_id}`
-- Frontend: `/dashboard/forecasting` page with Recharts visualization
-
 ## Testing
 
 ### Backend
@@ -330,6 +410,7 @@ pytest tests/ -v
 ### Frontend
 
 ```bash
+cd frontend
 npm test
 ```
 
@@ -338,12 +419,3 @@ npm test
 ## License
 
 MIT
-
-## Author
-
-KhataBox Team
-
-## Acknowledgements
-
-- Next.js, FastAPI, and all open-source dependencies listed in `package.json` and `requirements.txt`.
-- Indian small business owners for inspiration and domain context.

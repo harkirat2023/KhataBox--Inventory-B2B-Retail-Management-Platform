@@ -69,15 +69,6 @@ type OrderTab = "all" | "regular" | "b2c"
 type SortField = "order_number" | "customer_name" | "total" | "status" | "created_at"
 type SortDir = "asc" | "desc" | null
 
-const statusStyles: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
-  confirmed: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
-  counter: "bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-400 dark:border-orange-800",
-  processing: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-800",
-  completed: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800",
-  cancelled: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
-}
-
 const statusTransitionMessages: Record<string, string> = {
   completed: "Are you sure you want to complete this order? Inventory will be deducted and receipt generated.",
   cancelled: "Are you sure you want to cancel this order?",
@@ -415,7 +406,7 @@ export default function OrdersPage() {
                           <span className={cn("size-1.5 rounded-full", STATUS_DOT_COLORS[order.status] || "bg-muted")} />
                           <Badge
                             variant="outline"
-                            className={cn("text-xs font-normal px-2 py-0", statusStyles[order.status] || "")}
+                            className={cn("text-xs font-normal px-2 py-0", ORDER_STATUS_CONFIG[order.status]?.color || "")}
                           >
                             {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
                           </Badge>
@@ -461,7 +452,7 @@ export default function OrdersPage() {
                           ) : (
                             <Badge
                               variant="outline"
-                              className={cn("text-xs font-normal", statusStyles[order.status] || "")}
+                              className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color || "")}
                             >
                               {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
                             </Badge>
@@ -586,7 +577,7 @@ export default function OrdersPage() {
               <div className="flex items-center gap-2">
                 <Badge
                   variant="outline"
-                  className={cn("text-xs font-normal", statusStyles[selectedOrder?.status || "pending"])}
+                  className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[selectedOrder?.status || "pending"]?.color || "")}
                 >
                   {ORDER_STATUS_CONFIG[selectedOrder?.status || "pending"]?.label}
                 </Badge>
@@ -595,7 +586,7 @@ export default function OrdersPage() {
                     <span className="text-muted-foreground text-sm">→</span>
                     <Badge
                       variant="outline"
-                      className={cn("text-xs font-normal", statusStyles[pendingStatus])}
+                      className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[pendingStatus]?.color || "")}
                     >
                       {ORDER_STATUS_CONFIG[pendingStatus]?.label}
                     </Badge>

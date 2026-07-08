@@ -1,14 +1,12 @@
-/** Server-side API client (for use in Server Components / Route Handlers). Uses auth() from NextAuth. */
+/** Server-side API client. Uses Clerk auth() to get the session token. */
+
+import { auth } from "@clerk/nextjs/server"
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
-interface SessionWithToken {
-  access_token?: string
-}
-
 async function getAuthHeaders() {
-  const { auth } = await import("@/lib/auth")
   const session = await auth()
-  const token = (session as SessionWithToken | null)?.access_token
+  const token = session?.getToken ? await session.getToken() : null
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

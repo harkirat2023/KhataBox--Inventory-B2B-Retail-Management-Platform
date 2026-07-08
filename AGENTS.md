@@ -4,8 +4,10 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-## Runtime Status (2026-06-09)
+## Runtime Status (2026-07-08)
 **All 43 backend tests PASS (39 API + 4 inventory sync). All 20 frontend routes serve 200.**
+- Migrations: All 17 applied (Neon DB), including `seed_products` table
+- Seed products: 150+ across 7 store types (Section 12 of `seed_india.py`)
 - Backend: `localhost:8002` (FastAPI + Uvicorn)
 - Frontend: `localhost:3000` (Next.js)
 - Database: PostgreSQL 5432, 14 tables, 11,531+ records
@@ -18,6 +20,19 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Run `scripts\start-khatabox.bat` from the repo root. It handles Docker, migrations, seed data, and both servers.
 
 ## Known Fixes Applied
+0. **Session 2026-07-08 fixes:**
+   - `database.py` & `alembic/env.py` — Strip `sslmode`/`channel_binding` from Neon DB URL via `urlparse` (asyncpg rejects them; SSL auto-enabled)
+   - `0017_seed_products_table.py` — Idempotent migration using `CREATE TABLE IF NOT EXISTS` + `CREATE INDEX IF NOT EXISTS`
+   - `seed_india.py:933` — Extended `status_weights` from 5→6 entries to match 6-valued `OrderStatus` enum (migration 0014 added `counter`)
+   - `seed_india.py:609` — Added missing tables (`payments`, `b2c_orders`, `b2c_order_items`, `customer_carts`, `customer_cart_items`, `seed_products`) to truncation list + used `SET session_replication_role = 'replica'` to skip FK ordering issues
+   - `scripts/start-khatabox.bat` — Fixed `findstr "0"` matching "10","20" etc; writes Python checks to `%TEMP%` files (avoid PowerShell encoding issues); auto-detects local Docker vs remote Neon; **moved `:wait_db` label outside `IF (...)` block** (labels inside parens cause ". was unexpected at this time"); **added `pushd "%BACKEND%"` before Python check script** (otherwise `from app.core.database` fails when CWD is `scripts\`); fixed `%` → `%%d`/`%%s` escaping in Python format strings; **replaced `) else if` with `goto`** (batch requires `else` on same line as `)`)
+   - `seed_india.py:Section 12` — Idempotent seeding of `seed_products` table (150+ products across 7 store types)
+   - Created `SeedProduct` model, GET/POST endpoints, and `/setup-inventory` frontend page
+   - Register page: auto-`signIn` after registration, redirect shopkeepers to `/setup-inventory?store_type=X`
+   - Removed rogue root `package-lock.json` (no root `package.json` existed, but it confused Next.js)
+   - Rewrote `README.md` — added local dev guide, cloud deployment (Railway+Vercel), dev workflow section, Neon DB notes, known issues
+   - `auth.py:send_otp` — Added `debug_otp` in response when Resend API key not configured (dev mode fallback)
+   - `register/page.tsx` — Auto-fill OTP input from `debug_otp` response field
 1. `orders.py:82,153,187` — `db.refresh(order, ["items"])` to fix MissingGreenlet
 2. `orders.py:111` — `payload.customer_id` → `customer.id` for BulkOrderCreate
 3. `seed_india.py` — Added `DELETE FROM users WHERE email != 'admin@khatabox.com'` on re-run

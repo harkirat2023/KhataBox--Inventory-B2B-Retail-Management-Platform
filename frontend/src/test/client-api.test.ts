@@ -1,9 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
-
-vi.mock("next-auth/react", () => ({
-  getSession: vi.fn().mockResolvedValue({ access_token: "mock-token" }),
-}))
-
 import { clientApi } from "@/lib/client-api"
 
 const mockFetch = vi.fn()

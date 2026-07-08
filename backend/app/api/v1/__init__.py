@@ -25,6 +25,7 @@ from app.api.v1 import (
     reports,
     stores,
     transfers,
+    seed_products,
 )
 
 router = APIRouter(prefix="/api/v1")
@@ -51,4 +52,5 @@ router.include_router(stores.router, prefix="/stores", tags=["Stores"])
 router.include_router(transfers.router, prefix="/transfers", tags=["Stock Transfers"])
 router.include_router(customer_cart.router, prefix="/cart", tags=["Customer Cart"])
 router.include_router(payments.router, prefix="/payment", tags=["Payments"])
+router.include_router(seed_products.router, prefix="/seed-products", tags=["Seed Products"])
 router.include_router(b2c.router, prefix="/b2c", tags=["B2C Orders"])

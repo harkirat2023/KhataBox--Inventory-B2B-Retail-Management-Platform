@@ -3,10 +3,12 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Boxes, User, Store, Shield, ArrowRight, CheckCircle, Menu, X,
+  Boxes, User, Store, Shield, ArrowRight, CheckCircle,
   BarChart3, ShoppingCart, QrCode, Package, Brain,
-  ChevronRight, Sparkles, Layers, Zap,
+  ChevronRight, Sparkles, Layers, Zap, ScanLine, CreditCard,
+  Phone, Globe, Users, Receipt, Bell,
 } from "lucide-react"
+import { LandingNav } from "@/components/layout/landing-nav"
 
 type Role = "customer" | "shopkeeper" | "admin"
 
@@ -46,57 +48,34 @@ const STEPS = [
   { number: "03", title: "Shopkeeper Processes Order", description: "Receive order notifications, approve or reject, and the customer sees real-time status updates." },
 ]
 
+const CUSTOMER_WORKFLOW = [
+  { icon: ScanLine, title: "Scan QR Code", description: "Walk into any KhataBox-enabled store. Scan product QR codes using your phone camera — no app download needed." },
+  { icon: ShoppingCart, title: "Browse & Add to Cart", description: "View product details, pricing, and availability. Add items to your cart and adjust quantities instantly." },
+  { icon: CreditCard, title: "Checkout & Pay", description: "Review your cart, apply coupons, and complete checkout. Pay later with Khata credit or pay on delivery." },
+  { icon: Package, title: "Track Orders", description: "Get real-time order status updates. View digital receipts, order history, and delivery status from your dashboard." },
+]
+
+const SHOPKEEPER_WORKFLOW = [
+  { icon: Package, title: "Manage Inventory", description: "Add products with SKUs, pricing, stock levels, and expiry dates. Bulk import via CSV/Excel. Get low-stock alerts." },
+  { icon: Receipt, title: "Generate Bills", description: "Create invoices and receipts in seconds. Apply GST, discounts, and print or share digital receipts with customers." },
+  { icon: Users, title: "Manage Customers", description: "Track customer purchase history, manage Khata credit limits, send notifications, and build loyalty programs." },
+  { icon: BarChart3, title: "Grow with Insights", description: "View revenue dashboards, top-selling products, demand forecasts, and AI-powered reorder suggestions." },
+]
+
 export default function LandingPage() {
   const router = useRouter()
   const [hoveredRole, setHoveredRole] = useState<Role | null>(null)
-  const [mobileOpen, setMobileOpen] = useState(false)
 
   function handleRoleSelect(role: Role) {
     router.push(`/login?role=${role}`)
   }
 
-  const navLinks = [
-    { href: "#features", label: "Features" },
-    { href: "#how-it-works", label: "How It Works" },
-    { href: "#roles", label: "Get Started" },
-  ]
-
   return (
-    <div className="min-h-screen bg-muted">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-border/60">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-primary rounded-xl p-1.5 shadow-sm shadow-blue-200">
-              <Boxes className="size-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-foreground tracking-tight">KhataBox</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((l) => (
-              <a key={l.href} href={l.href} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-all duration-200">{l.label}</a>
-            ))}
-          </div>
-          <button className="md:hidden p-2 -mr-2 rounded-lg hover:bg-accent transition-colors" onClick={() => setMobileOpen(!mobileOpen)}>
-            {mobileOpen ? <X className="size-5 text-muted-foreground" /> : <Menu className="size-5 text-muted-foreground" />}
-          </button>
-        </div>
-        {mobileOpen && (
-          <div className="md:hidden px-4 pb-4 space-y-1 border-t border-border pt-2 bg-card">
-            {navLinks.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors">{l.label}</a>
-            ))}
-          </div>
-        )}
-      </nav>
+    <div className="min-h-screen bg-background">
+      <LandingNav />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-[#F8FAFC]">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-[700px] h-[700px] bg-primary/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl" />
-        </div>
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-primary/5 to-background">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 md:pt-28 md:pb-24">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-4 py-1.5 mb-6 shadow-sm">
@@ -135,8 +114,70 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* How Customers Use KhataBox */}
+      <section className="py-16 md:py-24 bg-card">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-4">
+              <ScanLine className="size-3.5 text-primary" />
+              <span className="text-xs font-semibold text-primary uppercase tracking-wide">For Customers</span>
+            </div>
+            <h2 className="text-3xl font-bold text-foreground">Shop smarter without an app</h2>
+            <p className="mt-3 text-muted-foreground">KhataBox turns every store into an online catalog. Walk in, scan, order — it&apos;s that simple.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {CUSTOMER_WORKFLOW.map((step, i) => {
+              const Icon = step.icon
+              return (
+                <div key={i} className="relative bg-background rounded-2xl p-6 border border-border hover:border-primary/30 transition-all duration-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="inline-flex p-2.5 rounded-xl bg-primary/10 text-primary">
+                      <Icon className="size-5" />
+                    </div>
+                    <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Step {i + 1}</span>
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-1.5">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* How Shopkeepers Use KhataBox */}
+      <section className="py-16 md:py-24 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 mb-4">
+              <Store className="size-3.5 text-emerald-600" />
+              <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">For Shopkeepers</span>
+            </div>
+            <h2 className="text-3xl font-bold text-foreground">Run your store from one dashboard</h2>
+            <p className="mt-3 text-muted-foreground">From inventory to billing to insights — manage everything without switching tools.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {SHOPKEEPER_WORKFLOW.map((step, i) => {
+              const Icon = step.icon
+              return (
+                <div key={i} className="relative bg-card rounded-2xl p-6 border border-border hover:border-emerald-500/30 transition-all duration-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="inline-flex p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600">
+                      <Icon className="size-5" />
+                    </div>
+                    <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">Step {i + 1}</span>
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-1.5">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Role Cards */}
-      <section id="roles" className="py-16 md:py-24">
+      <section id="roles" className="py-16 md:py-24 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground">Choose your role to get started</h2>
@@ -155,7 +196,7 @@ export default function LandingPage() {
                   onMouseLeave={() => setHoveredRole(null)}
                   className="group relative text-left"
                 >
-                  <div className={`relative bg-card border-2 border-border rounded-2xl p-6 transition-all duration-200
+                  <div className={`relative bg-background border-2 border-border rounded-2xl p-6 transition-all duration-200
                     ${isHovered ? "border-primary/30 shadow-xl shadow-blue-100/40 scale-[1.02]" : "hover:border-border hover:shadow-lg hover:shadow-border/30"}`}>
                     <div className={`inline-flex p-3 rounded-xl mb-4 transition-all duration-200
                       ${isHovered ? "bg-primary/10 text-primary shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"}`}>
@@ -188,7 +229,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-16 md:py-24 bg-card">
+      <section id="features" className="py-16 md:py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-4 shadow-sm">
@@ -216,7 +257,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-16 md:py-24 bg-muted">
+      <section id="how-it-works" className="py-16 md:py-24 bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-4 py-1.5 mb-4 shadow-sm">
@@ -255,7 +296,7 @@ export default function LandingPage() {
             ].map((s, i) => (
               <div key={i}>
                 <p className="text-3xl md:text-4xl font-bold text-white">{s.value}</p>
-                <p className="text-sm text-primary/60 mt-1.5 font-medium">{s.label}</p>
+                <p className="text-sm text-primary-foreground/60 mt-1.5 font-medium">{s.label}</p>
               </div>
             ))}
           </div>
@@ -263,7 +304,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 md:py-24 bg-card">
+      <section className="py-16 md:py-24 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-foreground mb-3">Ready to transform your retail business?</h2>
           <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
@@ -283,15 +324,15 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-muted-foreground py-12">
+      <footer className="bg-foreground/90 text-muted-foreground py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-3">
-                <div className="bg-primary/100 rounded-xl p-1.5">
+                <div className="bg-primary rounded-xl p-1.5">
                   <Boxes className="size-4 text-white" />
                 </div>
-                <span className="text-base font-bold text-white">KhataBox</span>
+                <span className="text-base font-bold text-background">KhataBox</span>
               </div>
               <p className="text-sm leading-relaxed max-w-xs text-muted-foreground">
                 AI-powered inventory & retail management platform for modern businesses.
@@ -299,29 +340,29 @@ export default function LandingPage() {
             </div>
             <div className="grid grid-cols-2 gap-8 md:col-span-2">
               <div>
-                <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-3">Platform</h4>
+                <h4 className="text-xs font-semibold text-background uppercase tracking-wider mb-3">Platform</h4>
                 <ul className="space-y-2">
                   {["Features", "How It Works", "Pricing", "FAQ"].map((l) => (
-                    <li key={l}><a href="#" className="text-sm text-muted-foreground hover:text-white transition-colors duration-200">{l}</a></li>
+                    <li key={l}><a href="#" className="text-sm text-muted-foreground hover:text-background transition-colors duration-200">{l}</a></li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h4 className="text-xs font-semibold text-white uppercase tracking-wider mb-3">Company</h4>
+                <h4 className="text-xs font-semibold text-background uppercase tracking-wider mb-3">Company</h4>
                 <ul className="space-y-2">
                   {["About", "Blog", "Contact", "Privacy"].map((l) => (
-                    <li key={l}><a href="#" className="text-sm text-muted-foreground hover:text-white transition-colors duration-200">{l}</a></li>
+                    <li key={l}><a href="#" className="text-sm text-muted-foreground hover:text-background transition-colors duration-200">{l}</a></li>
                   ))}
                 </ul>
               </div>
             </div>
           </div>
-          <div className="border-t border-slate-800 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+          <div className="border-t border-foreground/10 mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
             <p>&copy; 2026 KhataBox. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-white transition-colors duration-200">Terms</a>
-              <a href="#" className="hover:text-white transition-colors duration-200">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors duration-200">Cookies</a>
+              <a href="#" className="hover:text-background transition-colors duration-200">Terms</a>
+              <a href="#" className="hover:text-background transition-colors duration-200">Privacy</a>
+              <a href="#" className="hover:text-background transition-colors duration-200">Cookies</a>
             </div>
           </div>
         </div>

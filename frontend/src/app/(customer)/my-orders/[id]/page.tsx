@@ -1,13 +1,14 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
+import { useAuth } from "@clerk/nextjs"
 import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
 import { Package, Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, Wallet, CreditCard, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/components/auth/role-guard"
-import { clientApi, getToken } from "@/lib/client-api"
+import { clientApi } from "@/lib/client-api"
 import { useCustomerStore } from "@/store/customer-store"
 import { toast } from "sonner"
 import {
@@ -84,7 +85,8 @@ const paymentLabels: Record<string, { icon: LucideIcon; label: string }> = {
 }
 
 function OrderDetailContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
+  const { getToken: clerkGetToken } = useAuth()
   const { role } = useRole()
   const params = useParams()
   const orderId = params?.id as string
@@ -94,14 +96,14 @@ function OrderDetailContent() {
   const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) {
+    if (!isLoaded) return
+    if (!isSignedIn) {
       redirect("/login")
     }
     if (role !== "customer") {
       redirect("/dashboard")
     }
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   useEffect(() => {
     async function fetchOrder() {
@@ -138,7 +140,7 @@ function OrderDetailContent() {
     }
   }, [orderId, role])
 
-  if (status === "loading" || loading || !session?.user || role !== "customer") {
+  if (!isLoaded || loading || !isSignedIn || role !== "customer") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-background">
         <div className="text-center">
@@ -315,7 +317,7 @@ function OrderDetailContent() {
               onClick={async (e) => {
                 e.preventDefault()
                 try {
-                  const token = await getToken()
+                  const token = await clerkGetToken()
                   const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${order.id}`,
                     { method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {} }
                   )

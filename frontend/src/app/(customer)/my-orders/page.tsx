@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect, useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -44,7 +44,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 }
 
 function OrdersContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
   const { role } = useRole()
   const params = useSearchParams()
   const { selectedStore } = useCustomerStore()
@@ -53,10 +53,10 @@ function OrdersContent() {
   const [activeTab, setActiveTab] = useState<"active" | "past">(params.get("tab") === "past" ? "past" : "active")
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) redirect("/login")
+    if (!isLoaded) return
+    if (!isSignedIn) redirect("/login")
     if (role !== "customer") redirect("/dashboard")
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   useEffect(() => {
     async function fetchOrders() {
@@ -110,7 +110,7 @@ function OrdersContent() {
     return () => {}
   }, [role])
 
-  if (status === "loading" || loading || !session?.user || role !== "customer") {
+  if (!isLoaded || loading || !isSignedIn || role !== "customer") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

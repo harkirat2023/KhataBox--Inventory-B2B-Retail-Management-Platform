@@ -13,6 +13,7 @@ from app.models.audit_log import AuditLog
 from app.models.payment import Payment
 from app.models.store import Store
 from app.models.b2c_order import B2COrder, B2COrderItem
+from app.models.seed_product import SeedProduct
 
 __all__ = [
     "User",
@@ -39,4 +40,5 @@ __all__ = [
     "Store",
     "B2COrder",
     "B2COrderItem",
+    "SeedProduct",
 ]

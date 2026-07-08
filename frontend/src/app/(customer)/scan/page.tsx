@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useUser } from "@clerk/nextjs"
 import { redirect } from "next/navigation"
 import { useEffect, useRef, useState, Suspense } from "react"
 import Link from "next/link"
@@ -27,7 +27,7 @@ interface ProductInfo {
 }
 
 function ScanContent() {
-  const { data: session, status } = useSession()
+  const { isLoaded, isSignedIn } = useUser()
   const { role } = useRole()
   const [manualUuid, setManualUuid] = useState("")
   const [loading, setLoading] = useState(false)
@@ -39,10 +39,10 @@ function ScanContent() {
   const { selectedStore } = useCustomerStore()
 
   useEffect(() => {
-    if (status === "loading") return
-    if (!session?.user) redirect("/login")
+    if (!isLoaded) return
+    if (!isSignedIn) redirect("/login")
     if (role !== "customer") redirect("/dashboard")
-  }, [session, status, role])
+  }, [isLoaded, isSignedIn, role])
 
   const lookUpProduct = async (uuid: string) => {
     setLoading(true)
@@ -102,7 +102,7 @@ function ScanContent() {
     return () => stopCamera()
   }, [role])
 
-  if (status === "loading" || !session?.user || role !== "customer") {
+  if (!isLoaded || !isSignedIn || role !== "customer") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center"><QrCode className="size-8 animate-spin mx-auto text-primary" /><p className="text-muted-foreground mt-2">Loading...</p></div>

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Package,
-  DollarSign,
   ShoppingCart,
   AlertTriangle,
   TrendingUp,
@@ -15,10 +14,8 @@ import {
   ArrowRight,
   ClipboardList,
   IndianRupee,
-  Store,
   ArrowUpRight,
   ArrowDownRight,
-  RefreshCw,
   ChevronRight,
 } from "lucide-react"
 import {
@@ -32,13 +29,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { clientApi } from "@/lib/client-api"
 import { useStoreContext } from "@/lib/store-context"
 import { queryKeys } from "@/lib/query-keys"
 import { useQuery } from "@tanstack/react-query"
 import { Product } from "@/types/product"
 import { Order } from "@/types/order"
+import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
 import { cn } from "@/lib/utils"
 
 interface DashboardStats {
@@ -53,14 +50,6 @@ interface DashboardStats {
 interface Store {
   id: number
   name: string
-}
-
-const statusStyles: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800",
-  confirmed: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800",
-  processing: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-800",
-  completed: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800",
-  cancelled: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800",
 }
 
 const quickActions = [
@@ -172,13 +161,6 @@ export default function DashboardPage() {
     },
   ]
 
-  const metricBgMap: Record<string, string> = {
-    default: "bg-gradient-to-br from-primary/5 to-transparent",
-    success: "bg-gradient-to-br from-green-500/5 to-transparent",
-    warning: "bg-gradient-to-br from-amber-500/5 to-transparent",
-    danger: "bg-gradient-to-br from-red-500/5 to-transparent",
-  }
-
   const iconBgMap: Record<string, string> = {
     default: "bg-primary/10 text-primary",
     success: "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400",
@@ -188,7 +170,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -218,15 +199,14 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {quickActions.map((action) => {
           const Icon = action.icon
           return (
             <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
               <Button
-                variant="ghost"
-                className="w-full h-auto py-3.5 flex-col gap-2 bg-card border hover:bg-muted/50 rounded-xl shadow-sm transition-all hover:shadow-md"
+                variant="outline"
+                className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-muted/50 rounded-xl transition-all hover:shadow-sm"
               >
                 <div className={cn("flex items-center justify-center size-9 rounded-lg", action.color)}>
                   <Icon className="size-4" />
@@ -238,19 +218,14 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon
-          const bgStyle = metricBgMap[card.metricStyle]
           const iconStyle = iconBgMap[card.metricStyle]
           return (
             <Card
               key={card.title}
-              className={cn(
-                "relative overflow-hidden border shadow-sm transition-all hover:shadow-md",
-                bgStyle
-              )}
+              className="relative border shadow-sm transition-all hover:shadow-md"
             >
               <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
@@ -323,7 +298,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        <Badge variant="outline" className={cn("text-xs font-normal", statusStyles[order.status])}>
+                        <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color)}>
                           {order.status}
                         </Badge>
                         <span className="text-sm font-medium tabular-nums">₹{order.total.toFixed(2)}</span>

@@ -6,6 +6,7 @@ export const ORDER_STATUS_CONFIG: Record<string, { label: string; variant: "defa
   processing: { label: "Processing", variant: "outline", color: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-400 dark:border-purple-800" },
   completed: { label: "Completed", variant: "default", color: "bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-400 dark:border-green-800" },
   cancelled: { label: "Cancelled", variant: "destructive", color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800" },
+  rejected: { label: "Rejected", variant: "destructive", color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-400 dark:border-red-800" },
 }
 
 // Status dot colors for badges
@@ -16,6 +17,7 @@ export const STATUS_DOT_COLORS: Record<string, string> = {
   processing: "bg-purple-500",
   completed: "bg-green-500",
   cancelled: "bg-red-500",
+  rejected: "bg-red-500",
 }
 
 // Quick action buttons for dashboard

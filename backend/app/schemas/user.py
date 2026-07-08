@@ -5,7 +5,6 @@ from pydantic import BaseModel, EmailStr, field_validator
 
 
 def validate_phone(phone: str) -> str:
-    # Indian phone: 10 digits, optionally with +91
     cleaned = re.sub(r"[^\d]", "", phone)
     if len(cleaned) != 10:
         raise ValueError("Phone must be 10 digits")
@@ -21,7 +20,6 @@ def validate_password_strength(password: str) -> str:
 def validate_pin_code(pin_code: str | None) -> str | None:
     if pin_code is None:
         return pin_code
-    # Indian PIN code: 6 digits
     cleaned = "".join(c for c in pin_code if c.isdigit())
     if len(cleaned) != 6:
         raise ValueError("PIN code must be 6 digits")
@@ -31,7 +29,6 @@ def validate_pin_code(pin_code: str | None) -> str | None:
 def validate_gst_number(gst_number: str | None) -> str | None:
     if gst_number is None:
         return gst_number
-    # GST format: 15 characters (2 state code + 10 PAN + 1 entity number + 1 Z + 1 check)
     cleaned = "".join(c for c in gst_number.upper() if c.isalnum())
     if len(cleaned) != 15:
         raise ValueError("GST number must be 15 characters")
@@ -46,11 +43,9 @@ class UserCreate(BaseModel):
     role: str = "shopkeeper"
     store_name: str | None = None
     phone: str | None = None
-    # Customer-specific optional fields
     address: str | None = None
     city: str | None = None
     state: str | None = None
-    # Shopkeeper-specific business fields
     store_type: str | None = None
     pin_code: str | None = None
     gst_number: str | None = None
@@ -87,6 +82,40 @@ class UserCreate(BaseModel):
         return validate_gst_number(v)
 
 
+class ClerkRegisterRequest(BaseModel):
+    clerk_id: str
+    email: EmailStr
+    name: str
+    role: str = "shopkeeper"
+    store_name: str | None = None
+    phone: str | None = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    store_type: str | None = None
+    pin_code: str | None = None
+    gst_number: str | None = None
+    monthly_revenue: float | None = None
+    business_description: str | None = None
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone_format(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        return validate_phone(v)
+
+    @field_validator("pin_code")
+    @classmethod
+    def validate_pin_code_format(cls, v: str | None) -> str | None:
+        return validate_pin_code(v)
+
+    @field_validator("gst_number")
+    @classmethod
+    def validate_gst_format(cls, v: str | None) -> str | None:
+        return validate_gst_number(v)
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 
@@ -98,6 +127,7 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
+    clerk_id: str | None
     email: str
     name: str
     role: str
