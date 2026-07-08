@@ -53,7 +53,14 @@ function LoginForm() {
     setError("")
     setLoading(true)
     try {
-      await signIn.create({ identifier: email, strategy: "email_code" })
+      if (signIn.status) {
+        const factor = signIn.supportedFirstFactors?.find(f => f.strategy === "email_code") as
+          | { emailAddressId: string }
+          | undefined
+        await signIn.prepareFirstFactor({ strategy: "email_code", emailAddressId: factor?.emailAddressId ?? "" })
+      } else {
+        await signIn.create({ identifier: email, strategy: "email_code" })
+      }
       setStep("otp-login")
     } catch (err: any) {
       if (isClerkNotFoundError(err)) {
@@ -125,7 +132,14 @@ function LoginForm() {
     setError("")
     setLoading(true)
     try {
-      await signIn.create({ identifier: email, strategy: "reset_password_email_code" })
+      if (signIn.status) {
+        const factor = signIn.supportedFirstFactors?.find(f => f.strategy === "reset_password_email_code") as
+          | { emailAddressId: string }
+          | undefined
+        await signIn.prepareFirstFactor({ strategy: "reset_password_email_code", emailAddressId: factor?.emailAddressId ?? "" })
+      } else {
+        await signIn.create({ identifier: email, strategy: "reset_password_email_code" })
+      }
       setStep("otp-reset")
     } catch (err: any) {
       if (isClerkNotFoundError(err)) {
@@ -333,7 +347,7 @@ function LoginForm() {
           <div className="w-full max-w-sm">
             <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8">
               <div className="text-center mb-6">
-                <button onClick={() => { setSelectedRole(null); setStep("email") }} className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors mb-4 inline-flex items-center gap-1">← Back to role selection</button>
+                <button onClick={() => router.push("/khatabox#roles")} className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors mb-4 inline-flex items-center gap-1">← Back to role selection</button>
                 <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-3"><Mail className="size-6" /></div>
                 <h1 className="text-xl font-bold text-foreground">{config.title} Login</h1>
                 <p className="text-sm text-muted-foreground mt-0.5">Enter your email to continue</p>
@@ -375,7 +389,7 @@ function LoginForm() {
         <div className="w-full max-w-sm">
           <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8">
             <div className="text-center mb-6">
-              <button onClick={() => { setSelectedRole(null); setStep("email") }} className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors mb-4 inline-flex items-center gap-1">← Back</button>
+              <button onClick={() => router.push("/khatabox#roles")} className="text-xs text-muted-foreground hover:text-foreground/80 transition-colors mb-4 inline-flex items-center gap-1">← Back</button>
               <div className="inline-flex p-3 rounded-xl bg-primary/10 text-primary mb-3"><Lock className="size-6" /></div>
               <h1 className="text-xl font-bold text-foreground">{selectedRole === "admin" ? "Admin Login" : `${config.title} Login`}</h1>
               <p className="text-sm text-muted-foreground mt-0.5">Sign in with your password</p>
