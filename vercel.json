@@ -3,10 +3,6 @@
   "buildCommand": "next build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "regions": ["iad1"],
-  "env": {
-    "AUTH_SECRET": "@auth-secret",
-    "AUTH_URL": "@auth-url",
-    "NEXT_PUBLIC_API_URL": "@next-public-api-url"
-  }
+  "regions": ["iad1"]
 }
+
