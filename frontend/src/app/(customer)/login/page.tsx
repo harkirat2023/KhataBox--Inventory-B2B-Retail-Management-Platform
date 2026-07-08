@@ -39,7 +39,7 @@ function LoginForm() {
   useEffect(() => {
     if (roleParam && ["customer", "shopkeeper", "admin"].includes(roleParam)) {
       setSelectedRole(roleParam)
-      setStep(roleParam === "admin" ? "password" : "email")
+      setStep("password")
     }
   }, [roleParam])
 
@@ -132,10 +132,10 @@ function LoginForm() {
         return
       }
       const data = await res.json()
-      if (selectedRole === "admin" && data.access_token) {
-        setAdminCookie(data.access_token)
+      if (data.access_token) {
+        document.cookie = `${selectedRole === "admin" ? "admin_token" : "clerk_jwt"}=${data.access_token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
       }
-      router.push(selectedRole === "customer" ? "/customer" : "/dashboard")
+      window.location.href = selectedRole === "customer" ? "/customer" : "/dashboard"
     } catch {
       setError("Network error. Please try again.")
     }
@@ -238,7 +238,7 @@ function LoginForm() {
                 const cfg = ROLE_CONFIG[r]
                 const Icon = cfg.icon
                 return (
-                  <button key={r} onClick={() => { setSelectedRole(r); setStep(r === "admin" ? "password" : "email") }}
+                  <button key={r} onClick={() => { setSelectedRole(r); setStep("password") }}
                     className="p-5 rounded-2xl bg-card border-2 border-border transition-all duration-200 text-left hover:border-primary/30 hover:shadow-lg hover:shadow-blue-100/30 hover:-translate-y-0.5">
                     <div className={`inline-flex p-2.5 rounded-xl ${cfg.iconBg} mb-3`}><Icon className="size-5" /></div>
                     <h3 className="font-semibold text-foreground text-sm">{cfg.title}</h3>
@@ -425,11 +425,14 @@ function LoginForm() {
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-              <div className="flex items-center justify-between mt-4">
+              <div className="flex flex-col gap-2 mt-4">
                 {selectedRole !== "admin" ? (
                   <>
-                    <button onClick={() => router.push(`/register?role=${selectedRole}`)} className="text-sm text-primary font-medium hover:text-primary transition-colors">Create account</button>
-                    <button onClick={() => goToStep("email")} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Other sign in options</button>
+                    <div className="flex items-center justify-between">
+                      <button onClick={() => router.push(`/register?role=${selectedRole}`)} className="text-sm text-primary font-medium hover:text-primary transition-colors">Create account</button>
+                      <button onClick={() => goToStep("email")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in with OTP</button>
+                    </div>
+                    {clerkLoaded && <button onClick={handleSendResetOtp} className="text-xs text-muted-foreground hover:text-foreground transition-colors self-center">Forgot password?</button>}
                   </>
                 ) : (
                   <p className="text-xs text-muted-foreground w-full text-center">Admin access is restricted.</p>

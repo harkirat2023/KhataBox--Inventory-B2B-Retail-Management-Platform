@@ -100,6 +100,7 @@ async def clerk_register(payload: ClerkRegisterRequest, db: AsyncSession = Depen
     user = User(
         clerk_id=payload.clerk_id,
         email=payload.email,
+        password_hash=hash_password(payload.password) if payload.password else None,
         name=payload.name,
         role=role,
         store_name=payload.store_name,

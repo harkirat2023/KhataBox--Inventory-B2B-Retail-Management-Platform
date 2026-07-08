@@ -86,6 +86,7 @@ class ClerkRegisterRequest(BaseModel):
     clerk_id: str
     email: EmailStr
     name: str
+    password: str | None = None
     role: str = "shopkeeper"
     store_name: str | None = None
     phone: str | None = None

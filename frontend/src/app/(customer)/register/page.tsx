@@ -49,6 +49,7 @@ function RegisterForm() {
     monthly_revenue: "", business_description: "",
   })
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<"form" | "otp" | "complete">("form")
@@ -61,6 +62,8 @@ function RegisterForm() {
     e.preventDefault()
     setError("")
     if (!form.email) { setError("Email is required"); return }
+    if (!password || password.length < 6) { setError("Password must be at least 6 characters"); return }
+    if (password !== confirmPassword) { setError("Passwords do not match"); return }
     if (!clerkLoaded || !signUp) return
     setOtpLoading(true)
     try {
@@ -152,7 +155,7 @@ function RegisterForm() {
       }
       const payload: Record<string, unknown> = {
         clerk_id: clerkId, name: form.name, email: form.email,
-        phone: form.phone, role,
+        password, phone: form.phone, role,
       }
       if (isCustomer) {
         if (form.address) payload.address = form.address
@@ -170,11 +173,9 @@ function RegisterForm() {
         if (form.business_description) payload.business_description = form.business_description
       }
       await clientApi.post("/api/v1/auth/clerk-register", payload)
-      // Exchange Clerk token for backend JWT so API calls work immediately
-      await exchangeClerkToken()
       setStep("complete")
       setTimeout(() => {
-        window.location.href = role === "shopkeeper" ? `/setup-inventory?store_type=${form.store_type || "other"}` : "/customer"
+        window.location.href = `/login?role=${role}`
       }, 500)
     } catch (err: any) {
       setError(err?.errors?.[0]?.message || err?.message || "Verification failed")
@@ -217,7 +218,7 @@ function RegisterForm() {
                 <Boxes className="size-6" />
               </div>
               <h1 className="text-xl font-bold text-foreground">Account Created!</h1>
-              <p className="text-sm text-muted-foreground mt-1">Redirecting...</p>
+              <p className="text-sm text-muted-foreground mt-1">Redirecting to login...</p>
             </div>
           </div>
         </div>
@@ -300,11 +301,22 @@ function RegisterForm() {
                     <label className="block text-sm font-medium text-foreground/80 mb-1">Email *</label>
                     <Input type="email" placeholder="your@email.com" value={form.email} onChange={(e) => handleChange("email", e.target.value)} required className="h-11 rounded-xl" />
                   </div>
-                  {isAdmin && (
+                  {isAdmin ? (
                     <div>
                       <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
                       <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
                     </div>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
+                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-foreground/80 mb-1">Confirm Password *</label>
+                        <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} placeholder="Re-enter your password" className="h-11 rounded-xl" />
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
