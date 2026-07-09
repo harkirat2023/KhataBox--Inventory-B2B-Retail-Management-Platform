@@ -2,8 +2,8 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSignUp, useAuth } from "@clerk/nextjs"
-import { Boxes, User, MapPin, Building2, CreditCard, Mail, Lock } from "lucide-react"
+import { useSignUp } from "@clerk/nextjs"
+import { Boxes, User, MapPin, Building2, CreditCard, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LandingNav } from "@/components/layout/landing-nav"
@@ -41,7 +41,6 @@ function RegisterForm() {
   const isAdmin = role === "admin"
 
   const { signUp, isLoaded: clerkLoaded } = useSignUp()
-  const { getToken } = useAuth()
 
   const [form, setForm] = useState({
     name: "", email: "", phone: "", address: "", city: "", state: "",
@@ -64,41 +63,30 @@ function RegisterForm() {
     if (!form.email) { setError("Email is required"); return }
     if (!password || password.length < 6) { setError("Password must be at least 6 characters"); return }
     if (password !== confirmPassword) { setError("Passwords do not match"); return }
-    if (!clerkLoaded || !signUp) return
+    if (!clerkLoaded || !signUp) { setError("Clerk not loaded. Please refresh."); return }
     setOtpLoading(true)
     try {
       const signUpAttempt = await signUp.create({ emailAddress: form.email })
       if (signUpAttempt.status !== "missing_requirements") {
-        setError(`Clerk signup returned unexpected status: ${signUpAttempt.status}`)
+        setError(`Unexpected status: ${signUpAttempt.status}`)
         setOtpLoading(false)
         return
       }
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" })
-      setStep("otp")
-    } catch (err: any) {
-      const clerkMsg = err?.errors?.[0]?.message || ""
-      const clerkCode = err?.errors?.[0]?.code || ""
-      if (clerkCode === "form_identifier_exists") {
-        setError("An account with this email already exists. Please sign in instead.")
-        return
+      const prep = await signUp.prepareEmailAddressVerification({ strategy: "email_code" })
+      if (prep.status === "missing_requirements") {
+        setStep("otp")
+      } else {
+        setError(`Unexpected verification status: ${prep.status}`)
       }
-      setError(clerkMsg || "Failed to send OTP. Please try again.")
+    } catch (err: any) {
+      const code = err?.errors?.[0]?.code || ""
+      if (code === "form_identifier_exists") {
+        setError("An account with this email already exists. Please sign in instead.")
+      } else {
+        setError(err?.errors?.[0]?.message || "Failed to send OTP. Please try again.")
+      }
     }
     setOtpLoading(false)
-  }
-
-  async function exchangeClerkToken() {
-    try {
-      const clerkToken = await getToken()
-      if (!clerkToken) return
-      const res = await fetch(`${API_URL}/api/v1/auth/clerk-token`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${clerkToken}` },
-      })
-      if (!res.ok) return
-      const data = await res.json()
-      document.cookie = `clerk_jwt=${data.access_token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
-    } catch { /* non-blocking */ }
   }
 
   async function handlePasswordRegister(e: React.FormEvent) {
@@ -118,8 +106,6 @@ function RegisterForm() {
         setLoading(false)
         return
       }
-      const data = await res.json()
-      // Log in the admin automatically
       const loginRes = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -140,7 +126,7 @@ function RegisterForm() {
     setError("")
     const otpStr = otp.join("")
     if (otpStr.length !== 6) { setError("Please enter the full 6-digit OTP"); return }
-    if (!clerkLoaded || !signUp) return
+    if (!clerkLoaded || !signUp) { setError("Clerk not ready. Please refresh."); return }
     setLoading(true)
     try {
       const signUpAttempt = await signUp.attemptEmailAddressVerification({ code: otpStr })
@@ -149,7 +135,6 @@ function RegisterForm() {
         setLoading(false)
         return
       }
-      // Clerk user created — get the Clerk user ID
       const clerkId = signUpAttempt.createdUserId
       if (!clerkId) {
         setError("Failed to get Clerk user ID. Please refresh and try again.")
@@ -179,9 +164,9 @@ function RegisterForm() {
       setStep("complete")
       setTimeout(() => {
         window.location.href = `/login?role=${role}`
-      }, 500)
+      }, 1500)
     } catch (err: any) {
-      setError(err?.errors?.[0]?.message || err?.message || "Verification failed")
+      setError(err?.message || err?.errors?.[0]?.message || "Verification failed")
     }
     setLoading(false)
   }
@@ -286,11 +271,10 @@ function RegisterForm() {
           <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8">
             <form onSubmit={isAdmin ? handlePasswordRegister : handleSendOtp} className="space-y-5">
               {error && (
-                <div>
-                  <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5">{error}</div>
+                <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5">
+                  {error}
                   {error.includes("already exists") && (
-                    <a href={`/login?role=${role}`}
-                      className="block text-center mt-2 text-sm font-medium text-primary hover:text-primary transition-colors">
+                    <a href={`/login?role=${role}`} className="block mt-2 text-center font-semibold text-primary hover:text-primary transition-colors">
                       Go to Sign In →
                     </a>
                   )}
@@ -314,22 +298,15 @@ function RegisterForm() {
                     <label className="block text-sm font-medium text-foreground/80 mb-1">Email *</label>
                     <Input type="email" placeholder="your@email.com" value={form.email} onChange={(e) => handleChange("email", e.target.value)} required className="h-11 rounded-xl" />
                   </div>
-                  {isAdmin ? (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
+                    <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
+                  </div>
+                  {!isAdmin && (
                     <div>
-                      <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
-                      <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
+                      <label className="block text-sm font-medium text-foreground/80 mb-1">Confirm Password *</label>
+                      <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} placeholder="Re-enter your password" className="h-11 rounded-xl" />
                     </div>
-                  ) : (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
-                        <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-foreground/80 mb-1">Confirm Password *</label>
-                        <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} placeholder="Re-enter your password" className="h-11 rounded-xl" />
-                      </div>
-                    </>
                   )}
                 </div>
               </div>

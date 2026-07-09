@@ -146,6 +146,7 @@ function LoginForm() {
   async function handleSendResetOtp(e: React.FormEvent) {
     e.preventDefault()
     if (!signIn || !clerkLoaded) return
+    if (!email) { setError("Enter your email first"); return }
     setError("")
     setLoading(true)
     try {
