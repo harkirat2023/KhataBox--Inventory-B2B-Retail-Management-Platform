@@ -78,8 +78,11 @@ function RegisterForm() {
     } catch (err: any) {
       const clerkMsg = err?.errors?.[0]?.message || ""
       const clerkCode = err?.errors?.[0]?.code || ""
+      if (clerkCode === "form_identifier_exists") {
+        setError("An account with this email already exists. Please sign in instead.")
+        return
+      }
       setError(clerkMsg || "Failed to send OTP. Please try again.")
-      if (clerkCode === "form_identifier_exists") setError("An account with this email already exists. Please sign in instead.")
     }
     setOtpLoading(false)
   }
@@ -282,7 +285,17 @@ function RegisterForm() {
           </div>
           <div className="bg-card rounded-2xl shadow-sm border border-border p-6 sm:p-8">
             <form onSubmit={isAdmin ? handlePasswordRegister : handleSendOtp} className="space-y-5">
-              {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5">{error}</div>}
+              {error && (
+                <div>
+                  <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5">{error}</div>
+                  {error.includes("already exists") && (
+                    <a href={`/login?role=${role}`}
+                      className="block text-center mt-2 text-sm font-medium text-primary hover:text-primary transition-colors">
+                      Go to Sign In →
+                    </a>
+                  )}
+                </div>
+              )}
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <User className="size-4 text-muted-foreground" />
