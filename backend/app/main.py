@@ -46,6 +46,14 @@ app.add_middleware(
 )
 
 app.mount("/ws", socket_app)
+
+@app.get("/")
+@app.get("/health")
+@app.get("/api/v1/health")
+async def health():
+    # Render / Railway healthchecks ping / and /health
+    return {"status": "ok", "service": "KhataBox API"}
+
 app.include_router(v1_router)
 
 
@@ -63,9 +71,3 @@ async def add_performance_headers(request: Request, call_next):
     return response
 
 
-@app.get("/")
-@app.get("/health")
-@app.get("/api/v1/health")
-async def health():
-    # Render / Railway healthchecks ping / and /health
-    return {"status": "ok", "service": "KhataBox API"}
