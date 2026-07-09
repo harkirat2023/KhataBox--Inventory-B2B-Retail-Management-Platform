@@ -51,7 +51,7 @@ app.mount("/ws", socket_app)
 @app.get("/health")
 @app.get("/api/v1/health")
 async def health():
-    # Render / Railway healthchecks ping / and /health
+    # Railway / Render healthchecks
     return {"status": "ok", "service": "KhataBox API"}
 
 app.include_router(v1_router)
