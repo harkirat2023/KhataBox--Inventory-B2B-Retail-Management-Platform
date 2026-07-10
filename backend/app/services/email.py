@@ -8,7 +8,7 @@ async def send_email(to: str, subject: str, html: str) -> bool:
     try:
         resend.api_key = settings.RESEND_API_KEY
         params = {
-            "from": "KhataBox <notifications@khatabox.app>",
+            "from": "KhataBox <notifications@khataboxapp.dedyn.io>",
             "to": [to],
             "subject": subject,
             "html": html,
