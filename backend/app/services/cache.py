@@ -33,7 +33,7 @@ async def is_available() -> bool:
 
 
 async def get(key: str) -> Any | None:
-    if not _available:
+    if not await is_available():
         return None
     try:
         val = await _redis.get(key)
@@ -48,7 +48,7 @@ async def get(key: str) -> Any | None:
 
 
 async def set(key: str, value: Any, ttl: int = 300) -> None:
-    if not _available:
+    if not await is_available():
         return
     try:
         val = json.dumps(value) if not isinstance(value, str) else value
@@ -58,7 +58,7 @@ async def set(key: str, value: Any, ttl: int = 300) -> None:
 
 
 async def delete(key: str) -> None:
-    if not _available:
+    if not await is_available():
         return
     try:
         await _redis.delete(key)
@@ -67,7 +67,7 @@ async def delete(key: str) -> None:
 
 
 async def invalidate_pattern(pattern: str) -> None:
-    if not _available:
+    if not await is_available():
         return
     try:
         keys = await _redis.keys(pattern)
