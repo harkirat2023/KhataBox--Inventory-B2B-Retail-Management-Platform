@@ -1,12 +1,10 @@
-/** Server-side API client. Uses Clerk auth() to get the session token. */
-
-import { auth } from "@clerk/nextjs/server"
+import { cookies } from "next/headers"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 async function getAuthHeaders() {
-  const session = await auth()
-  const token = session?.getToken ? await session.getToken() : null
+  const cookieStore = await cookies()
+  const token = cookieStore.get("khatabox_token")?.value || cookieStore.get("admin_token")?.value
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

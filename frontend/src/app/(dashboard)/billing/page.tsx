@@ -26,7 +26,6 @@ import { QRScanner } from "@/components/ui/qr-scanner"
 import { Product } from "@/types/product"
 import { Order } from "@/types/order"
 import { Customer } from "@/types/customer"
-import { useAuth } from "@clerk/nextjs"
 import { clientApi } from "@/lib/client-api"
 import { useBillingStore } from "@/store/billing"
 import {
@@ -41,7 +40,6 @@ import {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 export default function BillingPage() {
-  const { getToken } = useAuth()
   const [products, setProducts] = useState<Product[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
   const [search, setSearch] = useState("")
@@ -265,10 +263,8 @@ export default function BillingPage() {
     if (!lastOrderId) return
     setDownloading(true)
     try {
-      const token = await getToken()
       const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${lastOrderId}`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!resp.ok) throw new Error("Download failed")
       const blob = await resp.blob()

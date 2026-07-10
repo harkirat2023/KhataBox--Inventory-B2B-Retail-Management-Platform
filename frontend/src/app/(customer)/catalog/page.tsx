@@ -1,6 +1,6 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
 import { Suspense, useEffect, useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -181,7 +181,7 @@ function CatalogContent() {
 
   const handleCancelSwitch = () => { cancelStoreConflict(); setSwitchModalOpen(false); setPendingProduct(null) }
 
-  if (status === "loading" || role !== "customer") {
+  if (!isLoaded || role !== "customer") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center"><Package className="size-10 animate-pulse mx-auto text-primary" /><p className="text-muted-foreground mt-3">Loading...</p></div>

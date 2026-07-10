@@ -25,6 +25,4 @@ sentry-sdk==2.19.0
 resend==2.30.1
 boto3==1.35.0
 posthog==3.7.2
-pyjwt==2.10.1
 cryptography==44.0.1
-svix==1.67.0

@@ -1,5 +1,3 @@
-/** Client-side API client. Auto-reads clerk_jwt or admin_token cookie for auth. */
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 function getCookie(name: string): string | undefined {
@@ -22,8 +20,8 @@ function extractError(text: string): string {
   return text
 }
 
-function headers(clerkToken?: string): Record<string, string> {
-  const token = clerkToken || getCookie("clerk_jwt") || getCookie("admin_token")
+function authHeaders(): Record<string, string> {
+  const token = getCookie("khatabox_token") || getCookie("admin_token")
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -31,43 +29,56 @@ function headers(clerkToken?: string): Record<string, string> {
 }
 
 export const clientApi = {
-  async get<T>(path: string, clerkToken?: string): Promise<T> {
-    const res = await fetch(`${API_URL}${path}`, { headers: headers(clerkToken) })
+  async get<T>(path: string): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, { headers: authHeaders() })
     if (!res.ok) {
       const text = await res.text()
       throw new Error(extractError(text))
     }
     return res.json()
   },
-  async post<T>(path: string, body: unknown, clerkToken?: string): Promise<T> {
-    const res = await fetch(`${API_URL}${path}`, { method: "POST", headers: headers(clerkToken), body: JSON.stringify(body) })
+  async post<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, { method: "POST", headers: authHeaders(), body: JSON.stringify(body) })
     if (!res.ok) {
       const text = await res.text()
       throw new Error(extractError(text))
     }
     return res.json()
   },
-  async put<T>(path: string, body: unknown, clerkToken?: string): Promise<T> {
-    const res = await fetch(`${API_URL}${path}`, { method: "PUT", headers: headers(clerkToken), body: JSON.stringify(body) })
+  async put<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, { method: "PUT", headers: authHeaders(), body: JSON.stringify(body) })
     if (!res.ok) {
       const text = await res.text()
       throw new Error(extractError(text))
     }
     return res.json()
   },
-  async patch<T>(path: string, body: unknown, clerkToken?: string): Promise<T> {
-    const res = await fetch(`${API_URL}${path}`, { method: "PATCH", headers: headers(clerkToken), body: JSON.stringify(body) })
+  async patch<T>(path: string, body: unknown): Promise<T> {
+    const res = await fetch(`${API_URL}${path}`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(body) })
     if (!res.ok) {
       const text = await res.text()
       throw new Error(extractError(text))
     }
     return res.json()
   },
-  async delete(path: string, clerkToken?: string): Promise<void> {
-    const res = await fetch(`${API_URL}${path}`, { method: "DELETE", headers: headers(clerkToken) })
+  async delete(path: string): Promise<void> {
+    const res = await fetch(`${API_URL}${path}`, { method: "DELETE", headers: authHeaders() })
     if (!res.ok) {
       const text = await res.text()
       throw new Error(extractError(text))
     }
   },
+}
+
+function setCookie(name: string, value: string, maxAgeDays = 1) {
+  document.cookie = `${name}=${value}; Path=/; SameSite=Lax; Secure; Max-Age=${maxAgeDays * 86400}`
+}
+
+export function setAuthToken(token: string) {
+  setCookie("khatabox_token", token)
+}
+
+export function clearAuthToken() {
+  document.cookie = "khatabox_token=; Path=/; Max-Age=0"
+  document.cookie = "admin_token=; Path=/; Max-Age=0"
 }

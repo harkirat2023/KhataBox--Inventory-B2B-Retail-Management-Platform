@@ -1,7 +1,6 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
-import { useAuth } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
 import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -86,7 +85,6 @@ const paymentLabels: Record<string, { icon: LucideIcon; label: string }> = {
 
 function OrderDetailContent() {
   const { isLoaded, isSignedIn } = useUser()
-  const { getToken: clerkGetToken } = useAuth()
   const { role } = useRole()
   const params = useParams()
   const orderId = params?.id as string
@@ -317,9 +315,8 @@ function OrderDetailContent() {
               onClick={async (e) => {
                 e.preventDefault()
                 try {
-                  const token = await clerkGetToken()
                   const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${order.id}`,
-                    { method: "POST", headers: token ? { Authorization: `Bearer ${token}` } : {} }
+                    { method: "POST" }
                   )
 
                   if (!resp.ok) {

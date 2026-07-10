@@ -32,7 +32,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Order, OrderStatus } from "@/types/order"
-import { useAuth } from "@clerk/nextjs"
 import { clientApi } from "@/lib/client-api"
 import { useBillingStore } from "@/store/billing"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -63,7 +62,6 @@ interface BillingDisplayItem {
 type HistoryTab = "all" | "regular" | "b2c"
 
 export default function OrderHistoryPage() {
-  const { getToken } = useAuth()
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [b2cOrders, setB2cOrders] = useState<Order[]>([])
@@ -93,10 +91,8 @@ export default function OrderHistoryPage() {
     setViewingInvoiceId(orderId)
     setInvoiceUrl(null)
     try {
-      const token = await getToken()
       const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${orderId}`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!resp.ok) {
         const text = await resp.text()
@@ -279,7 +275,6 @@ export default function OrderHistoryPage() {
   const callB2CAction = async (orderId: number, action: "approve" | "reject" | "processing" | "confirm" | "cancel") => {
     try {
       setActionLoadingId(String(orderId))
-      const token = await getToken()
       const endpointMap: Record<typeof action, string> = {
         approve: `/api/v1/b2c/shopkeeper/orders/${orderId}/approve`,
         reject: `/api/v1/b2c/shopkeeper/orders/${orderId}/reject`,
@@ -289,7 +284,6 @@ export default function OrderHistoryPage() {
       }
       const resp = await fetch(`${API_URL}${endpointMap[action]}`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!resp.ok) throw new Error("Action failed")
       toast.success("Order status updated")

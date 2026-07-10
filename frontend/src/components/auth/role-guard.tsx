@@ -1,20 +1,9 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
 import { redirect } from "next/navigation"
-import { clientApi } from "@/lib/client-api"
-import { useEffect, useState } from "react"
 
 type Role = "admin" | "shopkeeper" | "customer"
-
-interface DbUser {
-  id: number
-  clerk_id: string
-  email: string
-  name: string
-  role: string
-  is_active: boolean
-}
 
 export function RoleGuard({
   children,
@@ -26,32 +15,16 @@ export function RoleGuard({
   fallback?: React.ReactNode
 }) {
   const { user, isLoaded, isSignedIn } = useUser()
-  const [dbUser, setDbUser] = useState<DbUser | null>(null)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!isLoaded) return
-    if (!isSignedIn) {
-      redirect("/login")
-      return
-    }
-    // Fetch user from backend
-    const token = user?.id // Clerk user ID
-    clientApi.get<DbUser>("/api/v1/auth/me")
-      .then(setDbUser)
-      .catch(() => redirect("/login"))
-      .finally(() => setLoading(false))
-  }, [isLoaded, isSignedIn, user])
-
-  if (!isLoaded || loading) {
+  if (!isLoaded) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>
   }
 
-  if (!dbUser) {
+  if (!isSignedIn || !user) {
     redirect("/login")
   }
 
-  if (!allowedRoles.includes(dbUser.role as Role)) {
+  if (!allowedRoles.includes(user.role as Role)) {
     if (fallback) return <>{fallback}</>
     redirect("/dashboard")
   }
@@ -61,26 +34,12 @@ export function RoleGuard({
 
 export function useRole() {
   const { user, isLoaded } = useUser()
-  const [dbUser, setDbUser] = useState<DbUser | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!isLoaded) return
-    if (!user) {
-      setLoading(false)
-      return
-    }
-    clientApi.get<DbUser>("/api/v1/auth/me")
-      .then(setDbUser)
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [isLoaded, user])
 
   return {
-    role: dbUser?.role as Role | undefined,
-    isAdmin: dbUser?.role === "admin",
-    isShopkeeper: dbUser?.role === "shopkeeper",
-    isCustomer: dbUser?.role === "customer",
-    loading,
+    role: user?.role as Role | undefined,
+    isAdmin: user?.role === "admin",
+    isShopkeeper: user?.role === "shopkeeper",
+    isCustomer: user?.role === "customer",
+    loading: !isLoaded,
   }
 }

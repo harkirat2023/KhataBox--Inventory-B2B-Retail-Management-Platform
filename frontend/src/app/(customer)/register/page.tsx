@@ -2,12 +2,11 @@
 
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useSignUp } from "@clerk/nextjs"
-import { Boxes, User, MapPin, Building2, CreditCard, Mail } from "lucide-react"
+import { Boxes, User, MapPin, Building2, CreditCard, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { LandingNav } from "@/components/layout/landing-nav"
-import { clientApi } from "@/lib/client-api"
+import { setAuthToken } from "@/lib/client-api"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
@@ -40,8 +39,6 @@ function RegisterForm() {
   const isCustomer = role === "customer"
   const isAdmin = role === "admin"
 
-  const { signUp, isLoaded: clerkLoaded } = useSignUp()
-
   const [form, setForm] = useState({
     name: "", email: "", phone: "", address: "", city: "", state: "",
     store_name: "", store_type: "", pin_code: "", gst_number: "",
@@ -53,7 +50,6 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState<"form" | "otp" | "complete">("form")
   const [otp, setOtp] = useState(["", "", "", "", "", ""])
-  const [otpLoading, setOtpLoading] = useState(false)
 
   const handleChange = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }))
 
@@ -61,32 +57,26 @@ function RegisterForm() {
     e.preventDefault()
     setError("")
     if (!form.email) { setError("Email is required"); return }
-    if (!password || password.length < 6) { setError("Password must be at least 6 characters"); return }
-    if (password !== confirmPassword) { setError("Passwords do not match"); return }
-    if (!clerkLoaded || !signUp) { setError("Clerk not loaded. Please refresh."); return }
-    setOtpLoading(true)
+    if (!isAdmin && (!password || password.length < 6)) { setError("Password must be at least 6 characters"); return }
+    if (!isAdmin && password !== confirmPassword) { setError("Passwords do not match"); return }
+    setLoading(true)
     try {
-      const signUpAttempt = await signUp.create({ emailAddress: form.email })
-      if (signUpAttempt.status !== "missing_requirements") {
-        setError(`Unexpected status: ${signUpAttempt.status}`)
-        setOtpLoading(false)
+      const res = await fetch(`${API_URL}/api/v1/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.detail || "Failed to send OTP")
+        setLoading(false)
         return
       }
-      const prep = await signUp.prepareEmailAddressVerification({ strategy: "email_code" })
-      if (prep.status === "missing_requirements") {
-        setStep("otp")
-      } else {
-        setError(`Unexpected verification status: ${prep.status}`)
-      }
-    } catch (err: any) {
-      const code = err?.errors?.[0]?.code || ""
-      if (code === "form_identifier_exists") {
-        setError("An account with this email already exists. Please sign in instead.")
-      } else {
-        setError(err?.errors?.[0]?.message || "Failed to send OTP. Please try again.")
-      }
+      setStep("otp")
+    } catch {
+      setError("Network error. Please try again.")
     }
-    setOtpLoading(false)
+    setLoading(false)
   }
 
   async function handlePasswordRegister(e: React.FormEvent) {
@@ -98,7 +88,14 @@ function RegisterForm() {
       const res = await fetch(`${API_URL}/api/v1/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.email, password, name: form.name, phone: form.phone, role: "admin" }),
+        body: JSON.stringify({
+          email: form.email,
+          password,
+          confirm_password: password,
+          name: form.name,
+          phone: form.phone,
+          role: "admin",
+        }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -113,7 +110,7 @@ function RegisterForm() {
       })
       if (loginRes.ok) {
         const loginData = await loginRes.json()
-        document.cookie = `admin_token=${loginData.access_token}; Path=/; SameSite=Lax; Secure; Max-Age=86400`
+        setAuthToken(loginData.access_token)
       }
       window.location.href = "/admin/users"
     } catch {
@@ -126,24 +123,15 @@ function RegisterForm() {
     setError("")
     const otpStr = otp.join("")
     if (otpStr.length !== 6) { setError("Please enter the full 6-digit OTP"); return }
-    if (!clerkLoaded || !signUp) { setError("Clerk not ready. Please refresh."); return }
     setLoading(true)
     try {
-      const signUpAttempt = await signUp.attemptEmailAddressVerification({ code: otpStr })
-      if (signUpAttempt.status !== "complete") {
-        setError("Verification failed. Please try again.")
-        setLoading(false)
-        return
-      }
-      const clerkId = signUpAttempt.createdUserId
-      if (!clerkId) {
-        setError("Failed to get Clerk user ID. Please refresh and try again.")
-        setLoading(false)
-        return
-      }
       const payload: Record<string, unknown> = {
-        clerk_id: clerkId, name: form.name, email: form.email,
-        password, phone: form.phone, role,
+        email: form.email,
+        otp: otpStr,
+        name: form.name,
+        password: password || null,
+        role,
+        phone: form.phone,
       }
       if (isCustomer) {
         if (form.address) payload.address = form.address
@@ -160,13 +148,25 @@ function RegisterForm() {
         if (form.monthly_revenue) payload.monthly_revenue = parseFloat(form.monthly_revenue) || null
         if (form.business_description) payload.business_description = form.business_description
       }
-      await clientApi.post("/api/v1/auth/clerk-register", payload)
+      const res = await fetch(`${API_URL}/api/v1/auth/register-with-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.detail || "Registration failed")
+        setLoading(false)
+        return
+      }
+      const data = await res.json()
+      setAuthToken(data.access_token)
       setStep("complete")
       setTimeout(() => {
-        window.location.href = `/login?role=${role}`
+        window.location.href = role === "customer" ? "/customer" : "/dashboard"
       }, 1500)
     } catch (err: any) {
-      setError(err?.message || err?.errors?.[0]?.message || "Verification failed")
+      setError(err?.message || "Verification failed")
     }
     setLoading(false)
   }
@@ -188,11 +188,13 @@ function RegisterForm() {
   }
 
   function resendOtp() {
-    setOtpLoading(true)
+    setLoading(true)
     setOtp(["", "", "", "", "", ""])
-    if (clerkLoaded && signUp) {
-      signUp.prepareEmailAddressVerification({ strategy: "email_code" }).finally(() => setOtpLoading(false))
-    }
+    fetch(`${API_URL}/api/v1/auth/send-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: form.email }),
+    }).finally(() => setLoading(false))
   }
 
   if (step === "complete") {
@@ -206,7 +208,7 @@ function RegisterForm() {
                 <Boxes className="size-6" />
               </div>
               <h1 className="text-xl font-bold text-foreground">Account Created!</h1>
-              <p className="text-sm text-muted-foreground mt-1">Redirecting to login...</p>
+              <p className="text-sm text-muted-foreground mt-1">Redirecting to dashboard...</p>
             </div>
           </div>
         </div>
@@ -239,14 +241,13 @@ function RegisterForm() {
                     className="w-11 h-12 text-center text-lg font-bold rounded-xl" autoFocus={i === 0} />
                 ))}
               </div>
-              <div id="clerk-captcha" />
               <Button className="w-full h-11 rounded-xl text-base" onClick={handleVerifyOtp} disabled={loading || otp.join("").length !== 6}>
                 {loading ? "Verifying..." : "Verify & Create Account"}
               </Button>
               <p className="text-center text-sm text-muted-foreground mt-4">
-                Didn&apos;t receive the code?{" "}
-                <button onClick={resendOtp} disabled={otpLoading} className="text-primary font-medium hover:text-primary transition-colors">
-                  {otpLoading ? "Sending..." : "Resend"}
+                Didnt receive the code?{" "}
+                <button onClick={resendOtp} disabled={loading} className="text-primary font-medium hover:text-primary transition-colors">
+                  {loading ? "Sending..." : "Resend"}
                 </button>
               </p>
             </div>
@@ -275,7 +276,7 @@ function RegisterForm() {
                   {error}
                   {error.includes("already exists") && (
                     <a href={`/login?role=${role}`} className="block mt-2 text-center font-semibold text-primary hover:text-primary transition-colors">
-                      Go to Sign In →
+                      Go to Sign In
                     </a>
                   )}
                 </div>
@@ -300,7 +301,8 @@ function RegisterForm() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-foreground/80 mb-1">Password *</label>
-                    <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl" />
+                    <Lock className="absolute size-4 text-muted-foreground mt-3 ml-3" />
+                    <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="At least 6 characters" className="h-11 rounded-xl pl-9" />
                   </div>
                   {!isAdmin && (
                     <div>
@@ -314,7 +316,7 @@ function RegisterForm() {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <MapPin className="size-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-foreground/80">Optional: Address</span>
+                    <span className="text-sm font-semibold text-foreground/80">Address (optional)</span>
                   </div>
                   <div className="space-y-4">
                     <div><label className="block text-sm font-medium text-foreground/80 mb-1">Address</label><Input placeholder="Street address" value={form.address} onChange={(e) => handleChange("address", e.target.value)} className="h-11 rounded-xl" /></div>
@@ -360,11 +362,11 @@ function RegisterForm() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <CreditCard className="size-4 text-muted-foreground" />
-                      <span className="text-sm font-semibold text-foreground/80">Optional: Business Details</span>
+                      <span className="text-sm font-semibold text-foreground/80">Business Details (optional)</span>
                     </div>
                     <div className="space-y-4">
                       <div><label className="block text-sm font-medium text-foreground/80 mb-1">GST Number</label><Input placeholder="15-digit GST number" value={form.gst_number} onChange={(e) => handleChange("gst_number", e.target.value)} maxLength={15} className="h-11 rounded-xl" /></div>
-                      <div><label className="block text-sm font-medium text-foreground/80 mb-1">Monthly Revenue (₹)</label><Input type="number" placeholder="e.g., 50000" value={form.monthly_revenue} onChange={(e) => handleChange("monthly_revenue", e.target.value)} className="h-11 rounded-xl" /></div>
+                      <div><label className="block text-sm font-medium text-foreground/80 mb-1">Monthly Revenue ()</label><Input type="number" placeholder="e.g., 50000" value={form.monthly_revenue} onChange={(e) => handleChange("monthly_revenue", e.target.value)} className="h-11 rounded-xl" /></div>
                       <div>
                         <label className="block text-sm font-medium text-foreground/80 mb-1">Business Description</label>
                         <textarea value={form.business_description} onChange={(e) => handleChange("business_description", e.target.value)} placeholder="Describe your business..."
@@ -374,14 +376,13 @@ function RegisterForm() {
                   </div>
                 </>
               )}
-              {!isAdmin && <div id="clerk-captcha" />}
               {isAdmin ? (
                 <Button type="submit" className="w-full h-11 rounded-xl text-base" disabled={loading}>
                   {loading ? "Creating account..." : "Create Admin Account"}
                 </Button>
               ) : (
-                <Button type="submit" className="w-full h-11 rounded-xl text-base" disabled={otpLoading || !clerkLoaded}>
-                  {otpLoading ? "Sending OTP..." : "Send Verification OTP"}
+                <Button type="submit" className="w-full h-11 rounded-xl text-base" disabled={loading}>
+                  {loading ? "Sending OTP..." : "Send Verification OTP"}
                 </Button>
               )}
             </form>

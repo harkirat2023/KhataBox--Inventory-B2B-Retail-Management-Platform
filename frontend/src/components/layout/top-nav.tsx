@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useUser, useAuth } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
+import { clearAuthToken } from "@/lib/client-api"
 import { useRouter } from "next/navigation"
 import { Bell, LogOut, Search, User, Boxes, Command, Settings as SettingsIcon, Building2, Pencil } from "lucide-react"
 import Link from "next/link"
@@ -24,11 +25,10 @@ import { useStoreContext } from "@/lib/store-context"
 export function TopNav() {
   const router = useRouter()
   const { user } = useUser()
-  const { signOut } = useAuth()
   const { role } = useRole()
   const { activeStore } = useStoreContext()
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
-  const initials = user?.fullName?.charAt(0)?.toUpperCase() || "U"
+  const initials = user?.name?.charAt(0)?.toUpperCase() || "U"
 
   const homeLink = role === "customer" ? "/" : "/dashboard"
 
@@ -52,7 +52,7 @@ export function TopNav() {
             <DropdownMenuLabel>
               <div className="flex flex-col">
                 <span className="font-medium">{activeStore?.name || "Store"}</span>
-                <span className="text-xs text-muted-foreground font-normal">{user?.emailAddresses?.[0]?.emailAddress}</span>
+                <span className="text-xs text-muted-foreground font-normal">{user?.email}</span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -60,7 +60,7 @@ export function TopNav() {
               <Pencil className="size-4 mr-2" />Rename Store
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={async () => { await signOut({ redirectUrl: "/khatabox" }) }}
+            <DropdownMenuItem onSelect={() => { clearAuthToken(); router.push("/khatabox") }}
               className="text-destructive focus:text-destructive">
               <LogOut className="size-4 mr-2" />Sign Out
             </DropdownMenuItem>
@@ -96,13 +96,13 @@ export function TopNav() {
             <Avatar className="size-7 rounded-full">
               <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
             </Avatar>
-            <span className="hidden md:block text-sm font-medium max-w-[120px] truncate">{user?.fullName}</span>
+            <span className="hidden md:block text-sm font-medium max-w-[120px] truncate">{user?.name}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span className="font-medium">{user?.fullName}</span>
-                <span className="text-xs text-muted-foreground font-normal">{user?.emailAddresses?.[0]?.emailAddress}</span>
+                <span className="font-medium">{user?.name}</span>
+                <span className="text-xs text-muted-foreground font-normal">{user?.email}</span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -115,7 +115,7 @@ export function TopNav() {
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={async () => { await signOut({ redirectUrl: "/khatabox" }) }}
+            <DropdownMenuItem onSelect={() => { clearAuthToken(); router.push("/khatabox") }}
               className="text-destructive focus:text-destructive">
               <LogOut className="size-4 mr-2" />Sign Out
             </DropdownMenuItem>

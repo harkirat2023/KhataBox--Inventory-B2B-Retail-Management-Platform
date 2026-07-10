@@ -1,6 +1,6 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"

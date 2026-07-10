@@ -82,9 +82,18 @@ class UserCreate(BaseModel):
         return validate_gst_number(v)
 
 
-class ClerkRegisterRequest(BaseModel):
-    clerk_id: str
+class OTPSendRequest(BaseModel):
     email: EmailStr
+
+
+class OTPVerifyRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
+
+class RegisterWithOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str
     name: str
     password: str | None = None
     role: str = "shopkeeper"
@@ -106,6 +115,13 @@ class ClerkRegisterRequest(BaseModel):
             return v
         return validate_phone(v)
 
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        return validate_password_strength(v)
+
     @field_validator("pin_code")
     @classmethod
     def validate_pin_code_format(cls, v: str | None) -> str | None:
@@ -115,6 +131,11 @@ class ClerkRegisterRequest(BaseModel):
     @classmethod
     def validate_gst_format(cls, v: str | None) -> str | None:
         return validate_gst_number(v)
+
+
+class LoginWithOTPRequest(BaseModel):
+    email: EmailStr
+    otp: str
 
 
 class RefreshRequest(BaseModel):
@@ -128,7 +149,6 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     id: int
-    clerk_id: str | None
     email: str
     name: str
     role: str

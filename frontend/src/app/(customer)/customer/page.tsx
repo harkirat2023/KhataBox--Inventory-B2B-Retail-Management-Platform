@@ -1,6 +1,6 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -181,14 +181,14 @@ export default function CustomerHome() {
     ? stores?.filter((s) => s.store_type === selectedCategory)
     : stores
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
-  const userName = user?.fullName || "there"
+  const userName = user?.name || "there"
   const todayDate = getTodayDate()
 
   return (
     <div className="min-h-screen bg-background pb-24">
       <div className="max-w-7xl mx-auto">
         {/* Loading State */}
-        {(status === "loading" || storesLoading) && (
+        {storesLoading && (
           <div className="px-5 mt-6 pt-6 space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-5 w-40" />

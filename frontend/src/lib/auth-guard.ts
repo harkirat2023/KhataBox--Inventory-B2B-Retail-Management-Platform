@@ -1,4 +1,3 @@
-import { auth } from "@clerk/nextjs/server"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
@@ -6,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 type Role = "admin" | "shopkeeper" | "customer"
 
-async function validateAdminToken(token: string): Promise<{ role: string } | null> {
+async function validateToken(token: string): Promise<{ role: string } | null> {
   try {
     const res = await fetch(`${API_URL}/api/v1/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -19,45 +18,23 @@ async function validateAdminToken(token: string): Promise<{ role: string } | nul
 }
 
 export async function requireAuth(roles?: Role[]) {
-  // If admin is allowed, try admin JWT cookie first
-  if (!roles || roles.includes("admin")) {
-    const cookieStore = await cookies()
-    const adminToken = cookieStore.get("admin_token")?.value
-    if (adminToken) {
-      const user = await validateAdminToken(adminToken)
-      if (user && user.role === "admin") return null
-    }
-  }
+  const cookieStore = await cookies()
+  const token = cookieStore.get("khatabox_token")?.value || cookieStore.get("admin_token")?.value
 
-  // Fall back to Clerk auth (for shopkeeper / customer)
-  const session = await auth()
-
-  if (!session?.userId) {
+  if (!token) {
     redirect("/login")
   }
 
-  if (roles) {
-    try {
-      const user = await apiGet<{ role: string }>("/api/v1/auth/me")
-      if (!roles.includes(user.role as Role)) {
-        redirect("/dashboard")
-      }
-    } catch {
-      redirect("/login")
-    }
+  const user = await validateToken(token)
+  if (!user) {
+    redirect("/login")
   }
 
-  return session
-}
+  if (roles && !roles.includes(user.role as Role)) {
+    redirect("/dashboard")
+  }
 
-async function apiGet<T>(path: string): Promise<T> {
-  const session = await auth()
-  const token = session?.getToken ? await session.getToken() : null
-  const headers: Record<string, string> = { "Content-Type": "application/json" }
-  if (token) headers["Authorization"] = `Bearer ${token}`
-  const res = await fetch(`${API_URL}${path}`, { headers })
-  if (!res.ok) throw new Error(`API error: ${res.status}`)
-  return res.json()
+  return user
 }
 
 export const rolePermissions: Record<Role, string[]> = {

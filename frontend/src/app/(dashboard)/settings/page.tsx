@@ -1,6 +1,6 @@
 "use client"
 
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@/hooks/use-user"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { Download, User, Mail, Shield, Building2, Settings, Sun, Moon } from "lucide-react"
@@ -25,7 +25,7 @@ function exportAsCsv(rows: Record<string, unknown>[], filename: string) {
 }
 
 export default function SettingsPage() {
-  const { user: clerkUser } = useUser()
+  const { user } = useUser()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
@@ -70,7 +70,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <User className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium text-foreground">{clerkUser?.fullName || "N/A"}</p>
+              <p className="text-sm font-medium text-foreground">{user?.name || "N/A"}</p>
               <p className="text-xs text-muted-foreground">Name</p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Mail className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium text-foreground">{clerkUser?.emailAddresses?.[0]?.emailAddress || "N/A"}</p>
+              <p className="text-sm font-medium text-foreground">{user?.email || "N/A"}</p>
               <p className="text-xs text-muted-foreground">Email</p>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-3">
             <Building2 className="size-4 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium text-foreground">{clerkUser?.fullName ? `${clerkUser.fullName}'s Shop` : "N/A"}</p>
+              <p className="text-sm font-medium text-foreground">{user?.name ? `${user.name}'s Shop` : "N/A"}</p>
               <p className="text-xs text-muted-foreground">Business</p>
             </div>
           </div>

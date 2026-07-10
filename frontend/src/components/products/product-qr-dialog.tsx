@@ -33,10 +33,7 @@ export function ProductQrDialog({ open, onOpenChange, product }: Props) {
   const loadQr = async () => {
     setLoading(true)
     try {
-      const token = await getToken()
-      const resp = await fetch(`${API_URL}/api/v1/qrcodes/permanent/${product.id}`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
+      const resp = await fetch(`${API_URL}/api/v1/qrcodes/permanent/${product.id}`)
       if (!resp.ok) throw new Error("Failed to load QR")
       const blob = await resp.blob()
       qrBlobRef.current = blob
@@ -73,10 +70,8 @@ export function ProductQrDialog({ open, onOpenChange, product }: Props) {
     if (!confirm("Regenerate QR identity? This will create a new UUID. Existing QR codes will stop working.")) return
     setRegenerating(true)
     try {
-      const token = await getToken()
       const resp = await fetch(`${API_URL}/api/v1/qrcodes/permanent/${product.id}/regenerate`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
       if (!resp.ok) throw new Error("Failed to regenerate")
       const blob = await resp.blob()
@@ -156,13 +151,4 @@ export function ProductQrDialog({ open, onOpenChange, product }: Props) {
   )
 }
 
-async function getToken(): Promise<string | null> {
-  try {
-    const { useAuth } = await import("@clerk/nextjs")
-    // This function is called outside React hooks context, useAuth won't work here
-    // Token should be passed as prop from the calling component
-    return null
-  } catch {
-    return null
-  }
-}
+
