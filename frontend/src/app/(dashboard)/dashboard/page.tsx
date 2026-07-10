@@ -232,6 +232,22 @@ export default function DashboardPage() {
         )}
       </motion.div>
 
+      {/* Onboarding — first-time setup */}
+      {!statsLoading && stats && stats.total_products === 0 && (
+        <motion.div variants={itemVariants} className="rounded-[8px] border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">Welcome! Your inventory is empty</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Add products to start billing and tracking inventory.</p>
+          </div>
+          <Link href="/setup-inventory">
+            <Button size="sm" className="rounded-[6px] whitespace-nowrap">
+              <Package className="size-4 mr-1.5" />
+              Setup Inventory
+            </Button>
+          </Link>
+        </motion.div>
+      )}
+
       <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" variants={itemVariants}>
         {quickActions.map((action) => {
           const Icon = action.icon

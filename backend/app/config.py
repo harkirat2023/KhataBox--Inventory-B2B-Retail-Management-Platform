@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     POSTHOG_API_KEY: str = ""
     POSTHOG_HOST: str = "https://us.i.posthog.com"
     SENTRY_DSN: str = ""
-    CORS_ORIGINS: str = "http://localhost:3000,https://khatabox.vercel.app,https://khataboxapp.vercel.app"
+    CORS_ORIGINS: str = "http://localhost:3000,https://khatabox.vercel.app,https://khataboxapp.vercel.app,https://khatabox-inventory-b2b-retail-management-platfo-production.up.railway.app"
     R2_ENDPOINT_URL: str = ""
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""

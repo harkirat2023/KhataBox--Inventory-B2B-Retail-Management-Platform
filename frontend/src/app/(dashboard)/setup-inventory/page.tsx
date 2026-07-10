@@ -321,6 +321,9 @@ function SetupInventoryContent() {
             {selected.size} product{selected.size !== 1 ? "s" : ""} selected
           </p>
           <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={() => router.push("/dashboard")}>
+              Skip
+            </Button>
             <Button variant="outline" onClick={() => router.push("/inventory")}>
               <X className="size-4 mr-1.5" />
               Cancel

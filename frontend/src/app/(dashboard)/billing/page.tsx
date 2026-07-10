@@ -806,34 +806,131 @@ export default function BillingPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Multi-step Checkout Modal */}
+      {/* Single-step Checkout Modal — Editable Preview + Atomic Confirm */}
       <Dialog open={checkoutOpen} onOpenChange={(open) => { if (!generating) setCheckoutOpen(open) }}>
-        <DialogContent className="sm:max-w-lg">
-          <AnimatePresence mode="wait">
-            {checkoutStep === "review" && (
-              <motion.div
-                key="review"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.15 }}
-              >
-                <DialogHeader>
-                  <DialogTitle>Review Order</DialogTitle>
-                  <DialogDescription>Check items and totals before generating the bill.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-3 max-h-[50vh] overflow-y-auto">
-                  {items.map((item) => (
-                    <div key={item.product_id} className="flex items-center justify-between text-sm">
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {generating ? "Generating Bill..." : "Review & Confirm Bill"}
+            </DialogTitle>
+            <DialogDescription>
+              {generating ? "Creating order and generating invoice..." : "Edit items, select payment, then confirm to generate."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {generating ? (
+            <div className="text-center py-10">
+              <Loader2 className="size-10 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">Processing order, updating inventory, and generating invoice...</p>
+            </div>
+          ) : (
+            <>
+              {/* Editable Items */}
+              <div className="max-h-[40vh] overflow-y-auto space-y-1.5 py-2">
+                {items.map((item) => {
+                  const maxStock = stockMap.get(item.product_id) ?? Infinity
+                  return (
+                    <div key={item.product_id} className="flex items-center justify-between gap-2 p-2 rounded-[6px] border border-border bg-card">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} x {item.quantity}</p>
+                        <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
                       </div>
-                      <p className="font-medium tabular-nums">₹{(item.unit_price * item.quantity).toFixed(2)}</p>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => {
+                          if (item.quantity - 1 <= 0) { removeItemFromActiveCart(item.product_id); return }
+                          updateQtyInActiveCart(item.product_id, item.quantity - 1)
+                        }}>
+                          <Minus className="size-3" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => {
+                          if (item.quantity + 1 > maxStock) {
+                            toast.error(`Only ${maxStock} of "${item.name}" available`)
+                            return
+                          }
+                          updateQtyInActiveCart(item.product_id, item.quantity + 1)
+                        }}>
+                          <Plus className="size-3" />
+                        </Button>
+                      </div>
+                      <p className="text-sm font-medium w-20 text-right tabular-nums">₹{(item.unit_price * item.quantity).toFixed(2)}</p>
+                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:text-destructive rounded-[4px]" onClick={() => removeItemFromActiveCart(item.product_id)}>
+                        <Trash2 className="size-3" />
+                      </Button>
                     </div>
-                  ))}
+                  )
+                })}
+              </div>
+
+              {items.length === 0 && (
+                <div className="text-center py-6 text-sm text-muted-foreground">
+                  No items in cart. Close and add products.
                 </div>
-                <div className="border-t border-border pt-3 space-y-1.5 text-sm">
+              )}
+
+              {/* Payment Method + Discount + Totals */}
+              <div className="space-y-3 border-t border-border pt-3 mt-1">
+                {/* Payment Method Selection */}
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Payment Method</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { value: "cash", label: "Cash", icon: Banknote },
+                      { value: "upi", label: "UPI", icon: CreditCard },
+                      { value: "credit", label: "Khata", icon: Receipt },
+                      { value: "bank_transfer", label: "Bank", icon: CreditCard },
+                    ].map(({ value, label, icon: Icon }) => (
+                      <button
+                        key={value}
+                        onClick={() => setPaymentMethod(value)}
+                        className={`flex items-center justify-center gap-1.5 p-2 rounded-[6px] text-xs font-medium transition-all border ${
+                          paymentMethod === value
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-border bg-card text-muted-foreground hover:bg-accent"
+                        }`}
+                      >
+                        <Icon className="size-3.5" />
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Discount + GST Toggle */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Discount (₹)</p>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={discount}
+                      onChange={(e) => setDiscountOnActiveCart(parseFloat(e.target.value) || 0)}
+                      className="h-8 text-sm rounded-[4px] border-border"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-4">
+                    <span className="text-xs text-muted-foreground">GST</span>
+                    <button
+                      type="button"
+                      onClick={() => setApplyGst(!applyGst)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${applyGst ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    >
+                      <span className={`inline-block size-3.5 rounded-full bg-white transition-transform ${applyGst ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Customer Credit Info */}
+                {selectedCustomer && (
+                  <div className="text-xs bg-muted rounded-[6px] p-2.5 border border-border">
+                    <p className="font-medium text-foreground">{selectedCustomer.company_name || selectedCustomer.contact_person}</p>
+                    <p className="text-muted-foreground">Credit remaining: <span className={creditRemaining < total ? "text-destructive font-medium" : ""}>₹{Math.max(0, creditRemaining).toFixed(2)}</span></p>
+                  </div>
+                )}
+
+                {/* Totals */}
+                <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span className="tabular-nums">₹{subtotal.toFixed(2)}</span>
@@ -848,171 +945,97 @@ export default function BillingPage() {
                     <span className="text-muted-foreground">GST (18%)</span>
                     <span className="tabular-nums">₹{gst.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-semibold text-base border-t border-border pt-1.5">
+                  <div className="flex justify-between font-semibold text-base border-t border-border pt-1">
                     <span>Total</span>
                     <span className="tabular-nums">₹{total.toFixed(2)}</span>
                   </div>
                 </div>
-                {selectedCustomer && (
-                  <div className="mt-3 text-xs bg-muted rounded-[6px] p-3 border border-border">
-                    <p className="font-medium text-foreground mb-1">Khata: {selectedCustomer.company_name || selectedCustomer.contact_person}</p>
-                    <p className="text-muted-foreground">Credit remaining: <span className={creditRemaining < total ? "text-destructive font-medium" : ""}>₹{Math.max(0, creditRemaining).toFixed(2)}</span></p>
-                  </div>
-                )}
-                <DialogFooter className="mt-4">
-                  <Button variant="outline" className="rounded-[6px]" onClick={() => { setCheckoutOpen(false); setCheckoutStep("review") }}>Cancel</Button>
-                  <Button className="rounded-[6px]" onClick={() => setCheckoutStep("payment")}>Continue to Payment</Button>
-                </DialogFooter>
-              </motion.div>
-            )}
+              </div>
 
-            {checkoutStep === "payment" && (
-              <motion.div
-                key="payment"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.15 }}
-              >
-                <DialogHeader>
-                  <DialogTitle>Payment Method</DialogTitle>
-                  <DialogDescription>Select payment method and confirm the bill.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-2">
-                  {[
-                    { value: "cash", label: "Cash", icon: Banknote },
-                    { value: "upi", label: "UPI", icon: CreditCard },
-                    { value: "credit", label: "Credit (Khata)", icon: Receipt },
-                    { value: "bank_transfer", label: "Bank Transfer", icon: CreditCard },
-                  ].map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      onClick={() => setPaymentMethod(value)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-[6px] text-left transition-all border ${
-                        paymentMethod === value
-                          ? "border-primary bg-primary/5 text-foreground"
-                          : "border-border bg-card text-muted-foreground hover:bg-accent"
-                      }`}
-                    >
-                      <Icon className={`size-5 ${paymentMethod === value ? "text-primary" : "text-muted-foreground"}`} />
-                      <div>
-                        <p className="text-sm font-medium">{label}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {value === "cash" && "Pay with cash at counter"}
-                          {value === "upi" && "Pay via UPI / QR code"}
-                          {value === "credit" && "Add to customer khata"}
-                          {value === "bank_transfer" && "Bank transfer / NEFT"}
-                        </p>
-                      </div>
-                      {paymentMethod === value && <CheckCircle2 className="size-5 text-primary ml-auto" />}
-                    </button>
-                  ))}
-                </div>
-                <div className="text-right text-sm border-t border-border pt-3">
-                  <span className="text-muted-foreground">Total: </span>
-                  <span className="font-semibold text-lg tabular-nums">₹{total.toFixed(2)}</span>
-                </div>
-                <DialogFooter className="mt-4">
-                  <Button variant="outline" className="rounded-[6px]" onClick={() => setCheckoutStep("review")}>Back</Button>
-                  <Button
-                    className="rounded-[6px]"
-                    disabled={generating}
-                    onClick={async () => {
-                      setGenerating(true)
-                      try {
-                        const payload: Record<string, unknown> = {
-                          items: items.map((i) => ({
-                            product_id: i.product_id,
-                            product_name: i.name,
-                            quantity: i.quantity,
-                            unit_price: i.unit_price,
-                          })),
-                          discount,
-                          customer_id: selectedCustomerId || null,
-                          payment_method: paymentMethod,
-                        }
-                        if (!applyGst) payload["apply_gst"] = false
-
-                        const order = await clientApi.post<Order>("/api/v1/orders/", payload)
-                        setLastOrderId(order.id)
-                        toast.success(`Bill generated! ${order.order_number}`)
-
-                        if (order.credit_alert) {
-                          const { customer_name, credit_used, credit_limit, exceeded_by } = order.credit_alert
-                          toast.warning(`${customer_name}: Credit exceeded by ₹${exceeded_by.toFixed(2)}`, { duration: 8000 })
-                        } else if (selectedCustomerId) {
-                          toast.success("Khata updated")
-                        }
-
-                        setCheckoutStep("success")
-
-                        // Auto-download invoice after a moment
-                        setTimeout(async () => {
-                          try {
-                            const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${order.id}`, {
-                              method: "POST",
-                              headers: authHeaders(),
-                            })
-                            if (resp.ok) {
-                              const blob = await resp.blob()
-                              const url = URL.createObjectURL(blob)
-                              const link = document.createElement("a")
-                              link.href = url
-                              link.download = `invoice_${order.order_number}.pdf`
-                              document.body.appendChild(link)
-                              link.click()
-                              document.body.removeChild(link)
-                              URL.revokeObjectURL(url)
-                            }
-                          } catch {
-                            // silent — user can still download from order history
-                          }
-                        }, 500)
-
-                        // Auto-close, clear cart, refresh products after 2.5s
-                        setTimeout(() => {
-                          setCheckoutOpen(false)
-                          clearActiveCart()
-                          setLastOrderId(null)
-                          setSelectedCustomerId(null)
-                          loadProducts()
-                          toast.success("Ready for next order")
-                        }, 2500)
-                      } catch (err: unknown) {
-                        console.error("Order creation failed", err)
-                        toast.error(err instanceof Error ? err.message : "Failed to generate bill")
-                        setCheckoutStep("payment")
-                      } finally {
-                        setGenerating(false)
+              <DialogFooter className="mt-3">
+                <Button variant="outline" className="rounded-[6px]" disabled={generating} onClick={() => setCheckoutOpen(false)}>Cancel</Button>
+                <Button
+                  className="rounded-[6px]"
+                  disabled={generating || items.length === 0}
+                  onClick={async () => {
+                    setGenerating(true)
+                    try {
+                      const payload: Record<string, unknown> = {
+                        items: items.map((i) => ({
+                          product_id: i.product_id,
+                          product_name: i.name,
+                          quantity: i.quantity,
+                          unit_price: i.unit_price,
+                        })),
+                        discount,
+                        customer_id: selectedCustomerId || null,
+                        payment_method: paymentMethod,
                       }
-                    }}
-                  >
-                    {generating ? (
-                      <><Loader2 className="size-4 mr-2 animate-spin" /> Generating...</>
-                    ) : (
-                      <><Receipt className="size-4 mr-2" /> Confirm & Generate</>
-                    )}
-                  </Button>
-                </DialogFooter>
-              </motion.div>
-            )}
+                      if (!applyGst) payload["apply_gst"] = false
 
-            {checkoutStep === "success" && (
-              <motion.div
-                key="success"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className="text-center py-6"
-              >
-                <div className="mx-auto flex items-center justify-center size-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-                  <CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
-                </div>
-                <DialogTitle className="text-xl mb-1">Bill Generated!</DialogTitle>
-                <p className="text-sm text-muted-foreground">Invoice is being downloaded...</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      const order = await clientApi.post<Order>("/api/v1/orders/", payload)
+
+                      // Success — download invoice, clear cart, refresh
+                      toast.success(`Bill generated! ${order.order_number}`)
+
+                      if (order.credit_alert) {
+                        const { customer_name, credit_used, credit_limit, exceeded_by } = order.credit_alert
+                        toast.warning(`${customer_name}: Credit exceeded by ₹${exceeded_by.toFixed(2)}`, { duration: 8000 })
+                      } else if (selectedCustomerId) {
+                        toast.success("Khata updated")
+                      }
+
+                      // Auto-download invoice
+                      try {
+                        const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${order.id}`, {
+                          method: "POST",
+                          headers: authHeaders(),
+                        })
+                        if (resp.ok) {
+                          const blob = await resp.blob()
+                          const url = URL.createObjectURL(blob)
+                          const link = document.createElement("a")
+                          link.href = url
+                          link.download = `invoice_${order.order_number}.pdf`
+                          document.body.appendChild(link)
+                          link.click()
+                          document.body.removeChild(link)
+                          URL.revokeObjectURL(url)
+                        } else {
+                          const text = await resp.text()
+                          console.error("Invoice download failed:", resp.status, text)
+                        }
+                      } catch (invoiceErr) {
+                        console.error("Invoice download error:", invoiceErr)
+                        // Non-fatal — user can download from order history
+                      }
+
+                      // Clear state
+                      setCheckoutOpen(false)
+                      clearActiveCart()
+                      setLastOrderId(null)
+                      setSelectedCustomerId(null)
+                      loadProducts()
+                      toast.success("Ready for next order")
+                    } catch (err: unknown) {
+                      // Failure — do NOT clear cart, do NOT update inventory
+                      console.error("Order creation failed:", err)
+                      const msg = err instanceof Error ? err.message : "Failed to generate bill"
+                      toast.error(msg)
+                    } finally {
+                      setGenerating(false)
+                    }
+                  }}
+                >
+                  {generating ? (
+                    <><Loader2 className="size-4 mr-2 animate-spin" /> Processing...</>
+                  ) : (
+                    <><Receipt className="size-4 mr-2" /> Confirm Bill</>
+                  )}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

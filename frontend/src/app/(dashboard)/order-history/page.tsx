@@ -91,19 +91,25 @@ export default function OrderHistoryPage() {
     setViewingInvoiceId(orderId)
     setInvoiceUrl(null)
     try {
-      const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${orderId}`, {
+      const url = `${API_URL}/api/v1/invoices/generate/${orderId}`
+      console.debug("Fetching invoice from:", url)
+      const resp = await fetch(url, {
         method: "POST",
         headers: authHeaders(),
       })
       if (!resp.ok) {
         const text = await resp.text()
-        throw new Error(text || `Server returned ${resp.status}`)
+        const detail = text.length < 500 ? text : text.slice(0, 500)
+        throw new Error(detail || `Server error ${resp.status}`)
       }
       const blob = await resp.blob()
-      const url = URL.createObjectURL(blob)
-      setInvoiceUrl(url)
+      const blobUrl = URL.createObjectURL(blob)
+      setInvoiceUrl(blobUrl)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to load invoice")
+      const msg = err instanceof TypeError
+        ? `Network error — check if backend is running at ${API_URL}`
+        : (err instanceof Error ? err.message : "Failed to load invoice")
+      toast.error(msg)
       setViewingInvoiceId(null)
     }
   }

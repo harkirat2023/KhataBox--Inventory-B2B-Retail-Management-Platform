@@ -31,18 +31,25 @@ logger = logging.getLogger(__name__)
 
 
 # Register a font that supports the Indian Rupee symbol
+_HAS_UNICODE_FONT = False
 try:
-    # Try to register DejaVu Sans or similar font that supports ₹
     pdfmetrics.registerFont(TTFont('DejaVuSans', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'))
     RUPEE_FONT = 'DejaVuSans'
-except:
+    _HAS_UNICODE_FONT = True
+except Exception:
     try:
-        # Fallback to system fonts
         pdfmetrics.registerFont(TTFont('ArialUnicode', '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf'))
         RUPEE_FONT = 'ArialUnicode'
-    except:
-        # If no Unicode font available, use default and replace rupee with text
+        _HAS_UNICODE_FONT = True
+    except Exception:
         RUPEE_FONT = 'Helvetica'
+
+
+def fmt(amount: float) -> str:
+    """Format amount with ₹ symbol if Unicode font available, else Rs."""
+    symbol = "\u20b9" if _HAS_UNICODE_FONT else "Rs."
+    return f"{symbol}{amount:.2f}"
+
 
 router = APIRouter()
 
@@ -197,8 +204,8 @@ async def generate_invoice(
             str(i),
             item.product_name,
             str(item.quantity),
-            f"\u20b9{item.unit_price:.2f}",
-            f"\u20b9{item.total_price:.2f}",
+            fmt(item.unit_price),
+            fmt(item.total_price),
         ])
 
     col_widths = [0.5 * inch, 2.5 * inch, 0.6 * inch, 1.2 * inch, 1.2 * inch]
@@ -218,13 +225,13 @@ async def generate_invoice(
     elements.append(Spacer(1, 12))
 
     totals_data = [
-        ["Subtotal:", f"\u20b9{subtotal:.2f}"],
+        ["Subtotal:", fmt(subtotal)],
     ]
 
     if discount:
-        totals_data.append(["Discount:", f"-\u20b9{discount:.2f}"])
-    totals_data.append(["GST (18%):", f"\u20b9{gst:.2f}"])
-    totals_data.append(["Total:", f"\u20b9{total:.2f}"])
+        totals_data.append(["Discount:", f"-{fmt(discount)}"])
+    totals_data.append(["GST (18%):", fmt(gst)])
+    totals_data.append(["Total:", fmt(total)])
 
 
     totals_table = Table(totals_data, colWidths=[2.5 * inch, 1.5 * inch])
