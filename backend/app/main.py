@@ -1,3 +1,4 @@
+import logging
 import time
 
 from contextlib import asynccontextmanager
@@ -5,7 +6,11 @@ from contextlib import asynccontextmanager
 import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DataError, IntegrityError
 import posthog
+
+logger = logging.getLogger(__name__)
 
 from app.api.v1 import router as v1_router
 from app.config import settings
@@ -56,6 +61,18 @@ async def health():
     return {"status": "ok", "service": "KhataBox API"}
 
 app.include_router(v1_router)
+
+
+@app.exception_handler(IntegrityError)
+async def integrity_error_handler(request: Request, exc: IntegrityError):
+    logger.exception("Unhandled IntegrityError on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=409, content={"detail": "Database integrity conflict"})
+
+
+@app.exception_handler(DataError)
+async def data_error_handler(request: Request, exc: DataError):
+    logger.exception("Unhandled DataError on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=400, content={"detail": "Invalid data in request"})
 
 
 @app.middleware("http")

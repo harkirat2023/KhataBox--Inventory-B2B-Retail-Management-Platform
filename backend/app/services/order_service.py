@@ -1,10 +1,17 @@
+import logging
 import random
 import string
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
+from sqlalchemy.exc import DataError, IntegrityError
 from sqlalchemy.orm import selectinload
+
+logger = logging.getLogger(__name__)
+
+INT32_MIN = -2147483648
+INT32_MAX = 2147483647
 
 from app.models.customer import Customer
 from app.models.inventory import InventoryMovement, MovementType
@@ -90,118 +97,162 @@ async def list_orders(db, shopkeeper_id, page=None, page_size=None, b2c=None):
     return [_order_to_response(o, customers_by_id, products_by_id) for o in orders], total
 
 
+async def _try_safe_emit(func, *args, **kwargs):
+    """Emit a SocketIO event safely — never raise from notifications."""
+    try:
+        await func(*args, **kwargs)
+    except Exception:
+        logger.exception("SocketIO emit failed (non-fatal)")
+
+
 async def create_order(db, payload, shopkeeper_id):
+    if not payload.items:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order must have at least one item")
+
+    for item in payload.items:
+        if not (INT32_MIN <= item.product_id <= INT32_MAX):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid product_id {item.product_id}: must be within signed 32-bit integer range",
+            )
+        if item.quantity < 1:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Quantity must be at least 1 for {item.product_name}")
+        if item.unit_price < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unit price cannot be negative for {item.product_name}")
+
+    if payload.customer_id is not None:
+        cust_check = await db.execute(select(Customer).where(Customer.id == payload.customer_id))
+        if cust_check.scalar_one_or_none() is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Customer not found: id={payload.customer_id}")
+
     subtotal = sum(item.unit_price * item.quantity for item in payload.items)
     gst = subtotal * 0.18 if getattr(payload, "apply_gst", True) else 0
     total = subtotal + gst - payload.discount
 
-    order = Order(
-        order_number=generate_order_number(),
-        shopkeeper_id=shopkeeper_id,
-        customer_id=payload.customer_id,
-        payment_method=payload.payment_method,
-        status=OrderStatus.COMPLETED,
-        subtotal=subtotal,
-        discount=payload.discount,
-        gst=gst,
-        total=total,
-        notes=payload.notes,
-    )
-    db.add(order)
-    await db.flush()
-
-    for item in payload.items:
-        order_item = OrderItem(
-            order_id=order.id,
-            product_id=item.product_id,
-            product_name=item.product_name,
-            quantity=item.quantity,
-            unit_price=item.unit_price,
-            total_price=item.unit_price * item.quantity,
-        )
-        db.add(order_item)
-        await db.flush()
-
-        product_result = await db.execute(
-            select(Product).where(Product.id == item.product_id, Product.owner_id == shopkeeper_id)
-        )
-        product = product_result.scalar_one_or_none()
-        if product:
-            if product.stock_quantity < item.quantity:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Insufficient stock for {product.name}: have {product.stock_quantity}, need {item.quantity}",
-                )
-            product.stock_quantity -= item.quantity
-            movement = InventoryMovement(
-                product_id=item.product_id,
-                shopkeeper_id=shopkeeper_id,
-                movement_type=MovementType.CONSUME_OUT,
-                quantity=-item.quantity,
-                reference=f"Order #{order.order_number}",
-            )
-            db.add(movement)
-            await db.flush()
-            await check_low_stock(item.product_id, shopkeeper_id, db)
-
-    # Update customer credit
-    credit_alert = None
-    if payload.customer_id:
-        cust_result = await db.execute(select(Customer).where(Customer.id == payload.customer_id))
-        customer = cust_result.scalar_one_or_none()
-        if customer:
-            customer.credit_used = (customer.credit_used or 0) + order.total
-            await db.flush()
-            credit_used = customer.credit_used
-            credit_limit = customer.credit_limit
-            if credit_limit > 0 and credit_used > credit_limit:
-                credit_alert = {
-                    "customer_name": customer.company_name or customer.contact_person or customer.email,
-                    "credit_used": credit_used,
-                    "credit_limit": credit_limit,
-                    "exceeded_by": round(credit_used - credit_limit, 2),
-                }
-
-    await db.commit()
-    await db.refresh(order, ["items"])
-
-    # Generate receipt (after commit to ensure IDs are final)
-    store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
-    store = store_result.scalar_one_or_none()
-    if store and order.items:
-        receipt = Receipt(
-            receipt_number=f"RCPT-{order.id:08d}",
-            order_id=order.id,
+    try:
+        order = Order(
+            order_number=generate_order_number(),
             shopkeeper_id=shopkeeper_id,
-            customer_id=order.customer_id,
-            store_id=store.id,
-            payment_method=order.payment_method,
-            subtotal=order.subtotal,
-            discount=order.discount,
-            taxes=order.gst,
-            total_amount=order.total,
+            customer_id=payload.customer_id,
+            payment_method=payload.payment_method,
+            status=OrderStatus.COMPLETED,
+            subtotal=subtotal,
+            discount=payload.discount,
+            gst=gst,
+            total=total,
+            notes=payload.notes,
         )
-        db.add(receipt)
+        db.add(order)
         await db.flush()
-        for oi in order.items:
-            db.add(ReceiptItem(
-                receipt_id=receipt.id,
-                order_item_id=oi.id,
-                product_id=oi.product_id,
-                product_name=oi.product_name,
-                quantity=oi.quantity,
-                unit_price=oi.unit_price,
-                line_total=oi.total_price,
-                taxes=order.gst,
-                discount=order.discount,
-            ))
+
+        for item in payload.items:
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=item.product_id,
+                product_name=item.product_name,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                total_price=item.unit_price * item.quantity,
+            )
+            db.add(order_item)
+            await db.flush()
+
+            product_result = await db.execute(
+                select(Product).where(Product.id == item.product_id, Product.owner_id == shopkeeper_id)
+            )
+            product = product_result.scalar_one_or_none()
+            if product:
+                if product.stock_quantity < item.quantity:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Insufficient stock for {product.name}: have {product.stock_quantity}, need {item.quantity}",
+                    )
+                product.stock_quantity -= item.quantity
+                movement = InventoryMovement(
+                    product_id=item.product_id,
+                    shopkeeper_id=shopkeeper_id,
+                    movement_type=MovementType.CONSUME_OUT,
+                    quantity=-item.quantity,
+                    reference=f"Order #{order.order_number}",
+                )
+                db.add(movement)
+                await db.flush()
+                await check_low_stock(item.product_id, shopkeeper_id, db)
+
+        # Update customer credit
+        credit_alert = None
+        if payload.customer_id:
+            cust_result = await db.execute(select(Customer).where(Customer.id == payload.customer_id))
+            customer = cust_result.scalar_one_or_none()
+            if customer:
+                customer.credit_used = (customer.credit_used or 0) + order.total
+                await db.flush()
+                credit_used = customer.credit_used
+                credit_limit = customer.credit_limit
+                if credit_limit > 0 and credit_used > credit_limit:
+                    credit_alert = {
+                        "customer_name": customer.company_name or customer.contact_person or customer.email,
+                        "credit_used": credit_used,
+                        "credit_limit": credit_limit,
+                        "exceeded_by": round(credit_used - credit_limit, 2),
+                    }
+
         await db.commit()
         await db.refresh(order, ["items"])
 
+        # Generate receipt (after commit to ensure IDs are final)
+        store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
+        store = store_result.scalar_one_or_none()
+        if store and order.items:
+            receipt = Receipt(
+                receipt_number=f"RCPT-{order.id:08d}",
+                order_id=order.id,
+                shopkeeper_id=shopkeeper_id,
+                customer_id=order.customer_id,
+                store_id=store.id,
+                payment_method=order.payment_method,
+                subtotal=order.subtotal,
+                discount=order.discount,
+                taxes=order.gst,
+                total_amount=order.total,
+            )
+            db.add(receipt)
+            await db.flush()
+            for oi in order.items:
+                db.add(ReceiptItem(
+                    receipt_id=receipt.id,
+                    order_item_id=oi.id,
+                    product_id=oi.product_id,
+                    product_name=oi.product_name,
+                    quantity=oi.quantity,
+                    unit_price=oi.unit_price,
+                    line_total=oi.total_price,
+                    taxes=order.gst,
+                    discount=order.discount,
+                ))
+            await db.commit()
+            await db.refresh(order, ["items"])
+
+    except HTTPException:
+        await db.rollback()
+        raise
+    except IntegrityError:
+        await db.rollback()
+        logger.exception("IntegrityError creating order for shopkeeper %s", shopkeeper_id)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Order number collision; please retry")
+    except DataError:
+        await db.rollback()
+        logger.exception("DataError creating order for shopkeeper %s", shopkeeper_id)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in order request")
+    except Exception:
+        await db.rollback()
+        logger.exception("Failed to create order for shopkeeper %s", shopkeeper_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create order")
+
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
-    await invalidate_cache("dashboard:*")
-    await emit_order_created(order.shopkeeper_id, {"order_id": order.id,
+    await _try_safe_emit(emit_order_created, order.shopkeeper_id, {"order_id": order.id,
         "order_number": order.order_number, "total": order.total})
+    await invalidate_cache("dashboard:*")
     resp = _order_to_response(order, customers_by_id, products_by_id)
     if credit_alert:
         resp["credit_alert"] = credit_alert
@@ -211,6 +262,17 @@ async def create_order(db, payload, shopkeeper_id):
 async def create_bulk_order(db, payload, user_email):
     if not payload.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order must have at least one item")
+
+    for item in payload.items:
+        if not (INT32_MIN <= item.product_id <= INT32_MAX):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid product_id {item.product_id}: must be within signed 32-bit integer range",
+            )
+        if item.quantity < 1:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Quantity must be at least 1 for {item.product_name}")
+        if item.unit_price < 0:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unit price cannot be negative for {item.product_name}")
 
     cust_result = await db.execute(select(Customer).where(Customer.email == user_email))
     customer = cust_result.scalar_one_or_none()
@@ -229,98 +291,115 @@ async def create_bulk_order(db, payload, user_email):
                 detail=f"Credit limit exceeded. Available: ₹{credit_remaining:.2f}, Order total: ₹{total:.2f}",
             )
 
-    order = Order(
-        order_number=generate_order_number(),
-        shopkeeper_id=customer.owner_id,
-        customer_id=customer.id,
-        payment_method=payload.payment_method,
-        status=OrderStatus.COMPLETED,
-        subtotal=subtotal,
-        discount=0,
-        gst=gst,
-        total=total,
-        notes=payload.notes,
-    )
-    db.add(order)
-    await db.flush()
-
-    for item in payload.items:
-        order_item = OrderItem(
-            order_id=order.id,
-            product_id=item.product_id,
-            product_name=item.product_name,
-            quantity=item.quantity,
-            unit_price=item.unit_price,
-            total_price=item.unit_price * item.quantity,
-        )
-        db.add(order_item)
-        await db.flush()
-
-        product_result = await db.execute(
-            select(Product).where(Product.id == item.product_id, Product.owner_id == customer.owner_id)
-        )
-        product = product_result.scalar_one_or_none()
-        if product:
-            if product.stock_quantity < item.quantity:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Insufficient stock for {product.name}: have {product.stock_quantity}, need {item.quantity}",
-                )
-            product.stock_quantity -= item.quantity
-            movement = InventoryMovement(
-                product_id=item.product_id,
-                shopkeeper_id=customer.owner_id,
-                movement_type=MovementType.CONSUME_OUT,
-                quantity=-item.quantity,
-                reference=f"Order #{order.order_number}",
-            )
-            db.add(movement)
-            await db.flush()
-            await check_low_stock(item.product_id, customer.owner_id, db)
-
-    if payload.payment_method == "credit":
-        customer.credit_used += total
-        await db.flush()
-
-    await db.commit()
-    await db.refresh(order, ["items"])
-
-    # Generate receipt after commit
-    store_result = await db.execute(select(Store).where(Store.owner_id == customer.owner_id).limit(1))
-    store = store_result.scalar_one_or_none()
-    if store and order.items:
-        receipt = Receipt(
-            receipt_number=f"RCPT-{order.id:08d}",
-            order_id=order.id,
+    try:
+        order = Order(
+            order_number=generate_order_number(),
             shopkeeper_id=customer.owner_id,
-            customer_id=order.customer_id,
-            store_id=store.id,
-            payment_method=order.payment_method,
-            subtotal=order.subtotal,
-            discount=order.discount,
-            taxes=order.gst,
-            total_amount=order.total,
+            customer_id=customer.id,
+            payment_method=payload.payment_method,
+            status=OrderStatus.COMPLETED,
+            subtotal=subtotal,
+            discount=0,
+            gst=gst,
+            total=total,
+            notes=payload.notes,
         )
-        db.add(receipt)
+        db.add(order)
         await db.flush()
-        for oi in order.items:
-            db.add(ReceiptItem(
-                receipt_id=receipt.id,
-                order_item_id=oi.id,
-                product_id=oi.product_id,
-                product_name=oi.product_name,
-                quantity=oi.quantity,
-                unit_price=oi.unit_price,
-                line_total=oi.total_price,
-                taxes=order.gst,
-                discount=order.discount,
-            ))
+
+        for item in payload.items:
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=item.product_id,
+                product_name=item.product_name,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+                total_price=item.unit_price * item.quantity,
+            )
+            db.add(order_item)
+            await db.flush()
+
+            product_result = await db.execute(
+                select(Product).where(Product.id == item.product_id, Product.owner_id == customer.owner_id)
+            )
+            product = product_result.scalar_one_or_none()
+            if product:
+                if product.stock_quantity < item.quantity:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Insufficient stock for {product.name}: have {product.stock_quantity}, need {item.quantity}",
+                    )
+                product.stock_quantity -= item.quantity
+                movement = InventoryMovement(
+                    product_id=item.product_id,
+                    shopkeeper_id=customer.owner_id,
+                    movement_type=MovementType.CONSUME_OUT,
+                    quantity=-item.quantity,
+                    reference=f"Order #{order.order_number}",
+                )
+                db.add(movement)
+                await db.flush()
+                await check_low_stock(item.product_id, customer.owner_id, db)
+
+        if payload.payment_method == "credit":
+            customer.credit_used += total
+            await db.flush()
+
         await db.commit()
         await db.refresh(order, ["items"])
 
+        # Generate receipt after commit
+        store_result = await db.execute(select(Store).where(Store.owner_id == customer.owner_id).limit(1))
+        store = store_result.scalar_one_or_none()
+        if store and order.items:
+            receipt = Receipt(
+                receipt_number=f"RCPT-{order.id:08d}",
+                order_id=order.id,
+                shopkeeper_id=customer.owner_id,
+                customer_id=order.customer_id,
+                store_id=store.id,
+                payment_method=order.payment_method,
+                subtotal=order.subtotal,
+                discount=order.discount,
+                taxes=order.gst,
+                total_amount=order.total,
+            )
+            db.add(receipt)
+            await db.flush()
+            for oi in order.items:
+                db.add(ReceiptItem(
+                    receipt_id=receipt.id,
+                    order_item_id=oi.id,
+                    product_id=oi.product_id,
+                    product_name=oi.product_name,
+                    quantity=oi.quantity,
+                    unit_price=oi.unit_price,
+                    line_total=oi.total_price,
+                    taxes=order.gst,
+                    discount=order.discount,
+                ))
+            await db.commit()
+            await db.refresh(order, ["items"])
+
+    except HTTPException:
+        await db.rollback()
+        raise
+    except IntegrityError:
+        await db.rollback()
+        logger.exception("IntegrityError creating bulk order for %s", user_email)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Order number collision; please retry")
+    except DataError:
+        await db.rollback()
+        logger.exception("DataError creating bulk order for %s", user_email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in order request")
+    except Exception:
+        await db.rollback()
+        logger.exception("Failed to create bulk order for %s", user_email)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create order")
+
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
     await invalidate_cache("dashboard:*")
-    await emit_order_created(order.shopkeeper_id, {"order_id": order.id, "order_number": order.order_number, "total": order.total})
+    await _try_safe_emit(emit_order_created, order.shopkeeper_id, {"order_id": order.id, "order_number": order.order_number, "total": order.total})
     return _order_to_response(order, customers_by_id, products_by_id)
 
 
@@ -398,87 +477,107 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
 
     prev_status = order.status
-    new_status = OrderStatus(payload.status)
+    try:
+        new_status = OrderStatus(payload.status)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {payload.status}")
 
-    if prev_status == new_status:
-        await db.commit()
-        await db.refresh(order, ["items"])
-    else:
-        if new_status == OrderStatus.COMPLETED and prev_status != OrderStatus.COMPLETED:
-            for it in (order.items or []):
-                product_result = await db.execute(
-                    select(Product).where(Product.id == it.product_id, Product.owner_id == shopkeeper_id)
-                )
-                product = product_result.scalar_one_or_none()
-                if not product:
-                    raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"Product not found: {it.product_id}",
-                    )
-                if product.stock_quantity < it.quantity:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Insufficient stock for {it.product_name}: have {product.stock_quantity}, need {it.quantity}",
-                    )
-                product.stock_quantity -= it.quantity
-
-                movement = InventoryMovement(
-                    product_id=it.product_id,
-                    shopkeeper_id=shopkeeper_id,
-                    movement_type=MovementType.CONSUME_OUT,
-                    quantity=-it.quantity,
-                    reference=f"Order #{order.order_number}",
-                )
-                db.add(movement)
-                await db.flush()
-                await check_low_stock(it.product_id, shopkeeper_id, db)
-
-            receipt_result = await db.execute(select(Receipt).where(Receipt.order_id == order.id))
-            existing_receipt = receipt_result.scalar_one_or_none()
-            if not existing_receipt:
-                store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
-                store = store_result.scalar_one_or_none()
-                if not store:
-                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found for shopkeeper")
-
-                receipt = Receipt(
-                    receipt_number=f"RCPT-{order.id:08d}",
-                    order_id=order.id,
-                    shopkeeper_id=shopkeeper_id,
-                    customer_id=order.customer_id,
-                    store_id=store.id,
-                    payment_method=order.payment_method,
-                    subtotal=order.subtotal,
-                    discount=order.discount,
-                    taxes=order.gst,
-                    total_amount=order.total,
-                )
-                db.add(receipt)
-                await db.flush()
-
+    try:
+        if prev_status == new_status:
+            await db.commit()
+            await db.refresh(order, ["items"])
+        else:
+            if new_status == OrderStatus.COMPLETED and prev_status != OrderStatus.COMPLETED:
                 for it in (order.items or []):
-                    db.add(
-                        ReceiptItem(
-                            receipt_id=receipt.id,
-                            order_item_id=it.id,
-                            product_id=it.product_id,
-                            product_name=it.product_name,
-                            quantity=it.quantity,
-                            unit_price=it.unit_price,
-                            line_total=it.total_price,
-                            taxes=order.gst,
-                            discount=order.discount,
-                        )
+                    product_result = await db.execute(
+                        select(Product).where(Product.id == it.product_id, Product.owner_id == shopkeeper_id)
                     )
+                    product = product_result.scalar_one_or_none()
+                    if not product:
+                        raise HTTPException(
+                            status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Product not found: {it.product_id}",
+                        )
+                    if product.stock_quantity < it.quantity:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Insufficient stock for {it.product_name}: have {product.stock_quantity}, need {it.quantity}",
+                        )
+                    product.stock_quantity -= it.quantity
 
-        elif new_status == OrderStatus.CANCELLED and prev_status != OrderStatus.CANCELLED:
-            pass
+                    movement = InventoryMovement(
+                        product_id=it.product_id,
+                        shopkeeper_id=shopkeeper_id,
+                        movement_type=MovementType.CONSUME_OUT,
+                        quantity=-it.quantity,
+                        reference=f"Order #{order.order_number}",
+                    )
+                    db.add(movement)
+                    await db.flush()
+                    await check_low_stock(it.product_id, shopkeeper_id, db)
 
-        order.status = new_status
-        await db.commit()
-        await db.refresh(order, ["items"])
+                receipt_result = await db.execute(select(Receipt).where(Receipt.order_id == order.id))
+                existing_receipt = receipt_result.scalar_one_or_none()
+                if not existing_receipt:
+                    store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
+                    store = store_result.scalar_one_or_none()
+                    if not store:
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found for shopkeeper")
+
+                    receipt = Receipt(
+                        receipt_number=f"RCPT-{order.id:08d}",
+                        order_id=order.id,
+                        shopkeeper_id=shopkeeper_id,
+                        customer_id=order.customer_id,
+                        store_id=store.id,
+                        payment_method=order.payment_method,
+                        subtotal=order.subtotal,
+                        discount=order.discount,
+                        taxes=order.gst,
+                        total_amount=order.total,
+                    )
+                    db.add(receipt)
+                    await db.flush()
+
+                    for it in (order.items or []):
+                        db.add(
+                            ReceiptItem(
+                                receipt_id=receipt.id,
+                                order_item_id=it.id,
+                                product_id=it.product_id,
+                                product_name=it.product_name,
+                                quantity=it.quantity,
+                                unit_price=it.unit_price,
+                                line_total=it.total_price,
+                                taxes=order.gst,
+                                discount=order.discount,
+                            )
+                        )
+
+            elif new_status == OrderStatus.CANCELLED and prev_status != OrderStatus.CANCELLED:
+                pass
+
+            order.status = new_status
+            await db.commit()
+            await db.refresh(order, ["items"])
+
+    except HTTPException:
+        await db.rollback()
+        raise
+    except IntegrityError:
+        await db.rollback()
+        logger.exception("IntegrityError updating status for order %s", order_id)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Database conflict updating order status")
+    except DataError:
+        await db.rollback()
+        logger.exception("DataError updating status for order %s", order_id)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in status update")
+    except Exception:
+        await db.rollback()
+        logger.exception("Failed to update order status for %s", order_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update order status")
 
     await invalidate_cache("dashboard:*")
-    await emit_order_status_changed(order.shopkeeper_id, order.id, order.status.value if hasattr(order.status, "value") else str(order.status))
+    await _try_safe_emit(emit_order_status_changed, order.shopkeeper_id, order.id, order.status.value if hasattr(order.status, "value") else str(order.status))
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
     return _order_to_response(order, customers_by_id, products_by_id)
