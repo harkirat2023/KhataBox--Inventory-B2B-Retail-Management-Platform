@@ -121,7 +121,8 @@ async def generate_invoice(
 
         # Customer rule: only allow invoice download when status is "received"
         # (frontend maps B2C completed->received; backend stores B2C as "completed").
-        if str(getattr(order, "status", "")).lower() not in {"completed", "received"}:
+        status_val = order.status.value if hasattr(order.status, "value") else str(order.status)
+        if status_val.lower() not in {"completed", "received"}:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Invoice is not available until order is received',
@@ -142,7 +143,8 @@ async def generate_invoice(
 
         # Customer rule: only allow invoice download when customer sees "received"
         # which corresponds to backend B2C status "completed".
-        if str(getattr(b2c_order, "status", "")).lower() != "completed":
+        b2c_status_val = b2c_order.status.value if hasattr(b2c_order.status, "value") else str(b2c_order.status)
+        if b2c_status_val.lower() != "completed":
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail='Invoice is not available until order is received',

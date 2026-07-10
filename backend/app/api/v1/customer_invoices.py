@@ -138,7 +138,8 @@ async def generate_customer_b2c_invoice(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="B2C order not found")
 
     # completed in backend == "received" in UI
-    if str(order.status) != "completed":
+    status_val = order.status.value if hasattr(order.status, "value") else str(order.status)
+    if status_val.lower() != "completed":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invoice available after received")
 
     # We don't have shopkeeper contact fields in B2C order model; keep store generic.
