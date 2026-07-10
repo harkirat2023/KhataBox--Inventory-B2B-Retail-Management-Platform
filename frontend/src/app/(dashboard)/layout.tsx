@@ -13,7 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <AppSidebar />
       <SidebarInset>
         <TopNav />
-        <main className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 lg:pb-6 max-w-[1280px] w-full mx-auto min-w-0 overflow-x-hidden">{children}</main>
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 lg:pb-6 w-full min-w-0 overflow-x-hidden">{children}</main>
       </SidebarInset>
       <BottomNav />
       <Toaster richColors closeButton position="top-right" />

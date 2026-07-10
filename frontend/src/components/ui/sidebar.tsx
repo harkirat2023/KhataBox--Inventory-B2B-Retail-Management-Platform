@@ -89,7 +89,7 @@ const SidebarProvider = React.forwardRef<
         ref={ref}
         data-slot="sidebar-provider"
         style={{ "--sidebar-width": SIDEBAR_WIDTH, ...style } as React.CSSProperties}
-        className={cn("group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", className)}
+        className={cn("group/sidebar-wrapper flex min-h-screen w-full bg-[#fafafa] dark:bg-[#09090b] has-[[data-variant=inset]]:bg-[#fafafa] dark:has-[[data-variant=inset]]:bg-[#09090b]", className)}
         {...props}
       >
         {children}
@@ -207,7 +207,7 @@ const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<"main
         ref={ref}
         data-slot="sidebar-inset"
         className={cn(
-          "bg-background relative flex min-h-svh flex-1 flex-col transition-[margin] duration-200 ease-linear",
+          "bg-[#fafafa] dark:bg-[#09090b] relative flex min-h-svh flex-1 flex-col transition-[margin] duration-200 ease-linear",
           open ? "md:ml-(--sidebar-width)" : "md:ml-0",
           className
         )}

@@ -238,15 +238,15 @@ export default function DashboardPage() {
           return (
             <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
               <motion.div
-                whileHover={{ translateY: -1 }}
+                whileHover={{ translateY: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
               >
                 <Button
                   variant="outline"
-                  className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-accent rounded-[4px] transition-all"
+                  className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-accent rounded-[6px] transition-all border-border"
                 >
-                  <div className={cn("flex items-center justify-center size-9 rounded-[4px]", action.color)}>
+                  <div className={cn("flex items-center justify-center size-9 rounded-[6px]", action.color)}>
                     <Icon className="size-4" />
                   </div>
                   <span className="text-xs font-medium text-foreground">{action.label}</span>
@@ -264,13 +264,13 @@ export default function DashboardPage() {
           return (
             <motion.div
               key={card.title}
-              whileHover={{ translateY: -1 }}
+              whileHover={{ translateY: -2 }}
               transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
             >
-              <Card className="relative">
+              <Card className="relative border-border">
                 <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-                  <div className={cn("flex items-center justify-center size-8 rounded-[4px]", iconStyle)}>
+                  <div className={cn("flex items-center justify-center size-8 rounded-[6px]", iconStyle)}>
                     <Icon className="size-4" />
                   </div>
                 </CardHeader>
@@ -306,12 +306,12 @@ export default function DashboardPage() {
       </motion.div>
 
       <motion.div className="grid gap-6 lg:grid-cols-2" variants={itemVariants}>
-        <motion.div whileHover={{ translateY: -1 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
-          <Card>
+        <motion.div whileHover={{ translateY: -2 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card className="border-border">
             <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
               <CardTitle className="text-base font-semibold text-foreground">Recent Orders</CardTitle>
               <Link href="/orders">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[4px] gap-1">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[6px] gap-1">
                   View All <ChevronRight className="size-3" />
                 </Button>
               </Link>
@@ -328,9 +328,9 @@ export default function DashboardPage() {
                 <div className="space-y-1">
                   {recentOrders.map((order) => (
                     <Link key={order.id} href={`/orders?id=${order.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-[4px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
+                      <div className="flex items-center justify-between p-3 rounded-[6px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex items-center justify-center size-8 rounded-[4px] bg-muted shrink-0">
+                          <div className="flex items-center justify-center size-8 rounded-[6px] bg-muted shrink-0">
                             <ShoppingCart className="size-4 text-muted-foreground" />
                           </div>
                           <div className="min-w-0">
@@ -353,12 +353,12 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div whileHover={{ translateY: -1 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
-          <Card>
+        <motion.div whileHover={{ translateY: -2 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card className="border-border">
             <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
               <CardTitle className="text-base font-semibold text-foreground">Low Stock Alert</CardTitle>
               <Link href="/inventory">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[4px] gap-1">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[6px] gap-1">
                   View All <ChevronRight className="size-3" />
                 </Button>
               </Link>
@@ -374,9 +374,9 @@ export default function DashboardPage() {
                 <div className="space-y-1">
                   {lowStockProducts.map((product) => (
                     <Link key={product.id} href={`/inventory?product=${product.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-[4px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
+                      <div className="flex items-center justify-between p-3 rounded-[6px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex items-center justify-center size-8 rounded-[4px] bg-destructive/10 shrink-0">
+                          <div className="flex items-center justify-center size-8 rounded-[6px] bg-destructive/10 shrink-0">
                             <Package className="size-4 text-destructive" />
                           </div>
                           <div className="min-w-0">

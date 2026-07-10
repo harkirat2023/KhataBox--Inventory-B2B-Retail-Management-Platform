@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { toast } from "sonner"
-import { Search, Plus, Minus, Trash2, Receipt, Barcode, ScanBarcode, Download, ChevronLeft, ChevronRight, X, Package } from "lucide-react"
+import { Search, Plus, Minus, Trash2, Receipt, Barcode, ScanBarcode, Download, ChevronLeft, ChevronRight, X, Package, CheckCircle2, CreditCard, Banknote, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,6 +36,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { motion, AnimatePresence } from "framer-motion"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
@@ -57,6 +58,10 @@ export default function BillingPage() {
   const [customerChangeModalOpen, setCustomerChangeModalOpen] = useState(false)
   const [pendingCustomerId, setPendingCustomerId] = useState<number | null>(null)
   const [scannerActive, setScannerActive] = useState(false)
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
+  const [checkoutStep, setCheckoutStep] = useState<"review" | "payment" | "success">("review")
+  const [paymentMethod, setPaymentMethod] = useState<string>("cash")
+  const [generating, setGenerating] = useState(false)
 
   const {
     carts,
@@ -307,7 +312,7 @@ export default function BillingPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant={scannerActive ? "default" : "outline"}
-              className="rounded-xl h-11 px-5"
+              className="rounded-[6px] h-11 px-5"
               onClick={() => setScannerActive(!scannerActive)}
             >
               <ScanBarcode className="size-4 mr-2" />
@@ -315,7 +320,7 @@ export default function BillingPage() {
             </Button>
             <Button
               variant="outline"
-              className="rounded-xl h-11 px-5"
+              className="rounded-[6px] h-11 px-5"
               onClick={() => setUnpackedOpen(true)}
             >
               <Package className="size-4 mr-2" />
@@ -331,10 +336,10 @@ export default function BillingPage() {
             </div>
           )}
           {lastScanned && (
-            <Card className="rounded-2xl border border-primary/20 bg-primary/5 shadow-sm">
+            <Card className="rounded-[8px] border border-primary/20 bg-primary/5 shadow-sm">
               <CardHeader className="pb-3 flex-row items-center justify-between">
                 <CardTitle className="text-base">Last Scanned</CardTitle>
-                <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => setLastScanned(null)}>
+                <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]" onClick={() => setLastScanned(null)}>
                   <X className="size-3" />
                 </Button>
               </CardHeader>
@@ -356,7 +361,7 @@ export default function BillingPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={() => {
+                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={() => {
                     const currentQty = getCartQty(lastScanned.id)
                     if (currentQty <= 1) {
                       removeItemFromActiveCart(lastScanned.id)
@@ -367,7 +372,7 @@ export default function BillingPage() {
                     <Minus className="size-4" />
                   </Button>
                   <span className="w-12 text-center font-medium">{getCartQty(lastScanned.id)}</span>
-                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={() => {
+                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={() => {
                     const maxStock = stockMap.get(lastScanned.id) ?? Infinity
                     const currentQty = getCartQty(lastScanned.id)
                     if (currentQty + 1 > maxStock) {
@@ -392,7 +397,7 @@ export default function BillingPage() {
           )}
 
           {/* Search Products Section */}
-          <Card className="rounded-2xl border border-border shadow-sm">
+          <Card className="rounded-[8px] border border-border shadow-sm">
             <CardHeader>
               <CardTitle>Search Products</CardTitle>
             </CardHeader>
@@ -404,7 +409,7 @@ export default function BillingPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   inputMode="search"
-                  className="rounded-xl bg-muted border-0 h-11 pl-10"
+                  className="rounded-[6px] bg-muted border-0 h-11 pl-10"
                 />
               </div>
 
@@ -417,15 +422,15 @@ export default function BillingPage() {
                     onChange={(e) => setScanInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleScan()}
                     inputMode="search"
-                    className="rounded-xl bg-muted border-0 h-11 pl-10"
+                    className="rounded-[6px] bg-muted border-0 h-11 pl-10"
                   />
                 </div>
-                <Button onClick={handleScan} className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5">Lookup</Button>
+                <Button onClick={handleScan} className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px] h-11 px-5">Lookup</Button>
               </div>
             </CardContent>
           </Card>
 
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
+          <div className="bg-card rounded-[8px] border border-border shadow-sm overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -462,7 +467,7 @@ export default function BillingPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl"
+                        className="size-8 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]"
                         onClick={() => {
                           const maxStock = stockMap.get(product.id) ?? Infinity
                           const currentQty = getCartQty(product.id)
@@ -490,25 +495,25 @@ export default function BillingPage() {
 
         <div className="space-y-6">
           {/* Cart — moved to top */}
-          <Card className="rounded-2xl border border-border shadow-sm">
+          <Card className="rounded-[8px] border border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle>Cart</CardTitle>
                 <div className="flex items-center gap-1">
                   {navigableCount > 1 && (
                     <>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={switchToPrev} title="Previous cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={switchToPrev} title="Previous cart">
                         <ChevronLeft className="size-3.5" />
                       </Button>
                       <span className="text-xs text-muted-foreground min-w-[4rem] text-center tabular-nums">
                         {activeIdx + 1} of {navigableCount}
                       </span>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl" onClick={switchToNext} title="Next cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={switchToNext} title="Next cart">
                         <ChevronRight className="size-3.5" />
                       </Button>
                     </>
                   )}
-                  <Button variant="ghost" size="icon-xs" className="size-7 text-destructive hover:bg-accent hover:text-destructive rounded-xl" onClick={() => {
+                  <Button variant="ghost" size="icon-xs" className="size-7 text-destructive hover:bg-accent hover:text-destructive rounded-[6px]" onClick={() => {
                     if (items.length === 0) {
                       toast.error("Cart is already empty")
                       return
@@ -527,7 +532,7 @@ export default function BillingPage() {
                   }} title="Delete current cart">
                     <Trash2 className="size-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon-xs" className="size-7 text-primary hover:bg-accent hover:text-primary rounded-xl" onClick={() => {
+                  <Button variant="ghost" size="icon-xs" className="size-7 text-primary hover:bg-accent hover:text-primary rounded-[6px]" onClick={() => {
                     if (items.length === 0) {
                       toast.error("Add items to the current cart first")
                       return
@@ -558,11 +563,11 @@ export default function BillingPage() {
                         <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => { if (item.quantity - 1 <= 0) { removeItemFromActiveCart(item.product_id); return }; updateQtyInActiveCart(item.product_id, item.quantity - 1); }}>
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]" onClick={() => { if (item.quantity - 1 <= 0) { removeItemFromActiveCart(item.product_id); return }; updateQtyInActiveCart(item.product_id, item.quantity - 1); }}>
                           <Minus className="size-3" />
                         </Button>
                         <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => {
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]" onClick={() => {
                           const maxStock = stockMap.get(item.product_id) ?? Infinity
                           if (item.quantity + 1 > maxStock) {
                             toast.error(`Only ${maxStock} of "${item.name}" available in stock`)
@@ -576,7 +581,7 @@ export default function BillingPage() {
                       <p className="text-sm font-medium w-20 text-right tabular-nums">
                         ₹{(item.unit_price * item.quantity).toFixed(2)}
                       </p>
-                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:bg-accent hover:text-destructive rounded-xl shrink-0" onClick={() => {
+                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:bg-accent hover:text-destructive rounded-[6px] shrink-0" onClick={() => {
                         if (item.quantity <= 1) {
                           removeItemFromActiveCart(item.product_id)
                         } else {
@@ -601,7 +606,7 @@ export default function BillingPage() {
                     value={discount}
                     onChange={(e) => setDiscountOnActiveCart(parseFloat(e.target.value) || 0)}
                     inputMode="decimal"
-                    className="w-24 h-7 text-right text-sm rounded-xl border-border"
+                    className="w-24 h-7 text-right text-sm rounded-[6px] border-border"
                   />
                 </div>
                 <div className="flex items-center justify-between w-full text-sm">
@@ -630,7 +635,7 @@ export default function BillingPage() {
           </Card>
 
           {/* Khata Customer — with gradient accent */}
-          <Card className="rounded-2xl border-0 shadow-sm relative overflow-hidden">
+          <Card className="rounded-[8px] border-0 shadow-sm relative overflow-hidden">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
             <CardContent className="space-y-3 pl-5 pt-5">
               <CardTitle className="text-base flex items-center gap-2">
@@ -650,7 +655,7 @@ export default function BillingPage() {
                   }
                 }}
               >
-                <SelectTrigger className="rounded-xl border-border h-11">
+                <SelectTrigger className="rounded-[6px] border-border h-11">
                   <SelectValue>
                     {selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.company_name || customers.find(c => c.id === selectedCustomerId)?.contact_person || `Customer #${selectedCustomerId}`) : "Walk-in (no khata)"}
                   </SelectValue>
@@ -665,7 +670,7 @@ export default function BillingPage() {
                 </SelectContent>
               </Select>
               {selectedCustomer && (
-                <div className="text-xs space-y-1 bg-muted border border-border p-3 rounded-xl">
+                <div className="text-xs space-y-1 bg-muted border border-border p-3 rounded-[6px]">
                   <p>Limit: <span className="font-medium">₹{selectedCustomer.credit_limit.toFixed(2)}</span></p>
                   <p>Used: <span className="font-medium">₹{selectedCustomer.credit_used.toFixed(2)}</span></p>
                   <p>Remaining: <span className={`font-medium ${creditRemaining < 0 ? "text-red-600" : "text-green-600"}`}>
@@ -683,37 +688,20 @@ export default function BillingPage() {
 
           {items.length > 0 && !lastOrderId && (
             <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200"
-              onClick={handleGenerateBill}
-              disabled={loading}
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-[6px] h-11 px-5 transition-all duration-200"
+              onClick={() => {
+                setPaymentMethod(selectedCustomerId ? "credit" : "cash")
+                setCheckoutStep("review")
+                setCheckoutOpen(true)
+              }}
             >
               <Receipt className="size-4 mr-2" />
-              {loading ? "Generating..." : "Generate Bill"}
+              Generate Bill
             </Button>
           )}
 
-          {lastOrderId && (
-            <>
-              <Button
-                className="w-full bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5"
-                onClick={handleDownloadInvoice}
-                disabled={downloading}
-              >
-                <Download className="size-4 mr-2" />
-                {downloading ? "Downloading..." : "Download Invoice"}
-              </Button>
-              <button
-                type="button"
-                onClick={handleSkip}
-                className="text-sm text-muted-foreground hover:text-foreground/80 underline"
-              >
-                Skip
-              </button>
-            </>
-          )}
-
           {incompleteCarts.length > 0 && (
-            <Card className="rounded-2xl border border-border shadow-sm">
+            <Card className="rounded-[8px] border border-border shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Orders</CardTitle>
               </CardHeader>
@@ -721,7 +709,7 @@ export default function BillingPage() {
                 {incompleteCarts.map((cart) => {
                   const cartTotal = cart.items.reduce((s, i) => s + i.unit_price * i.quantity, 0)
                   return (
-                    <div key={cart.id} className="flex items-center justify-between gap-2 bg-muted border border-border p-3 rounded-xl text-sm">
+                    <div key={cart.id} className="flex items-center justify-between gap-2 bg-muted border border-border p-3 rounded-[6px] text-sm">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-xs">{cart.name}</p>
                         <p className="text-xs text-muted-foreground">{cart.items.length} item{cart.items.length !== 1 ? "s" : ""} &bull; ₹{cartTotal.toFixed(2)}</p>
@@ -729,10 +717,10 @@ export default function BillingPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-[10px] uppercase text-amber-600 font-medium px-1.5 py-0.5 bg-amber-50 rounded-lg">Incomplete</span>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-xl" onClick={() => switchToCart(cart.id)} title="Switch to this cart">
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]" onClick={() => switchToCart(cart.id)} title="Switch to this cart">
                           <ChevronRight className="size-3" />
                         </Button>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:bg-accent hover:text-destructive rounded-xl" onClick={() => deleteCart(cart.id)} title="Delete cart">
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:bg-accent hover:text-destructive rounded-[6px]" onClick={() => deleteCart(cart.id)} title="Delete cart">
                           <Trash2 className="size-3" />
                         </Button>
                       </div>
@@ -757,7 +745,7 @@ export default function BillingPage() {
           <div className="py-2 space-y-3">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Name (optional)</label>
-              <Input value={unpackedName} onChange={(e) => setUnpackedName(e.target.value)} className="rounded-xl border-border h-11" inputMode="text" />
+              <Input value={unpackedName} onChange={(e) => setUnpackedName(e.target.value)} className="rounded-[6px] border-border h-11" inputMode="text" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Price *</label>
@@ -770,17 +758,17 @@ export default function BillingPage() {
                   const v = e.target.value
                   setUnpackedPrice(v === "" ? null : parseFloat(v))
                 }}
-                className="rounded-xl border-border h-11"
+                className="rounded-[6px] border-border h-11"
                 inputMode="decimal"
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setUnpackedOpen(false)}>
+            <Button variant="outline" className="rounded-[6px]" onClick={() => setUnpackedOpen(false)}>
               Cancel
             </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" onClick={handleAddUnpackedToCart}>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-[6px]" onClick={handleAddUnpackedToCart}>
               Add to Cart
             </Button>
           </DialogFooter>
@@ -797,13 +785,13 @@ export default function BillingPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => {
+            <Button variant="outline" className="rounded-[6px]" onClick={() => {
               setCustomerChangeModalOpen(false)
               setPendingCustomerId(null)
             }}>
               Cancel
             </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" onClick={() => {
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-[6px]" onClick={() => {
               if (pendingCustomerId !== null) {
                 setSelectedCustomerId(pendingCustomerId)
               }
@@ -815,6 +803,216 @@ export default function BillingPage() {
               Add New Cart
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Multi-step Checkout Modal */}
+      <Dialog open={checkoutOpen} onOpenChange={(open) => { if (!generating) setCheckoutOpen(open) }}>
+        <DialogContent className="sm:max-w-lg">
+          <AnimatePresence mode="wait">
+            {checkoutStep === "review" && (
+              <motion.div
+                key="review"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.15 }}
+              >
+                <DialogHeader>
+                  <DialogTitle>Review Order</DialogTitle>
+                  <DialogDescription>Check items and totals before generating the bill.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-3 max-h-[50vh] overflow-y-auto">
+                  {items.map((item) => (
+                    <div key={item.product_id} className="flex items-center justify-between text-sm">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} x {item.quantity}</p>
+                      </div>
+                      <p className="font-medium tabular-nums">₹{(item.unit_price * item.quantity).toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t border-border pt-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="tabular-nums">₹{subtotal.toFixed(2)}</span>
+                  </div>
+                  {discount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Discount</span>
+                      <span className="tabular-nums text-destructive">-₹{discount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">GST (18%)</span>
+                    <span className="tabular-nums">₹{gst.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-base border-t border-border pt-1.5">
+                    <span>Total</span>
+                    <span className="tabular-nums">₹{total.toFixed(2)}</span>
+                  </div>
+                </div>
+                {selectedCustomer && (
+                  <div className="mt-3 text-xs bg-muted rounded-[6px] p-3 border border-border">
+                    <p className="font-medium text-foreground mb-1">Khata: {selectedCustomer.company_name || selectedCustomer.contact_person}</p>
+                    <p className="text-muted-foreground">Credit remaining: <span className={creditRemaining < total ? "text-destructive font-medium" : ""}>₹{Math.max(0, creditRemaining).toFixed(2)}</span></p>
+                  </div>
+                )}
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" className="rounded-[6px]" onClick={() => { setCheckoutOpen(false); setCheckoutStep("review") }}>Cancel</Button>
+                  <Button className="rounded-[6px]" onClick={() => setCheckoutStep("payment")}>Continue to Payment</Button>
+                </DialogFooter>
+              </motion.div>
+            )}
+
+            {checkoutStep === "payment" && (
+              <motion.div
+                key="payment"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.15 }}
+              >
+                <DialogHeader>
+                  <DialogTitle>Payment Method</DialogTitle>
+                  <DialogDescription>Select payment method and confirm the bill.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-2">
+                  {[
+                    { value: "cash", label: "Cash", icon: Banknote },
+                    { value: "upi", label: "UPI", icon: CreditCard },
+                    { value: "credit", label: "Credit (Khata)", icon: Receipt },
+                    { value: "bank_transfer", label: "Bank Transfer", icon: CreditCard },
+                  ].map(({ value, label, icon: Icon }) => (
+                    <button
+                      key={value}
+                      onClick={() => setPaymentMethod(value)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-[6px] text-left transition-all border ${
+                        paymentMethod === value
+                          ? "border-primary bg-primary/5 text-foreground"
+                          : "border-border bg-card text-muted-foreground hover:bg-accent"
+                      }`}
+                    >
+                      <Icon className={`size-5 ${paymentMethod === value ? "text-primary" : "text-muted-foreground"}`} />
+                      <div>
+                        <p className="text-sm font-medium">{label}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {value === "cash" && "Pay with cash at counter"}
+                          {value === "upi" && "Pay via UPI / QR code"}
+                          {value === "credit" && "Add to customer khata"}
+                          {value === "bank_transfer" && "Bank transfer / NEFT"}
+                        </p>
+                      </div>
+                      {paymentMethod === value && <CheckCircle2 className="size-5 text-primary ml-auto" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-right text-sm border-t border-border pt-3">
+                  <span className="text-muted-foreground">Total: </span>
+                  <span className="font-semibold text-lg tabular-nums">₹{total.toFixed(2)}</span>
+                </div>
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" className="rounded-[6px]" onClick={() => setCheckoutStep("review")}>Back</Button>
+                  <Button
+                    className="rounded-[6px]"
+                    disabled={generating}
+                    onClick={async () => {
+                      setGenerating(true)
+                      try {
+                        const payload: Record<string, unknown> = {
+                          items: items.map((i) => ({
+                            product_id: i.product_id,
+                            product_name: i.name,
+                            quantity: i.quantity,
+                            unit_price: i.unit_price,
+                          })),
+                          discount,
+                          customer_id: selectedCustomerId || null,
+                          payment_method: paymentMethod,
+                        }
+                        if (!applyGst) payload["apply_gst"] = false
+
+                        const order = await clientApi.post<Order>("/api/v1/orders/", payload)
+                        setLastOrderId(order.id)
+                        toast.success(`Bill generated! ${order.order_number}`)
+
+                        if (order.credit_alert) {
+                          const { customer_name, credit_used, credit_limit, exceeded_by } = order.credit_alert
+                          toast.warning(`${customer_name}: Credit exceeded by ₹${exceeded_by.toFixed(2)}`, { duration: 8000 })
+                        } else if (selectedCustomerId) {
+                          toast.success("Khata updated")
+                        }
+
+                        setCheckoutStep("success")
+
+                        // Auto-download invoice after a moment
+                        setTimeout(async () => {
+                          try {
+                            const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${order.id}`, {
+                              method: "POST",
+                              headers: authHeaders(),
+                            })
+                            if (resp.ok) {
+                              const blob = await resp.blob()
+                              const url = URL.createObjectURL(blob)
+                              const link = document.createElement("a")
+                              link.href = url
+                              link.download = `invoice_${order.order_number}.pdf`
+                              document.body.appendChild(link)
+                              link.click()
+                              document.body.removeChild(link)
+                              URL.revokeObjectURL(url)
+                            }
+                          } catch {
+                            // silent — user can still download from order history
+                          }
+                        }, 500)
+
+                        // Auto-close, clear cart, refresh products after 2.5s
+                        setTimeout(() => {
+                          setCheckoutOpen(false)
+                          clearActiveCart()
+                          setLastOrderId(null)
+                          setSelectedCustomerId(null)
+                          loadProducts()
+                          toast.success("Ready for next order")
+                        }, 2500)
+                      } catch (err: unknown) {
+                        console.error("Order creation failed", err)
+                        toast.error(err instanceof Error ? err.message : "Failed to generate bill")
+                        setCheckoutStep("payment")
+                      } finally {
+                        setGenerating(false)
+                      }
+                    }}
+                  >
+                    {generating ? (
+                      <><Loader2 className="size-4 mr-2 animate-spin" /> Generating...</>
+                    ) : (
+                      <><Receipt className="size-4 mr-2" /> Confirm & Generate</>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </motion.div>
+            )}
+
+            {checkoutStep === "success" && (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className="text-center py-6"
+              >
+                <div className="mx-auto flex items-center justify-center size-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
+                  <CheckCircle2 className="size-8 text-green-600 dark:text-green-400" />
+                </div>
+                <DialogTitle className="text-xl mb-1">Bill Generated!</DialogTitle>
+                <p className="text-sm text-muted-foreground">Invoice is being downloaded...</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </DialogContent>
       </Dialog>
     </div>

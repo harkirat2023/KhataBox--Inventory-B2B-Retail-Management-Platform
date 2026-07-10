@@ -16,6 +16,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+import logging
+import traceback
+
 from app.core.database import get_db
 from app.core.dependencies import require_role
 
@@ -23,6 +26,8 @@ from app.models.order import Order
 
 from app.models.user import User
 from app.models.b2c_order import B2COrder
+
+logger = logging.getLogger(__name__)
 
 
 # Register a font that supports the Indian Rupee symbol
@@ -239,7 +244,11 @@ async def generate_invoice(
         elements.append(Paragraph(f"Notes: {notes}", styles["Normal"]))
 
 
-    doc.build(elements)
+    try:
+        doc.build(elements)
+    except Exception as e:
+        logger.error("PDF build failed for order %s: %s", order_number, traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
     buf.seek(0)
 
     return StreamingResponse(
