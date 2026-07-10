@@ -1020,7 +1020,12 @@ export default function BillingPage() {
                     } catch (err: unknown) {
                       // Failure — do NOT clear cart, do NOT update inventory
                       console.error("Order creation failed:", err)
-                      const msg = err instanceof Error ? err.message : "Failed to generate bill"
+                      let msg = "Failed to generate bill"
+                      if (err instanceof TypeError && err.message === "Failed to fetch") {
+                        msg = `Cannot reach server at ${API_URL}/api/v1/orders/. Is the backend running?`
+                      } else if (err instanceof Error) {
+                        msg = err.message
+                      }
                       toast.error(msg)
                     } finally {
                       setGenerating(false)
