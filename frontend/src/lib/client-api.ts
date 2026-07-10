@@ -20,7 +20,7 @@ function extractError(text: string): string {
   return text
 }
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
   const token = getCookie("khatabox_token") || getCookie("admin_token")
   return {
     "Content-Type": "application/json",

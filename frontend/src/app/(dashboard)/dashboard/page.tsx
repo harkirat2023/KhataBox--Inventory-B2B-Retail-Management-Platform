@@ -1,222 +1,402 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Package, ShoppingCart, TrendingUp, Users, DollarSign, ArrowUpRight, ArrowDownRight, Boxes } from "lucide-react"
+import { motion } from "framer-motion"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import {
+  Package,
+  ShoppingCart,
+  AlertTriangle,
+  TrendingUp,
+  Receipt,
+  Truck,
+  Camera,
+  Plus,
+  ArrowRight,
+  ClipboardList,
+  IndianRupee,
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronRight,
+} from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
 import { clientApi } from "@/lib/client-api"
 import { useStoreContext } from "@/lib/store-context"
-import { useUser } from "@/hooks/use-user"
+import { queryKeys } from "@/lib/query-keys"
+import { useQuery } from "@tanstack/react-query"
+import { Product } from "@/types/product"
+import { Order } from "@/types/order"
+import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
+import { cn } from "@/lib/utils"
 
 interface DashboardStats {
   total_products: number
-  total_customers: number
-  total_orders: number
-  total_revenue: number
+  total_inventory_value: number
+  today_sales_count: number
+  today_sales_amount: number
+  pending_orders_count: number
   low_stock_count: number
-  pending_order_count: number
-  recent_orders: Array<{
-    id: number
-    total: number
-    status: string
-    created_at: string
-  }>
-  revenue_change: number
-  orders_change: number
 }
 
-const defaultStats: DashboardStats = {
-  total_products: 0,
-  total_customers: 0,
-  total_orders: 0,
-  total_revenue: 0,
-  low_stock_count: 0,
-  pending_order_count: 0,
-  recent_orders: [],
-  revenue_change: 0,
-  orders_change: 0,
+interface Store {
+  id: number
+  name: string
 }
 
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  change,
-  format = "number",
-}: {
-  label: string
-  value: number | string
-  icon: React.ElementType
-  change?: number
-  format?: "number" | "currency"
-}) {
-  const formattedValue =
-    format === "currency"
-      ? `₹${Number(value).toLocaleString("en-IN")}`
-      : Number(value).toLocaleString("en-IN")
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06 },
+  },
+}
 
-  const isUp = change !== undefined && change >= 0
-  const ChangeIcon = isUp ? ArrowUpRight : ArrowDownRight
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { ease: [0.16, 1, 0.3, 1] as [number, number, number, number], duration: 0.4 },
+  },
+}
 
+const quickActions = [
+  { label: "Create Product", href: "/inventory", icon: Plus, query: "add", color: "bg-primary/10 text-primary" },
+  { label: "Generate Bill", href: "/billing", icon: Receipt, color: "bg-success/10 text-success" },
+  { label: "Purchase Order", href: "/purchase-orders", icon: Truck, query: "new", color: "bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400" },
+  { label: "Scan Inventory", href: "/inventory/scan", icon: Camera, color: "bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400" },
+  { label: "View Orders", href: "/orders", icon: ShoppingCart, color: "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400" },
+]
+
+function MetricSkeleton() {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4px] p-5 transition-all hover:border-zinc-300 dark:hover:border-zinc-700">
-      <div className="flex items-start justify-between mb-3">
-        <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">{label}</span>
-        <div className="flex items-center justify-center size-8 rounded-[4px] bg-amber-brand/10 shrink-0">
-          <Icon className="size-4 text-amber-brand" />
-        </div>
-      </div>
-      <div className="flex items-end gap-2">
-        <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono tracking-tight">
-          {formattedValue}
-        </span>
-        {change !== undefined && (
-          <span className={`flex items-center gap-0.5 text-xs font-medium mb-1 ${
-            isUp ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
-          }`}>
-            <ChangeIcon className="size-3" />
-            {Math.abs(change).toFixed(1)}%
-          </span>
-        )}
-      </div>
+    <div className="space-y-3">
+      <Skeleton className="h-4 w-24" />
+      <Skeleton className="h-8 w-32" />
+      <Skeleton className="h-3 w-20" />
     </div>
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    completed: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    pending: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-    cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    processing: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  }
+function EmptyState({ icon: Icon, title, description, action }: { icon: React.ElementType; title: string; description: string; action?: { label: string; href: string } }) {
   return (
-    <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-[3px] ${map[status.toLowerCase()] || "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"}`}>
-      {status}
-    </span>
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="flex items-center justify-center size-12 rounded-[4px] bg-muted mb-4">
+        <Icon className="size-6 text-muted-foreground" />
+      </div>
+      <p className="text-sm font-medium text-foreground">{title}</p>
+      <p className="text-sm text-muted-foreground mt-1 max-w-[200px]">{description}</p>
+      {action && (
+        <Link href={action.href}>
+          <Button variant="outline" size="sm" className="mt-4 rounded-[4px]">
+            {action.label}
+            <ArrowRight className="size-3 ml-1.5" />
+          </Button>
+        </Link>
+      )}
+    </div>
   )
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>(defaultStats)
-  const [loading, setLoading] = useState(true)
-  const { activeStore } = useStoreContext()
-  const { user } = useUser()
+  const router = useRouter()
+  const { activeStore, setActiveStore } = useStoreContext()
+
+  const { data: stores } = useQuery({
+    queryKey: queryKeys.dashboard.stores(),
+    queryFn: () => clientApi.get<Store[]>("/api/v1/stores/"),
+  })
 
   useEffect(() => {
-    if (!activeStore.id) {
-      setLoading(false)
-      return
+    if (stores && stores.length > 0 && !activeStore.id) {
+      setActiveStore({ id: stores[0].id, name: stores[0].name })
     }
+  }, [stores, activeStore.id, setActiveStore])
 
-    setLoading(true)
-    clientApi
-      .get<DashboardStats>(`/api/v1/dashboard/stats?store_id=${activeStore.id}`)
-      .then(setStats)
-      .catch(() => setStats(defaultStats))
-      .finally(() => setLoading(false))
-  }, [activeStore.id])
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: queryKeys.dashboard.stats(activeStore.id),
+    queryFn: () => {
+      const params = activeStore.id ? `?store_id=${activeStore.id}` : ""
+      return clientApi.get<DashboardStats>(`/api/v1/dashboard/stats${params}`)
+    },
+  })
 
-  const displayName = activeStore?.name || user?.store_name || "Dashboard"
-  const today = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+  const { data: ordersData } = useQuery({
+    queryKey: queryKeys.orders.list(),
+    queryFn: () => clientApi.get<Order[]>("/api/v1/orders/"),
+    select: (data) => data.slice(0, 5),
+  })
+
+  const { data: productsData } = useQuery({
+    queryKey: queryKeys.products.list(),
+    queryFn: () => clientApi.get<Product[]>("/api/v1/products/"),
+    select: (data) =>
+      data
+        .filter((p) => p.stock_quantity <= p.reorder_threshold)
+        .slice(0, 5),
+  })
+
+  const recentOrders = ordersData ?? []
+  const lowStockProducts = productsData ?? []
+
+  const cards = [
+    {
+      title: "Inventory Value",
+      icon: IndianRupee,
+      value: stats ? `₹${stats.total_inventory_value.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : null,
+      subtitle: `${stats?.total_products ?? 0} products tracked`,
+      change: stats && stats.total_inventory_value > 0 ? "Current value" : "No inventory",
+      changePositive: stats ? stats.total_inventory_value > 0 : true,
+      metricStyle: "default",
+    },
+    {
+      title: "Today's Sales",
+      icon: TrendingUp,
+      value: stats ? `₹${stats.today_sales_amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : null,
+      subtitle: stats ? `${stats.today_sales_count} orders fulfilled` : null,
+      change: stats && stats.today_sales_count > 0 ? "Today's revenue" : "No sales yet",
+      changePositive: stats ? stats.today_sales_count > 0 : true,
+      metricStyle: "success",
+    },
+    {
+      title: "Pending Orders",
+      icon: ShoppingCart,
+      value: stats ? `${stats.pending_orders_count}` : null,
+      subtitle: "Awaiting fulfillment",
+      change: stats && stats.pending_orders_count > 0 ? "Requires attention" : "All cleared",
+      changePositive: stats ? stats.pending_orders_count === 0 : true,
+      metricStyle: "warning",
+    },
+    {
+      title: "Low Stock Items",
+      icon: AlertTriangle,
+      value: stats ? `${stats.low_stock_count}` : null,
+      subtitle: "Below reorder threshold",
+      change: stats && stats.low_stock_count > 0 ? "Reorder needed" : "Well stocked",
+      changePositive: stats ? stats.low_stock_count === 0 : true,
+      metricStyle: "danger",
+    },
+  ]
+
+  const iconBgMap: Record<string, string> = {
+    default: "bg-primary/10 text-primary",
+    success: "bg-success/10 text-success",
+    warning: "bg-warning/10 text-warning",
+    danger: "bg-destructive/10 text-destructive",
+  }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] dark:bg-zinc-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{displayName}</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">{today}</p>
-          </div>
-          {loading && (
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
-              <span className="size-2 rounded-full bg-amber-brand animate-pulse" />
-              Syncing...
-            </div>
-          )}
+    <motion.div
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" variants={itemVariants}>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Warehouse operations summary</p>
         </div>
-
-        {/* KPI Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard
-            label="Total Revenue"
-            value={stats.total_revenue}
-            icon={DollarSign}
-            change={stats.revenue_change}
-            format="currency"
-          />
-          <StatCard
-            label="Total Orders"
-            value={stats.total_orders}
-            icon={ShoppingCart}
-            change={stats.orders_change}
-          />
-          <StatCard
-            label="Products"
-            value={stats.total_products}
-            icon={Package}
-          />
-          <StatCard
-            label="Customers"
-            value={stats.total_customers}
-            icon={Users}
-          />
-        </div>
-
-        {/* Bottom Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Low Stock Alert */}
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4px] p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Boxes className="size-4 text-amber-brand" />
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Low Stock Alert</h2>
-            </div>
-            {stats.low_stock_count > 0 ? (
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold text-red-600 dark:text-red-400 font-mono">{stats.low_stock_count}</span>
-                <span className="text-sm text-zinc-500">products need reorder</span>
-              </div>
-            ) : (
-              <p className="text-sm text-zinc-400">All products adequately stocked.</p>
-            )}
-          </div>
-
-          {/* Pending Orders */}
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4px] p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <ShoppingCart className="size-4 text-amber-brand" />
-              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Pending Orders</h2>
-            </div>
-            {stats.pending_order_count > 0 ? (
-              <div className="flex items-center gap-3">
-                <span className="text-3xl font-bold text-amber-600 dark:text-amber-400 font-mono">{stats.pending_order_count}</span>
-                <span className="text-sm text-zinc-500">orders to fulfill</span>
-              </div>
-            ) : (
-              <p className="text-sm text-zinc-400">No pending orders.</p>
-            )}
-          </div>
-
-          {/* Recent Orders */}
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4px] p-5 lg:col-span-1">
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Recent Orders</h2>
-            {stats.recent_orders.length === 0 ? (
-              <p className="text-sm text-zinc-400">No orders yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {stats.recent_orders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-mono text-zinc-900 dark:text-zinc-100">#{order.id}</span>
-                      <span className="text-xs text-zinc-500 ml-2">₹{Number(order.total).toLocaleString("en-IN")}</span>
-                    </div>
-                    <StatusBadge status={order.status} />
-                  </div>
+        {stores && stores.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-muted-foreground whitespace-nowrap">Store:</label>
+            <Select
+              value={activeStore.id ? String(activeStore.id) : ""}
+              onValueChange={(val) => {
+                const store = stores.find((s) => String(s.id) === val)
+                setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
+              }}
+            >
+              <SelectTrigger className="w-[180px] h-9 rounded-[4px]">
+                <SelectValue placeholder="All Stores" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Stores</SelectItem>
+                {stores.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
                 ))}
-              </div>
-            )}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-      </div>
-    </div>
+        )}
+      </motion.div>
+
+      <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" variants={itemVariants}>
+        {quickActions.map((action) => {
+          const Icon = action.icon
+          return (
+            <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
+              <motion.div
+                whileHover={{ translateY: -1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
+              >
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-accent rounded-[4px] transition-all"
+                >
+                  <div className={cn("flex items-center justify-center size-9 rounded-[4px]", action.color)}>
+                    <Icon className="size-4" />
+                  </div>
+                  <span className="text-xs font-medium text-foreground">{action.label}</span>
+                </Button>
+              </motion.div>
+            </Link>
+          )
+        })}
+      </motion.div>
+
+      <motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" variants={itemVariants}>
+        {cards.map((card) => {
+          const Icon = card.icon
+          const iconStyle = iconBgMap[card.metricStyle]
+          return (
+            <motion.div
+              key={card.title}
+              whileHover={{ translateY: -1 }}
+              transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
+            >
+              <Card className="relative">
+                <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
+                  <div className={cn("flex items-center justify-center size-8 rounded-[4px]", iconStyle)}>
+                    <Icon className="size-4" />
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  {statsLoading ? (
+                    <MetricSkeleton />
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</div>
+                      {card.subtitle && (
+                        <p className="text-xs text-muted-foreground mt-0.5 font-mono">{card.subtitle}</p>
+                      )}
+                      <div className="flex items-center gap-1 mt-2">
+                        {card.changePositive ? (
+                          <ArrowUpRight className="size-3 text-success" />
+                        ) : (
+                          <ArrowDownRight className="size-3 text-warning" />
+                        )}
+                        <p className={cn(
+                          "text-xs font-medium",
+                          card.changePositive ? "text-success" : "text-warning"
+                        )}>
+                          {card.change}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        })}
+      </motion.div>
+
+      <motion.div className="grid gap-6 lg:grid-cols-2" variants={itemVariants}>
+        <motion.div whileHover={{ translateY: -1 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+              <CardTitle className="text-base font-semibold text-foreground">Recent Orders</CardTitle>
+              <Link href="/orders">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[4px] gap-1">
+                  View All <ChevronRight className="size-3" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="p-4">
+              {recentOrders.length === 0 ? (
+                <EmptyState
+                  icon={ClipboardList}
+                  title="No recent orders"
+                  description="Orders placed today will appear here."
+                  action={{ label: "Create Order", href: "/billing" }}
+                />
+              ) : (
+                <div className="space-y-1">
+                  {recentOrders.map((order) => (
+                    <Link key={order.id} href={`/orders?id=${order.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-[4px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center justify-center size-8 rounded-[4px] bg-muted shrink-0">
+                            <ShoppingCart className="size-4 text-muted-foreground" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{order.order_number}</p>
+                            <p className="text-xs text-muted-foreground">{order.customer_name || "Walk-in"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color)}>
+                            {order.status}
+                          </Badge>
+                          <span className="text-sm font-medium tabular-nums text-foreground">₹{order.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div whileHover={{ translateY: -1 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+              <CardTitle className="text-base font-semibold text-foreground">Low Stock Alert</CardTitle>
+              <Link href="/inventory">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[4px] gap-1">
+                  View All <ChevronRight className="size-3" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="p-4">
+              {lowStockProducts.length === 0 ? (
+                <EmptyState
+                  icon={Package}
+                  title="All stocked up"
+                  description="All products are above their reorder thresholds."
+                />
+              ) : (
+                <div className="space-y-1">
+                  {lowStockProducts.map((product) => (
+                    <Link key={product.id} href={`/inventory?product=${product.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-[4px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center justify-center size-8 rounded-[4px] bg-destructive/10 shrink-0">
+                            <Package className="size-4 text-destructive" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                            <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-medium text-destructive tabular-nums">{product.stock_quantity}</p>
+                          <p className="text-xs text-muted-foreground font-mono">in stock</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 }
