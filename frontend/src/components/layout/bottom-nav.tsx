@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Store, ShoppingBag, ShoppingCart, Clock, ScanLine } from "lucide-react"
@@ -26,7 +27,7 @@ export function BottomNav() {
   if (role === "shopkeeper") return null
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 border-t border-zinc-800/80 backdrop-blur-xl">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {customerItems.map((item) => {
           const Icon = item.icon
@@ -40,25 +41,34 @@ export function BottomNav() {
               href={item.href}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative group"
             >
-              <div className="relative">
+              <motion.div
+                className="relative"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
                 <div
                   className={cn(
-                    "p-1.5 rounded-xl transition-all duration-200",
-                    isActive ? "text-blue-600 bg-blue-50" : "text-slate-400 group-hover:text-slate-600"
+                    "p-1.5 rounded-[4px] transition-all duration-200",
+                    isActive ? "text-amber-brand bg-amber-brand/10" : "text-zinc-500 group-hover:text-zinc-300"
                   )}
                 >
                   <Icon className={cn("size-5 transition-all duration-200", isActive && "scale-110")} />
                 </div>
                 {item.badge && cartCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-blue-600 text-[10px] font-bold text-white rounded-full flex items-center justify-center leading-none shadow-sm shadow-blue-200">
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-amber-brand text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center leading-none shadow-sm"
+                  >
                     {cartCount > 99 ? "99+" : cartCount}
-                  </span>
+                  </motion.span>
                 )}
-              </div>
+              </motion.div>
               <span
                 className={cn(
                   "text-[10px] leading-tight truncate max-w-full transition-all duration-200",
-                  isActive ? "text-blue-600 font-semibold" : "text-slate-400"
+                  isActive ? "text-amber-brand font-semibold" : "text-zinc-500"
                 )}
               >
                 {item.label}

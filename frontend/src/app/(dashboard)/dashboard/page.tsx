@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -17,6 +18,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
+  Warehouse,
 } from "lucide-react"
 import {
   Select,
@@ -52,20 +54,38 @@ interface Store {
   name: string
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06 },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 200, damping: 20 },
+  },
+}
+
 const quickActions = [
-  { label: "Create Product", href: "/inventory", icon: Plus, query: "add", color: "text-blue-600 bg-blue-50 dark:bg-blue-950" },
-  { label: "Generate Bill", href: "/billing", icon: Receipt, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950" },
-  { label: "Purchase Order", href: "/purchase-orders", icon: Truck, query: "new", color: "text-purple-600 bg-purple-50 dark:bg-purple-950" },
-  { label: "Scan Inventory", href: "/inventory/scan", icon: Camera, color: "text-orange-600 bg-orange-50 dark:bg-orange-950" },
-  { label: "View Orders", href: "/orders", icon: ShoppingCart, color: "text-rose-600 bg-rose-50 dark:bg-rose-950" },
+  { label: "Create Product", href: "/inventory", icon: Plus, query: "add", color: "text-amber-brand bg-amber-brand/10" },
+  { label: "Generate Bill", href: "/billing", icon: Receipt, color: "text-emerald-brand bg-emerald-brand/10" },
+  { label: "Purchase Order", href: "/purchase-orders", icon: Truck, query: "new", color: "text-purple-400 bg-purple-400/10" },
+  { label: "Scan Inventory", href: "/inventory/scan", icon: Camera, color: "text-orange-400 bg-orange-400/10" },
+  { label: "View Orders", href: "/orders", icon: ShoppingCart, color: "text-rose-400 bg-rose-400/10" },
 ]
 
 function MetricSkeleton() {
   return (
     <div className="space-y-3">
-      <Skeleton className="h-4 w-24" />
-      <Skeleton className="h-8 w-32" />
-      <Skeleton className="h-3 w-20" />
+      <Skeleton className="h-4 w-24 bg-zinc-800" />
+      <Skeleton className="h-8 w-32 bg-zinc-800" />
+      <Skeleton className="h-3 w-20 bg-zinc-800" />
     </div>
   )
 }
@@ -73,14 +93,14 @@ function MetricSkeleton() {
 function EmptyState({ icon: Icon, title, description, action }: { icon: React.ElementType; title: string; description: string; action?: { label: string; href: string } }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="flex items-center justify-center size-12 rounded-xl bg-muted mb-4">
-        <Icon className="size-6 text-muted-foreground" />
+      <div className="flex items-center justify-center size-12 rounded-[4px] bg-zinc-800/50 mb-4">
+        <Icon className="size-6 text-zinc-500" />
       </div>
       <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="text-sm text-muted-foreground mt-1 max-w-[200px]">{description}</p>
+      <p className="text-sm text-zinc-400 mt-1 max-w-[200px]">{description}</p>
       {action && (
         <Link href={action.href}>
-          <Button variant="outline" size="sm" className="mt-4 rounded-lg">
+          <Button variant="outline" size="sm" className="mt-4 rounded-[4px]">
             {action.label}
             <ArrowRight className="size-3 ml-1.5" />
           </Button>
@@ -127,9 +147,10 @@ export default function DashboardPage() {
 
   const cards = [
     {
-      title: "Total Inventory Value",
+      title: "Inventory Value",
       icon: IndianRupee,
       value: stats ? `₹${stats.total_inventory_value.toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : null,
+      subtitle: `${stats?.total_products ?? 0} products`,
       change: stats && stats.total_inventory_value > 0 ? "Current value" : "No inventory",
       changePositive: stats ? stats.total_inventory_value > 0 : true,
       metricStyle: "default",
@@ -147,14 +168,16 @@ export default function DashboardPage() {
       title: "Pending Orders",
       icon: ShoppingCart,
       value: stats ? `${stats.pending_orders_count}` : null,
+      subtitle: "Requires fulfillment",
       change: stats && stats.pending_orders_count > 0 ? "Requires attention" : "All cleared",
       changePositive: stats ? stats.pending_orders_count === 0 : true,
       metricStyle: "warning",
     },
     {
-      title: "Low Stock Products",
+      title: "Low Stock Items",
       icon: AlertTriangle,
       value: stats ? `${stats.low_stock_count}` : null,
+      subtitle: "Below reorder threshold",
       change: stats && stats.low_stock_count > 0 ? "Reorder needed" : "Well stocked",
       changePositive: stats ? stats.low_stock_count === 0 : true,
       metricStyle: "danger",
@@ -162,22 +185,27 @@ export default function DashboardPage() {
   ]
 
   const iconBgMap: Record<string, string> = {
-    default: "bg-primary/10 text-primary",
-    success: "bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400",
-    warning: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
-    danger: "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400",
+    default: "bg-amber-brand/10 text-amber-brand",
+    success: "bg-emerald-brand/10 text-emerald-brand",
+    warning: "bg-warning/10 text-warning",
+    danger: "bg-destructive/10 text-destructive",
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <motion.div
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4" variants={itemVariants}>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Your business at a glance</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-sm text-zinc-400 mt-0.5 font-mono">Warehouse overview</p>
         </div>
         {stores && stores.length > 0 && (
           <div className="flex items-center gap-2">
-            <label className="text-sm text-muted-foreground whitespace-nowrap">Store:</label>
+            <label className="text-sm text-zinc-400 whitespace-nowrap">Store:</label>
             <Select
               value={activeStore.id ? String(activeStore.id) : ""}
               onValueChange={(val) => {
@@ -185,7 +213,7 @@ export default function DashboardPage() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-[180px] h-9 rounded-lg">
+              <SelectTrigger className="w-[180px] h-9 rounded-[4px] border-zinc-700/60 bg-zinc-900/60">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -197,163 +225,173 @@ export default function DashboardPage() {
             </Select>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" variants={itemVariants}>
         {quickActions.map((action) => {
           const Icon = action.icon
           return (
             <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
-              <Button
-                variant="outline"
-                className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-muted/50 rounded-xl transition-all hover:shadow-sm"
+              <motion.div
+                whileHover={{ translateY: -1 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
               >
-                <div className={cn("flex items-center justify-center size-9 rounded-lg", action.color)}>
-                  <Icon className="size-4" />
-                </div>
-                <span className="text-xs font-medium">{action.label}</span>
-              </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-zinc-800/60 rounded-[4px] transition-all border-zinc-800/80"
+                >
+                  <div className={cn("flex items-center justify-center size-9 rounded-[4px]", action.color)}>
+                    <Icon className="size-4" />
+                  </div>
+                  <span className="text-xs font-medium text-foreground">{action.label}</span>
+                </Button>
+              </motion.div>
             </Link>
           )
         })}
-      </div>
+      </motion.div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" variants={itemVariants}>
         {cards.map((card) => {
           const Icon = card.icon
           const iconStyle = iconBgMap[card.metricStyle]
           return (
-            <Card
+            <motion.div
               key={card.title}
-              className="relative border shadow-sm transition-all hover:shadow-md"
+              whileHover={{ translateY: -2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
-              <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-                <div className={cn("flex items-center justify-center size-8 rounded-lg", iconStyle)}>
-                  <Icon className="size-4" />
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 pt-0">
-                {statsLoading ? (
-                  <MetricSkeleton />
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold tracking-tight">{card.value}</div>
-                    {card.subtitle && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{card.subtitle}</p>
-                    )}
-                    <div className="flex items-center gap-1 mt-1.5">
-                      {card.changePositive ? (
-                        <ArrowUpRight className="size-3 text-green-500" />
-                      ) : (
-                        <ArrowDownRight className="size-3 text-amber-500" />
+              <Card className="relative border-zinc-800/80 bg-zinc-900/40">
+                <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+                  <CardTitle className="text-sm font-medium text-zinc-400">{card.title}</CardTitle>
+                  <div className={cn("flex items-center justify-center size-8 rounded-[4px]", iconStyle)}>
+                    <Icon className="size-4" />
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  {statsLoading ? (
+                    <MetricSkeleton />
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</div>
+                      {card.subtitle && (
+                        <p className="text-xs text-zinc-500 mt-0.5 font-mono">{card.subtitle}</p>
                       )}
-                      <p className={cn(
-                        "text-xs",
-                        card.changePositive ? "text-green-600 dark:text-green-400" : "text-amber-600 dark:text-amber-400"
-                      )}>
-                        {card.change}
-                      </p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                      <div className="flex items-center gap-1 mt-2">
+                        {card.changePositive ? (
+                          <ArrowUpRight className="size-3 text-emerald-brand" />
+                        ) : (
+                          <ArrowDownRight className="size-3 text-warning" />
+                        )}
+                        <p className={cn(
+                          "text-xs font-medium",
+                          card.changePositive ? "text-emerald-brand" : "text-warning"
+                        )}>
+                          {card.change}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
           )
         })}
-      </div>
+      </motion.div>
 
-      {/* Charts & Tables Section */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Orders */}
-        <Card className="border shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
-            <CardTitle className="text-base font-semibold">Recent Orders</CardTitle>
-            <Link href="/orders">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-lg gap-1">
-                View All <ChevronRight className="size-3" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="p-4">
-            {recentOrders.length === 0 ? (
-              <EmptyState
-                icon={ClipboardList}
-                title="No recent orders"
-                description="Orders placed today will appear here."
-                action={{ label: "Create Order", href: "/billing" }}
-              />
-            ) : (
-              <div className="space-y-1">
-                {recentOrders.map((order) => (
-                  <Link key={order.id} href={`/orders?id=${order.id}`}>
-                    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-all duration-150 border border-transparent hover:border-border">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex items-center justify-center size-8 rounded-lg bg-muted shrink-0">
-                          <ShoppingCart className="size-4 text-muted-foreground" />
+      <motion.div className="grid gap-6 lg:grid-cols-2" variants={itemVariants}>
+        <motion.div whileHover={{ translateY: -1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+          <Card className="border-zinc-800/80 bg-zinc-900/40">
+            <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+              <CardTitle className="text-base font-semibold text-foreground">Recent Orders</CardTitle>
+              <Link href="/orders">
+                <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-foreground rounded-[4px] gap-1">
+                  View All <ChevronRight className="size-3" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="p-4">
+              {recentOrders.length === 0 ? (
+                <EmptyState
+                  icon={ClipboardList}
+                  title="No recent orders"
+                  description="Orders placed today will appear here."
+                  action={{ label: "Create Order", href: "/billing" }}
+                />
+              ) : (
+                <div className="space-y-1">
+                  {recentOrders.map((order) => (
+                    <Link key={order.id} href={`/orders?id=${order.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-[4px] hover:bg-zinc-800/30 transition-all duration-150 border border-transparent hover:border-zinc-700/60">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center justify-center size-8 rounded-[4px] bg-zinc-800/50 shrink-0">
+                            <ShoppingCart className="size-4 text-zinc-400" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{order.order_number}</p>
+                            <p className="text-xs text-zinc-500">{order.customer_name || "Walk-in"}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{order.order_number}</p>
-                          <p className="text-xs text-muted-foreground">{order.customer_name || "Walk-in"}</p>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color)}>
+                            {order.status}
+                          </Badge>
+                          <span className="text-sm font-medium tabular-nums text-foreground">₹{order.total.toFixed(2)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color)}>
-                          {order.status}
-                        </Badge>
-                        <span className="text-sm font-medium tabular-nums">₹{order.total.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        {/* Low Stock Alert */}
-        <Card className="border shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
-            <CardTitle className="text-base font-semibold">Low Stock Alert</CardTitle>
-            <Link href="/inventory">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-lg gap-1">
-                View All <ChevronRight className="size-3" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="p-4">
-            {lowStockProducts.length === 0 ? (
-              <EmptyState
-                icon={Package}
-                title="All stocked up"
-                description="All products are above their reorder thresholds."
-              />
-            ) : (
-              <div className="space-y-1">
-                {lowStockProducts.map((product) => (
-                  <Link key={product.id} href={`/inventory?product=${product.id}`}>
-                    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-all duration-150 border border-transparent hover:border-border">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex items-center justify-center size-8 rounded-lg bg-red-50 dark:bg-red-950 shrink-0">
-                          <Package className="size-4 text-red-500" />
+        <motion.div whileHover={{ translateY: -1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
+          <Card className="border-zinc-800/80 bg-zinc-900/40">
+            <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+              <CardTitle className="text-base font-semibold text-foreground">Low Stock Alert</CardTitle>
+              <Link href="/inventory">
+                <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-foreground rounded-[4px] gap-1">
+                  View All <ChevronRight className="size-3" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="p-4">
+              {lowStockProducts.length === 0 ? (
+                <EmptyState
+                  icon={Package}
+                  title="All stocked up"
+                  description="All products are above their reorder thresholds."
+                />
+              ) : (
+                <div className="space-y-1">
+                  {lowStockProducts.map((product) => (
+                    <Link key={product.id} href={`/inventory?product=${product.id}`}>
+                      <div className="flex items-center justify-between p-3 rounded-[4px] hover:bg-zinc-800/30 transition-all duration-150 border border-transparent hover:border-zinc-700/60">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center justify-center size-8 rounded-[4px] bg-destructive/10 shrink-0">
+                            <Package className="size-4 text-destructive" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                            <p className="text-xs text-zinc-500 font-mono">{product.sku}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-medium text-destructive tabular-nums">{product.stock_quantity}</p>
+                          <p className="text-xs text-zinc-500 font-mono">in stock</p>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-medium text-red-600 dark:text-red-400">{product.stock_quantity}</p>
-                        <p className="text-xs text-muted-foreground">in stock</p>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   )
 }

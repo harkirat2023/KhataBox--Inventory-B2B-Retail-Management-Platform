@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -130,6 +131,27 @@ const customerNavGroups = [
   },
 ]
 
+function NavItem({
+  item,
+  active,
+}: {
+  item: { label: string; href: string; icon: React.ElementType }
+  active: boolean
+}) {
+  const Icon = item.icon
+  return (
+    <motion.div
+      whileHover={{ translateX: 2 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+      <SidebarMenuButton isActive={active} tooltip={item.label} asChild href={item.href}>
+        <Icon className={cn("size-4 shrink-0", active ? "text-amber-brand" : "text-zinc-400")} />
+        <span className={active ? "text-foreground" : "text-zinc-400"}>{item.label}</span>
+      </SidebarMenuButton>
+    </motion.div>
+  )
+}
+
 export function AppSidebar() {
   const pathname = usePathname()
   const { role } = useRole()
@@ -158,10 +180,10 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:!p-0" asChild href="/dashboard">
-              <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10 shrink-0">
-                <Boxes className="size-5 text-primary" />
+              <div className="flex items-center justify-center size-8 rounded-[4px] bg-amber-brand/10 shrink-0">
+                <Boxes className="size-5 text-amber-brand" />
               </div>
-              <span className="font-semibold text-lg tracking-tight group-data-[collapsible=icon]:hidden">KhataBox</span>
+              <span className="font-semibold text-lg tracking-tight group-data-[collapsible=icon]:hidden text-foreground">KhataBox</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -169,7 +191,7 @@ export function AppSidebar() {
         {role && ["admin", "shopkeeper"].includes(role) && (
           <div className="px-1 pt-1 group-data-[collapsible=icon]:hidden">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Store</span>
+              <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Store</span>
               {activeStore.id && (
                 <button
                   onClick={() => {
@@ -179,7 +201,7 @@ export function AppSidebar() {
                       setRenameDialogOpen(true)
                     }
                   }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-zinc-500 hover:text-foreground transition-colors"
                 >
                   <Pencil className="size-3" />
                 </button>
@@ -192,7 +214,7 @@ export function AppSidebar() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-full h-8 text-sm rounded-lg border-sidebar-border bg-sidebar-accent/50">
+              <SelectTrigger className="w-full h-8 text-sm rounded-[4px] border-zinc-700/60 bg-zinc-800/50">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -211,20 +233,14 @@ export function AppSidebar() {
       <SidebarContent>
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">{group.label}</SidebarGroupLabel>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-zinc-500 text-[11px] uppercase tracking-wider font-medium">
+              {group.label}
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {
-                  const Icon = item.icon
                   const active = pathname === item.href || pathname.startsWith(item.href + "/")
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                  <SidebarMenuButton isActive={active} tooltip={item.label} asChild href={item.href}>
-                            <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "")} />
-                            <span>{item.label}</span>
-                          </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
+                  return <NavItem key={item.href} item={item} active={active} />
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -234,7 +250,7 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <div className="px-2 py-1">
-          <p className="text-xs text-muted-foreground text-center group-data-[collapsible=icon]:hidden">KhataBox v1.0</p>
+          <p className="text-xs text-zinc-600 text-center group-data-[collapsible=icon]:hidden font-mono">KhataBox v1.0</p>
         </div>
       </SidebarFooter>
 
