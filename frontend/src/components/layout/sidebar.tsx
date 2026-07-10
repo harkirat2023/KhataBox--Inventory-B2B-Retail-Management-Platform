@@ -180,21 +180,21 @@ export function AppSidebar() {
     .filter((group) => group.items.length > 0)
 
   return (
-    <Sidebar collapsible="icon" className="max-h-dvh">
+    <Sidebar className="max-h-dvh overflow-y-auto">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:!p-0" asChild href="/dashboard">
+            <SidebarMenuButton size="lg" asChild href="/dashboard">
               <div className="flex items-center justify-center size-8 rounded-[4px] bg-amber-brand/10 shrink-0">
                 <Boxes className="size-5 text-amber-brand" />
               </div>
-              <span className="font-semibold text-lg tracking-tight group-data-[collapsible=icon]:hidden text-foreground">KhataBox</span>
+              <span className="font-semibold text-lg tracking-tight text-foreground">KhataBox</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
 
         {role && ["admin", "shopkeeper"].includes(role) && (
-          <div className="px-1 pt-1 group-data-[collapsible=icon]:hidden">
+          <div className="px-1 pt-1">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Store</span>
               {activeStore.id && (
@@ -219,7 +219,7 @@ export function AppSidebar() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-full h-8 text-sm rounded-[4px] border-zinc-700/60 bg-zinc-800/50">
+              <SelectTrigger className="w-full h-8 text-sm rounded-[4px] border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -238,7 +238,7 @@ export function AppSidebar() {
       <SidebarContent>
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-zinc-500 text-[11px] uppercase tracking-wider font-medium">
+            <SidebarGroupLabel className="text-zinc-500 text-[11px] uppercase tracking-wider font-medium">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -255,7 +255,7 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <div className="px-2 py-1">
-          <p className="text-xs text-zinc-600 text-center group-data-[collapsible=icon]:hidden font-mono">KhataBox v1.0</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-600 text-center font-mono">KhataBox v1.0</p>
         </div>
       </SidebarFooter>
 

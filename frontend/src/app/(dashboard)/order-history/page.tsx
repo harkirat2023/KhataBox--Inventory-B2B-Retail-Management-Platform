@@ -32,7 +32,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Order, OrderStatus } from "@/types/order"
-import { clientApi } from "@/lib/client-api"
+import { clientApi, authHeaders } from "@/lib/client-api"
 import { useBillingStore } from "@/store/billing"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
@@ -93,6 +93,7 @@ export default function OrderHistoryPage() {
     try {
       const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${orderId}`, {
         method: "POST",
+        headers: authHeaders(),
       })
       if (!resp.ok) {
         const text = await resp.text()
@@ -284,6 +285,7 @@ export default function OrderHistoryPage() {
       }
       const resp = await fetch(`${API_URL}${endpointMap[action]}`, {
         method: "POST",
+        headers: authHeaders(),
       })
       if (!resp.ok) throw new Error("Action failed")
       toast.success("Order status updated")
