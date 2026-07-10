@@ -156,7 +156,7 @@ async def generate_invoice(
         order_number = b2c_order.order_number
         order_items = b2c_order.items or []
         created_at = b2c_order.created_at
-        status = b2c_order.status
+        order_status = b2c_order.status
         subtotal = b2c_order.subtotal
         discount = b2c_order.discount
         gst = b2c_order.gst
@@ -166,7 +166,7 @@ async def generate_invoice(
         order_number = order.order_number
         order_items = order.items or []
         created_at = order.created_at
-        status = order.status
+        order_status = order.status
         subtotal = order.subtotal
         discount = order.discount
         gst = order.gst
@@ -193,7 +193,7 @@ async def generate_invoice(
     elements.append(
         Paragraph(f"Date: {created_at.strftime('%d-%b-%Y %I:%M %p')}", styles["Normal"])
     )
-    elements.append(Paragraph(f"Status: {str(status).upper()}", styles["Normal"]))
+    elements.append(Paragraph(f"Status: {str(order_status).upper()}", styles["Normal"]))
 
     elements.append(Spacer(1, 12))
 

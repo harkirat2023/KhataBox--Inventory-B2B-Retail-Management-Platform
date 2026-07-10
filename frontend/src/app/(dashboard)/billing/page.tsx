@@ -191,7 +191,7 @@ export default function BillingPage() {
       return
     }
 
-    const product_id = -Date.now()
+    const product_id = -(Date.now() % 1000000000 + 1)
     const itemName = unpackedName.trim() || "Unpacked Product"
 
     addItemToActiveCart(
