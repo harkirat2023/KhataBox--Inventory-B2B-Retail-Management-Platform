@@ -1,23 +1,27 @@
 import logging
 import random
+import re
 import time
+
+from fastapi import HTTPException, status
 
 from app.services.cache import get as cache_get, set as cache_set
 from app.services.email import send_email
 
 logger = logging.getLogger(__name__)
 
+EMAIL_REGEX = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 OTP_TTL = 300  # 5 minutes
-
-_otp_store: dict[str, dict] = {}
 
 
 async def send_otp(email: str) -> bool:
+    if not email or not re.match(EMAIL_REGEX, email):
+        logger.warning("Invalid email syntax: %s", email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="incorrect email")
+
     otp = str(random.randint(100000, 999999))
-    expires_at = time.time() + OTP_TTL
 
     await cache_set(f"otp:{email}", otp, ttl=OTP_TTL)
-    _otp_store[email] = {"otp": otp, "expires_at": expires_at}
 
     html = f"""
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
@@ -29,34 +33,19 @@ async def send_otp(email: str) -> bool:
       <p style="font-size:13px;color:#94a3b8;">Valid for 5 minutes. If you didn't request this, ignore this email.</p>
     </div>
     """
-    sent = await send_email(email, "Your KhataBox OTP", html)
+
+    sent = await send_email(email, "Your KhataBox OTP Verification Code", html)
+
     if sent:
         logger.info("OTP sent to %s", email)
+        return True
     else:
-        logger.warning("Failed to send OTP to %s", email)
-    return sent
+        logger.warning("Failed to send OTP via Resend to %s", email)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="incorrect email")
 
 
 async def verify_otp(email: str, otp: str) -> bool:
-    cached = await cache_get(f"otp:{email}")
-    if cached is not None:
-        if str(cached) == otp:
-            await cache_set(f"otp:{email}", None, ttl=1)
-            _otp_store.pop(email, None)
-            logger.info("OTP verified for %s (from cache)", email)
-            return True
-        logger.warning("OTP mismatch for %s: expected %s, got %s", email, cached, otp)
+    stored = await cache_get(f"otp:{email}")
+    if stored is None:
         return False
-
-    record = _otp_store.get(email)
-    if record and record["otp"] == otp and time.time() < record["expires_at"]:
-        del _otp_store[email]
-        logger.info("OTP verified for %s (from memory)", email)
-        return True
-
-    if record and record["otp"] != otp:
-        logger.warning("OTP mismatch for %s (memory)", email)
-    elif record and time.time() >= record["expires_at"]:
-        logger.warning("OTP expired for %s", email)
-
-    return False
+    return stored == otp

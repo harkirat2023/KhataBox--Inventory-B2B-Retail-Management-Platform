@@ -11,6 +11,7 @@ from app.models.store import Store, StoreType
 from app.models.user import User, UserRole
 from app.schemas.user import (
     LoginWithOTPRequest,
+    OTPSendRequest,
     OTPVerifyRequest,
     RefreshRequest,
     RegisterWithOTPRequest,
@@ -26,10 +27,8 @@ router = APIRouter()
 
 
 @router.post("/send-otp")
-async def send_otp(payload: OTPVerifyRequest):
-    sent = await _send_otp(payload.email)
-    if not sent:
-        raise HTTPException(status_code=500, detail="Failed to send OTP. Please try again later.")
+async def send_otp(payload: OTPSendRequest):
+    await _send_otp(payload.email)
     return {"message": "OTP sent to your email"}
 
 
