@@ -1,11 +1,12 @@
 import logging
 import random
 import string
+import traceback
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
-from sqlalchemy.exc import DataError, IntegrityError
+from sqlalchemy.exc import DataError, DBAPIError, IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
 logger = logging.getLogger(__name__)
@@ -106,11 +107,16 @@ async def _try_safe_emit(func, *args, **kwargs):
 
 
 async def create_order(db, payload, shopkeeper_id):
+    logger.debug("=== create_order START ===")
+    logger.debug("shopkeeper_id=%s, customer_id=%s, items_count=%s, payment_method=%s",
+                 shopkeeper_id, payload.customer_id, len(payload.items) if payload.items else 0, payload.payment_method)
+
     if not payload.items:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order must have at least one item")
 
-    for item in payload.items:
+    for idx, item in enumerate(payload.items):
         if not (INT32_MIN <= item.product_id <= INT32_MAX):
+            logger.warning("item[%s] product_id %s out of int32 range", idx, item.product_id)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid product_id {item.product_id}: must be within signed 32-bit integer range",
@@ -121,6 +127,7 @@ async def create_order(db, payload, shopkeeper_id):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unit price cannot be negative for {item.product_name}")
 
     if payload.customer_id is not None:
+        logger.debug("Validating customer_id=%s", payload.customer_id)
         cust_check = await db.execute(select(Customer).where(Customer.id == payload.customer_id))
         if cust_check.scalar_one_or_none() is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Customer not found: id={payload.customer_id}")
@@ -128,10 +135,13 @@ async def create_order(db, payload, shopkeeper_id):
     subtotal = sum(item.unit_price * item.quantity for item in payload.items)
     gst = subtotal * 0.18 if getattr(payload, "apply_gst", True) else 0
     total = subtotal + gst - payload.discount
+    logger.debug("subtotal=%s, gst=%s, discount=%s, total=%s", subtotal, gst, payload.discount, total)
 
     try:
+        order_number = generate_order_number()
+        logger.debug("Creating Order: order_number=%s", order_number)
         order = Order(
-            order_number=generate_order_number(),
+            order_number=order_number,
             shopkeeper_id=shopkeeper_id,
             customer_id=payload.customer_id,
             payment_method=payload.payment_method,
@@ -143,9 +153,14 @@ async def create_order(db, payload, shopkeeper_id):
             notes=payload.notes,
         )
         db.add(order)
+        logger.debug("Before first flush (Order)")
         await db.flush()
+        logger.debug("After first flush: order.id=%s", order.id)
 
-        for item in payload.items:
+        for idx, item in enumerate(payload.items):
+            logger.debug("PROCESSING item[%s]: product_id=%s, name=%s, qty=%s, price=%s",
+                         idx, item.product_id, item.product_name, item.quantity, item.unit_price)
+
             order_item = OrderItem(
                 order_id=order.id,
                 product_id=item.product_id,
@@ -155,19 +170,28 @@ async def create_order(db, payload, shopkeeper_id):
                 total_price=item.unit_price * item.quantity,
             )
             db.add(order_item)
+            logger.debug("Before flush (OrderItem %s)", idx)
             await db.flush()
+            logger.debug("After flush (OrderItem %s): id=%s", idx, order_item.id)
 
+            logger.debug("Querying Product: product_id=%s, owner_id=%s", item.product_id, shopkeeper_id)
             product_result = await db.execute(
                 select(Product).where(Product.id == item.product_id, Product.owner_id == shopkeeper_id)
             )
             product = product_result.scalar_one_or_none()
+            logger.debug("Product lookup result: %s", product.id if product else None)
+
             if product:
+                logger.debug("Stock before deduction: product_id=%s, stock=%s, needed=%s",
+                             product.id, product.stock_quantity, item.quantity)
                 if product.stock_quantity < item.quantity:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=f"Insufficient stock for {product.name}: have {product.stock_quantity}, need {item.quantity}",
                     )
                 product.stock_quantity -= item.quantity
+                logger.debug("Stock after deduction: %s", product.stock_quantity)
+
                 movement = InventoryMovement(
                     product_id=item.product_id,
                     shopkeeper_id=shopkeeper_id,
@@ -176,17 +200,29 @@ async def create_order(db, payload, shopkeeper_id):
                     reference=f"Order #{order.order_number}",
                 )
                 db.add(movement)
+                logger.debug("Before flush (InventoryMovement %s)", idx)
                 await db.flush()
+                logger.debug("After flush (InventoryMovement)")
+
+                logger.debug("Calling check_low_stock for product_id=%s", item.product_id)
                 await check_low_stock(item.product_id, shopkeeper_id, db)
+                logger.debug("check_low_stock completed")
+            else:
+                logger.debug("Product not found for product_id=%s — skipping stock deduction (Unpacked Product)", item.product_id)
 
         # Update customer credit
         credit_alert = None
         if payload.customer_id:
+            logger.debug("Looking up customer for credit: customer_id=%s", payload.customer_id)
             cust_result = await db.execute(select(Customer).where(Customer.id == payload.customer_id))
             customer = cust_result.scalar_one_or_none()
             if customer:
+                logger.debug("Customer found: id=%s, credit_used_before=%s, credit_limit=%s",
+                             customer.id, customer.credit_used, customer.credit_limit)
                 customer.credit_used = (customer.credit_used or 0) + order.total
+                logger.debug("Before flush (credit update)")
                 await db.flush()
+                logger.debug("After flush (credit update): credit_used=%s", customer.credit_used)
                 credit_used = customer.credit_used
                 credit_limit = customer.credit_limit
                 if credit_limit > 0 and credit_used > credit_limit:
@@ -196,14 +232,24 @@ async def create_order(db, payload, shopkeeper_id):
                         "credit_limit": credit_limit,
                         "exceeded_by": round(credit_used - credit_limit, 2),
                     }
+                    logger.debug("Credit limit exceeded: %s", credit_alert)
+            else:
+                logger.warning("Customer not found for id=%s — skipping credit update", payload.customer_id)
 
+        logger.debug("Before main commit")
         await db.commit()
+        logger.debug("After main commit")
         await db.refresh(order, ["items"])
+        logger.debug("After refresh: order items count=%s", len(order.items) if order.items else 0)
 
         # Generate receipt (after commit to ensure IDs are final)
+        logger.debug("Looking up store for receipt: owner_id=%s", shopkeeper_id)
         store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
         store = store_result.scalar_one_or_none()
+        logger.debug("Store lookup result: %s", store.id if store else None)
+
         if store and order.items:
+            logger.debug("Creating Receipt for order_id=%s", order.id)
             receipt = Receipt(
                 receipt_number=f"RCPT-{order.id:08d}",
                 order_id=order.id,
@@ -217,8 +263,13 @@ async def create_order(db, payload, shopkeeper_id):
                 total_amount=order.total,
             )
             db.add(receipt)
+            logger.debug("Before flush (Receipt)")
             await db.flush()
-            for oi in order.items:
+            logger.debug("After flush (Receipt): receipt.id=%s", receipt.id)
+
+            for oi_idx, oi in enumerate(order.items):
+                logger.debug("Creating ReceiptItem[%s]: order_item_id=%s, product_id=%s, product_name=%s",
+                             oi_idx, oi.id, oi.product_id, oi.product_name)
                 db.add(ReceiptItem(
                     receipt_id=receipt.id,
                     order_item_id=oi.id,
@@ -230,11 +281,20 @@ async def create_order(db, payload, shopkeeper_id):
                     taxes=order.gst,
                     discount=order.discount,
                 ))
+            logger.debug("Before receipt commit")
             await db.commit()
+            logger.debug("After receipt commit")
             await db.refresh(order, ["items"])
+            logger.debug("After receipt refresh")
+        else:
+            logger.debug("Skipping receipt: store=%s, order.items=%s",
+                         "found" if store else "NOT FOUND",
+                         len(order.items) if order.items else 0)
 
     except HTTPException:
+        logger.debug("HTTPException caught — rolling back")
         await db.rollback()
+        logger.debug("Rollback complete")
         raise
     except IntegrityError:
         await db.rollback()
@@ -244,18 +304,44 @@ async def create_order(db, payload, shopkeeper_id):
         await db.rollback()
         logger.exception("DataError creating order for shopkeeper %s", shopkeeper_id)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in order request")
-    except Exception:
+    except DBAPIError:
         await db.rollback()
-        logger.exception("Failed to create order for shopkeeper %s", shopkeeper_id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create order")
+        logger.critical("DBAPIError creating order for shopkeeper %s", shopkeeper_id)
+        print("=" * 80, flush=True)
+        print("CREATE ORDER FAILED — DBAPIError", flush=True)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
+    except SQLAlchemyError:
+        await db.rollback()
+        logger.critical("SQLAlchemyError creating order for shopkeeper %s", shopkeeper_id)
+        print("=" * 80, flush=True)
+        print("CREATE ORDER FAILED — SQLAlchemyError", flush=True)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
+    except Exception as exc:
+        await db.rollback()
+        logger.critical("UNEXPECTED exception creating order for shopkeeper %s", shopkeeper_id)
+        print("=" * 80, flush=True)
+        print("CREATE ORDER FAILED — UNEXPECTED EXCEPTION", flush=True)
+        print("Exception Type:", type(exc).__name__)
+        print("Exception Args:", exc.args)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
 
+    logger.debug("Enriching orders for response")
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
+    logger.debug("Emitting order_created event")
     await _try_safe_emit(emit_order_created, order.shopkeeper_id, {"order_id": order.id,
         "order_number": order.order_number, "total": order.total})
+    logger.debug("Invalidating cache")
     await invalidate_cache("dashboard:*")
     resp = _order_to_response(order, customers_by_id, products_by_id)
     if credit_alert:
         resp["credit_alert"] = credit_alert
+    logger.debug("=== create_order SUCCESS ===")
     return resp
 
 
@@ -392,10 +478,32 @@ async def create_bulk_order(db, payload, user_email):
         await db.rollback()
         logger.exception("DataError creating bulk order for %s", user_email)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in order request")
-    except Exception:
+    except DBAPIError:
         await db.rollback()
-        logger.exception("Failed to create bulk order for %s", user_email)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create order")
+        logger.critical("DBAPIError creating bulk order for %s", user_email)
+        print("=" * 80, flush=True)
+        print("CREATE BULK ORDER FAILED — DBAPIError", flush=True)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
+    except SQLAlchemyError:
+        await db.rollback()
+        logger.critical("SQLAlchemyError creating bulk order for %s", user_email)
+        print("=" * 80, flush=True)
+        print("CREATE BULK ORDER FAILED — SQLAlchemyError", flush=True)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
+    except Exception as exc:
+        await db.rollback()
+        logger.critical("UNEXPECTED exception creating bulk order for %s", user_email)
+        print("=" * 80, flush=True)
+        print("CREATE BULK ORDER FAILED — UNEXPECTED EXCEPTION", flush=True)
+        print("Exception Type:", type(exc).__name__)
+        print("Exception Args:", exc.args)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
 
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
     await invalidate_cache("dashboard:*")
@@ -572,10 +680,32 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
         await db.rollback()
         logger.exception("DataError updating status for order %s", order_id)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in status update")
-    except Exception:
+    except DBAPIError:
         await db.rollback()
-        logger.exception("Failed to update order status for %s", order_id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update order status")
+        logger.critical("DBAPIError updating status for order %s", order_id)
+        print("=" * 80, flush=True)
+        print("UPDATE ORDER STATUS FAILED — DBAPIError", flush=True)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
+    except SQLAlchemyError:
+        await db.rollback()
+        logger.critical("SQLAlchemyError updating status for order %s", order_id)
+        print("=" * 80, flush=True)
+        print("UPDATE ORDER STATUS FAILED — SQLAlchemyError", flush=True)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
+    except Exception as exc:
+        await db.rollback()
+        logger.critical("UNEXPECTED exception updating status for order %s", order_id)
+        print("=" * 80, flush=True)
+        print("UPDATE ORDER STATUS FAILED — UNEXPECTED EXCEPTION", flush=True)
+        print("Exception Type:", type(exc).__name__)
+        print("Exception Args:", exc.args)
+        traceback.print_exc()
+        print("=" * 80, flush=True)
+        raise
 
     await invalidate_cache("dashboard:*")
     await _try_safe_emit(emit_order_status_changed, order.shopkeeper_id, order.id, order.status.value if hasattr(order.status, "value") else str(order.status))
