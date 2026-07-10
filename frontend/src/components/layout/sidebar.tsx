@@ -25,7 +25,6 @@ import {
   Printer,
   ArrowLeftRight,
   Camera,
-  ChevronDown,
   History,
   Pencil,
 } from "lucide-react"
@@ -51,6 +50,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useRole } from "@/components/auth/role-guard"
 import { useStoreContext } from "@/lib/store-context"
+import { useUser } from "@/hooks/use-user"
 import { clientApi } from "@/lib/client-api"
 import { RenameStoreDialog } from "./rename-store-dialog"
 
@@ -155,6 +155,7 @@ function NavItem({
 export function AppSidebar() {
   const pathname = usePathname()
   const { role } = useRole()
+  const { user } = useUser()
   const { activeStore, setActiveStore } = useStoreContext()
   const [stores, setStores] = useState<Store[]>([])
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
@@ -167,6 +168,9 @@ export function AppSidebar() {
     }
   }, [role])
 
+  const displayName = activeStore?.name || user?.store_name || "Store"
+  const displayInitial = displayName.charAt(0).toUpperCase()
+
   const filteredGroups = navGroups
     .map((group) => ({
       ...group,
@@ -175,7 +179,7 @@ export function AppSidebar() {
     .filter((group) => group.items.length > 0)
 
   return (
-    <Sidebar collapsible="icon" className="max-h-dvh">
+    <Sidebar collapsible="icon" className="max-h-dvh bg-zinc-50 dark:bg-[#09090b]">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -214,8 +218,8 @@ export function AppSidebar() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-full h-8 text-sm rounded-[4px] border-zinc-700/60 bg-zinc-800/50">
-                <SelectValue placeholder="All Stores" />
+              <SelectTrigger className="w-full h-8 text-sm rounded-[4px] border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100">
+                <SelectValue placeholder={displayName} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">All Stores</SelectItem>
@@ -249,8 +253,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="px-2 py-1">
-          <p className="text-xs text-zinc-600 text-center group-data-[collapsible=icon]:hidden font-mono">KhataBox v1.0</p>
+        <div className="px-2 py-2 flex items-center gap-2 border-t border-zinc-200 dark:border-zinc-800 pt-3 group-data-[collapsible=icon]:hidden">
+          <div className="flex items-center justify-center size-7 rounded-[4px] bg-amber-brand/10 text-amber-brand text-xs font-bold shrink-0">
+            {displayInitial}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-foreground truncate">{displayName}</p>
+            <p className="text-[10px] text-zinc-500 truncate">{user?.email || ""}</p>
+          </div>
         </div>
       </SidebarFooter>
 
