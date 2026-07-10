@@ -304,22 +304,22 @@ async def create_order(db, payload, shopkeeper_id):
         await db.rollback()
         logger.exception("DataError creating order for shopkeeper %s", shopkeeper_id)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in order request")
-    except DBAPIError:
+    except DBAPIError as exc:
         await db.rollback()
         logger.critical("DBAPIError creating order for shopkeeper %s", shopkeeper_id)
         print("=" * 80, flush=True)
         print("CREATE ORDER FAILED — DBAPIError", flush=True)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
-    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {exc}")
+    except SQLAlchemyError as exc:
         await db.rollback()
         logger.critical("SQLAlchemyError creating order for shopkeeper %s", shopkeeper_id)
         print("=" * 80, flush=True)
         print("CREATE ORDER FAILED — SQLAlchemyError", flush=True)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {exc}")
     except Exception as exc:
         await db.rollback()
         logger.critical("UNEXPECTED exception creating order for shopkeeper %s", shopkeeper_id)
@@ -329,7 +329,7 @@ async def create_order(db, payload, shopkeeper_id):
         print("Exception Args:", exc.args)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {exc}")
 
     logger.debug("Enriching orders for response")
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
@@ -478,22 +478,22 @@ async def create_bulk_order(db, payload, user_email):
         await db.rollback()
         logger.exception("DataError creating bulk order for %s", user_email)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in order request")
-    except DBAPIError:
+    except DBAPIError as exc:
         await db.rollback()
         logger.critical("DBAPIError creating bulk order for %s", user_email)
         print("=" * 80, flush=True)
         print("CREATE BULK ORDER FAILED — DBAPIError", flush=True)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
-    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {exc}")
+    except SQLAlchemyError as exc:
         await db.rollback()
         logger.critical("SQLAlchemyError creating bulk order for %s", user_email)
         print("=" * 80, flush=True)
         print("CREATE BULK ORDER FAILED — SQLAlchemyError", flush=True)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {exc}")
     except Exception as exc:
         await db.rollback()
         logger.critical("UNEXPECTED exception creating bulk order for %s", user_email)
@@ -503,7 +503,7 @@ async def create_bulk_order(db, payload, user_email):
         print("Exception Args:", exc.args)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {exc}")
 
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
     await invalidate_cache("dashboard:*")
@@ -680,22 +680,22 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
         await db.rollback()
         logger.exception("DataError updating status for order %s", order_id)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid data in status update")
-    except DBAPIError:
+    except DBAPIError as exc:
         await db.rollback()
         logger.critical("DBAPIError updating status for order %s", order_id)
         print("=" * 80, flush=True)
         print("UPDATE ORDER STATUS FAILED — DBAPIError", flush=True)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
-    except SQLAlchemyError:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {exc}")
+    except SQLAlchemyError as exc:
         await db.rollback()
         logger.critical("SQLAlchemyError updating status for order %s", order_id)
         print("=" * 80, flush=True)
         print("UPDATE ORDER STATUS FAILED — SQLAlchemyError", flush=True)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Database error: {exc}")
     except Exception as exc:
         await db.rollback()
         logger.critical("UNEXPECTED exception updating status for order %s", order_id)
@@ -705,7 +705,7 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
         print("Exception Args:", exc.args)
         traceback.print_exc()
         print("=" * 80, flush=True)
-        raise
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {exc}")
 
     await invalidate_cache("dashboard:*")
     await _try_safe_emit(emit_order_status_changed, order.shopkeeper_id, order.id, order.status.value if hasattr(order.status, "value") else str(order.status))

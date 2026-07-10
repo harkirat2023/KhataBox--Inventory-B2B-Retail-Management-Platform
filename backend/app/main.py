@@ -75,6 +75,15 @@ async def data_error_handler(request: Request, exc: DataError):
     return JSONResponse(status_code=400, content={"detail": "Invalid data in request"})
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.critical("Unhandled exception on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {type(exc).__name__}: {exc}"},
+    )
+
+
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
     return await rate_limit_middleware(request, call_next)
