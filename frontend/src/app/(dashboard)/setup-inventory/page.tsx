@@ -133,7 +133,7 @@ function SetupInventoryContent() {
         { items }
       )
       toast.success(`${result.created} products added to inventory!`)
-      router.push("/inventory")
+      router.push("/dashboard")
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to add products")
     } finally {

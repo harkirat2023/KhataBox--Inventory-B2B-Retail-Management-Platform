@@ -163,7 +163,13 @@ function RegisterForm() {
       setAuthToken(data.access_token)
       setStep("complete")
       setTimeout(() => {
-        window.location.href = role === "customer" ? "/customer" : "/dashboard"
+        if (role === "shopkeeper") {
+          window.location.href = `/setup-inventory?store_type=${form.store_type || "kirana"}`
+        } else if (role === "customer") {
+          window.location.href = "/customer"
+        } else {
+          window.location.href = "/dashboard"
+        }
       }, 1500)
     } catch (err: any) {
       setError(err?.message || "Verification failed")

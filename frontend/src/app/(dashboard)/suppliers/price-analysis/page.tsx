@@ -164,7 +164,7 @@ export default function PriceAnalysisPage() {
         )}
       </div>
 
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="px-4 pt-3">
             <TabsList className="rounded-xl bg-muted p-1">

@@ -254,7 +254,7 @@ export default function OrderHistoryPage() {
             </div>
           ))}
         </div>
-        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden animate-pulse">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto animate-pulse">
           <div className="bg-muted px-6 py-4 flex gap-4">
             {[...Array(7)].map((_, i) => (
               <div key={i} className="h-4 bg-muted rounded w-20" />
@@ -526,7 +526,7 @@ export default function OrderHistoryPage() {
       </div>
 
       {/* Results */}
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted">

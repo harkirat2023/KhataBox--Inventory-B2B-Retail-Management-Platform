@@ -200,7 +200,7 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Inventory</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportCsv} />
           <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
             <Upload className="size-4 mr-2" /> {importing ? "Importing..." : "Import"}
@@ -258,7 +258,7 @@ export default function InventoryPage() {
         )}
       </div>
 
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

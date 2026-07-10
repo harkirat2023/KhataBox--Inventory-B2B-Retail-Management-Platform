@@ -146,7 +146,7 @@ export default function TransfersPage() {
       </div>
 
         {loading ? (
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -186,7 +186,7 @@ export default function TransfersPage() {
             </Button>
           </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

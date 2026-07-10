@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
           </Select>
         </div>
 
-        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

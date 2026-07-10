@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -116,6 +117,12 @@ export default function DashboardPage() {
     queryKey: queryKeys.dashboard.stores(),
     queryFn: () => clientApi.get<Store[]>("/api/v1/stores/"),
   })
+
+  useEffect(() => {
+    if (stores && stores.length > 0 && !activeStore.id) {
+      setActiveStore({ id: stores[0].id, name: stores[0].name })
+    }
+  }, [stores, activeStore.id, setActiveStore])
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: queryKeys.dashboard.stats(activeStore.id),

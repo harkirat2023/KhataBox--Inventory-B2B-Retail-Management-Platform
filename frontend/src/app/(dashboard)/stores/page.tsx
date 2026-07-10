@@ -99,7 +99,7 @@ export default function StoresPage() {
         </div>
 
         {loading ? (
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -131,7 +131,7 @@ export default function StoresPage() {
             </Button>
           </div>
         ) : (
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

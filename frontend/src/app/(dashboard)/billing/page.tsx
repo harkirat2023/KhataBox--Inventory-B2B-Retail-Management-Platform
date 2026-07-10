@@ -424,7 +424,7 @@ export default function BillingPage() {
             </CardContent>
           </Card>
 
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

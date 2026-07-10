@@ -175,7 +175,7 @@ export function AppSidebar() {
     .filter((group) => group.items.length > 0)
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="max-h-dvh">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
