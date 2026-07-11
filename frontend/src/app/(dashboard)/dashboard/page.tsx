@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
@@ -19,6 +19,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
+  Store,
+  X,
 } from "lucide-react"
 import {
   Select,
@@ -112,10 +114,12 @@ function EmptyState({ icon: Icon, title, description, action }: { icon: React.El
 export default function DashboardPage() {
   const router = useRouter()
   const { activeStore, setActiveStore } = useStoreContext()
+  const [dismissB2cBanner, setDismissB2cBanner] = useState(false)
 
   const { data: stores } = useQuery({
     queryKey: queryKeys.dashboard.stores(),
     queryFn: () => clientApi.get<Store[]>("/api/v1/stores/"),
+    refetchInterval: 60_000,
   })
 
   useEffect(() => {
@@ -130,12 +134,14 @@ export default function DashboardPage() {
       const params = activeStore.id ? `?store_id=${activeStore.id}` : ""
       return clientApi.get<DashboardStats>(`/api/v1/dashboard/stats${params}`)
     },
+    refetchInterval: 30_000,
   })
 
   const { data: ordersData } = useQuery({
     queryKey: queryKeys.orders.list(),
     queryFn: () => clientApi.get<Order[]>("/api/v1/orders/"),
     select: (data) => data.slice(0, 5),
+    refetchInterval: 30_000,
   })
 
   const { data: productsData } = useQuery({
@@ -145,12 +151,20 @@ export default function DashboardPage() {
       data
         .filter((p) => p.stock_quantity <= p.reorder_threshold)
         .slice(0, 5),
+    refetchInterval: 30_000,
+  })
+
+  const { data: pendingB2cOrders } = useQuery({
+    queryKey: ['b2c', 'orders', 'pending'],
+    queryFn: () => clientApi.get<Order[]>("/api/v1/b2c/shopkeeper/orders?status=pending"),
+    refetchInterval: 30_000,
   })
 
   const recentOrders = ordersData ?? []
   const lowStockProducts = productsData ?? []
+  const pendingB2cCount = pendingB2cOrders?.length ?? 0
 
-  const cards = [
+  const cards = useMemo(() => [
     {
       title: "Inventory Value",
       icon: IndianRupee,
@@ -187,7 +201,7 @@ export default function DashboardPage() {
       changePositive: stats ? stats.low_stock_count === 0 : true,
       metricStyle: "danger",
     },
-  ]
+  ], [stats])
 
   const iconBgMap: Record<string, string> = {
     default: "bg-primary/10 text-primary",
@@ -245,6 +259,36 @@ export default function DashboardPage() {
               Setup Inventory
             </Button>
           </Link>
+        </motion.div>
+      )}
+
+      {/* Pending B2C Orders Banner */}
+      {pendingB2cCount > 0 && !dismissB2cBanner && (
+        <motion.div variants={itemVariants} className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center justify-center size-10 rounded-xl bg-amber-100 dark:bg-amber-900/50 shrink-0">
+              <Store className="size-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                {pendingB2cCount} B2C order{pendingB2cCount > 1 ? "s" : ""} pending approval
+              </p>
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+                Customers are waiting for you to review and confirm their orders
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href="/orders?tab=b2c">
+              <Button size="sm" className="rounded-xl whitespace-nowrap bg-amber-600 hover:bg-amber-700 text-white text-xs h-8">
+                <ShoppingCart className="size-3.5 mr-1" />
+                Review Orders
+              </Button>
+            </Link>
+            <Button variant="ghost" size="icon-xs" className="size-8 text-amber-500 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-xl" onClick={() => setDismissB2cBanner(true)}>
+              <X className="size-4" />
+            </Button>
+          </div>
         </motion.div>
       )}
 

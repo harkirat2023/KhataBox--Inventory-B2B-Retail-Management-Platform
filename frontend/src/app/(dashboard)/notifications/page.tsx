@@ -11,6 +11,7 @@ import {
   Filter,
   Bell,
   LogOut,
+  Store,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -34,11 +35,12 @@ interface Notification {
   created_at: string
 }
 
-const typeConfig: Record<NotificationType, { icon: typeof Package; color: string; label: string }> = {
+const typeConfig: Record<string, { icon: typeof Package; color: string; label: string }> = {
   low_stock: { icon: AlertTriangle, color: "text-amber-600 bg-amber-100", label: "Low Stock" },
   expiry: { icon: AlertTriangle, color: "text-red-600 bg-red-100", label: "Expiry" },
   payment: { icon: CreditCard, color: "text-blue-600 bg-blue-100", label: "Payment" },
   ai_recommendation: { icon: Lightbulb, color: "text-green-600 bg-green-100", label: "AI Insight" },
+  b2c_order: { icon: Store, color: "text-purple-600 bg-purple-100", label: "B2C Order" },
 }
 
 const typeLabels: { value: string; label: string }[] = [
@@ -165,7 +167,8 @@ export default function NotificationsPage() {
             </div>
           )}
           {notifications.map((notification, i) => {
-            const config = typeConfig[notification.type]
+            const effectiveType = notification.title.startsWith("B2C Order") ? "b2c_order" : notification.type
+            const config = typeConfig[effectiveType] || typeConfig.low_stock
             const Icon = config.icon
             return (
               <div

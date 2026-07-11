@@ -371,6 +371,17 @@ async def complete_order(
             detail=f"Order cannot be completed from status: {order.status}. Expected: {B2COrderStatus.PENDING.value} or {B2COrderStatus.CONFIRMED.value}",
         )
 
+    # Check for existing receipt (stale from prior completion) to avoid 409
+    existing_receipt_result = await db.execute(
+        select(Receipt).where(Receipt.b2c_order_id == order_id)
+    )
+    existing_receipt = existing_receipt_result.scalar_one_or_none()
+    if existing_receipt:
+        order.status = B2COrderStatus.COMPLETED.value
+        await db.commit()
+        await db.refresh(order, ["items"])
+        return await _order_to_response(db, order)
+
     try:
         order.status = B2COrderStatus.COMPLETED.value
         await db.flush()
@@ -391,12 +402,10 @@ async def complete_order(
         order.total = total
         await db.flush()
 
-        # Deduct inventory
         for item in order_items:
             pid = item.product_id if edited_items else item.product_id
             qty = item.quantity if edited_items else item.quantity
             pname = item.product_name if edited_items else item.product_name
-            uprice = item.unit_price if edited_items else item.unit_price
 
             product_result = await db.execute(
                 select(Product).where(Product.id == pid, Product.owner_id == shopkeeper_id)
@@ -416,12 +425,13 @@ async def complete_order(
             await db.flush()
             await check_low_stock(pid, shopkeeper_id, db)
 
-        # Generate receipt
+        from datetime import datetime
+        ts = datetime.utcnow().strftime("%Y%m%d%H%M%S")
         store_result = await db.execute(select(Store).where(Store.id == order.store_id))
         store = store_result.scalar_one_or_none()
         if store and order_items:
             receipt = Receipt(
-                receipt_number=f"RCPT-B2C-{order.id:08d}",
+                receipt_number=f"RCPT-B2C-{order.id:08d}-{ts}",
                 b2c_order_id=order.id, shopkeeper_id=shopkeeper_id,
                 customer_id=None, store_id=order.store_id,
                 payment_method="upi" if order.payment_type == "online" else order.payment_type,
@@ -460,7 +470,10 @@ async def complete_order(
         existing = existing_result.scalar_one_or_none()
         if existing and existing.status == B2COrderStatus.COMPLETED.value:
             return await _order_to_response(db, existing)
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Database conflict completing order")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Database conflict completing order. The order may already have a receipt. Please refresh and check completed orders.",
+        )
 
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")

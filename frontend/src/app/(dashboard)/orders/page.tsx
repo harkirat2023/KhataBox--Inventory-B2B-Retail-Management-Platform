@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback, Fragment, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import {
   ChevronDown,
@@ -98,10 +98,11 @@ function OrderRowSkeleton() {
 
 export default function OrdersPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [orders, setOrders] = useState<Order[]>([])
   const [b2cOrders, setB2cOrders] = useState<Order[]>([])
   const [search, setSearch] = useState("")
-  const [tab, setTab] = useState<OrderTab>("b2c")
+  const [tab, setTab] = useState<OrderTab>((searchParams.get("tab") as OrderTab) || "b2c")
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null)
