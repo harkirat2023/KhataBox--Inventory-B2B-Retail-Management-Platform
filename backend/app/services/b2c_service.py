@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -445,7 +446,19 @@ async def complete_order(
     )
     db.add(alert)
 
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        order_result = await db.execute(
+            select(B2COrder)
+            .where(B2COrder.id == order_id, B2COrder.shopkeeper_id == shopkeeper_id)
+            .options(selectinload(B2COrder.items))
+        )
+        existing = order_result.scalar_one_or_none()
+        if existing and existing.status == B2COrderStatus.COMPLETED.value:
+            return await _order_to_response(db, existing)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Database conflict completing order")
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")
     await emit_order_status_changed(shopkeeper_id, order.id, B2COrderStatus.COMPLETED.value)

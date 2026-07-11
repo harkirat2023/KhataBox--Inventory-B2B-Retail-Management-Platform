@@ -2,18 +2,34 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Store, ShoppingBag, ShoppingCart, Clock, ScanLine } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { Store, ShoppingBag, ShoppingCart, Clock, ScanLine, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRole } from "@/components/auth/role-guard"
 import { useCustomerCartStore } from "@/store/customer-cart"
 
+function clearAuthToken() {
+  document.cookie = "khatabox_token=; Path=/; Max-Age=0"
+  document.cookie = "admin_token=; Path=/; Max-Age=0"
+}
+
 export function BottomNav() {
   const pathname = usePathname()
+  const router = useRouter()
   const { role } = useRole()
   const { items } = useCustomerCartStore()
 
-  const customerItems = [
+  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
+
+  if (role === "customer" && pathname.startsWith("/payment-simulate")) return null
+  if (role === "shopkeeper") return null
+
+  const handleLogout = () => {
+    clearAuthToken()
+    router.push("/khatabox")
+  }
+
+  const navItems = [
     { label: "Home", href: "/customer", icon: Store },
     { label: "Catalog", href: "/catalog", icon: ShoppingBag },
     { label: "Cart", href: "/cart", icon: ShoppingCart, badge: true },
@@ -21,15 +37,10 @@ export function BottomNav() {
     { label: "Scan", href: "/scan", icon: ScanLine },
   ]
 
-  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0)
-
-  if (role === "customer" && pathname.startsWith("/payment-simulate")) return null
-  if (role === "shopkeeper") return null
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-t border-border dark:border-zinc-800 backdrop-blur-xl">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
-        {customerItems.map((item) => {
+      <div className="flex items-center justify-around h-16 max-w-3xl mx-auto px-2">
+        {navItems.map((item) => {
           const Icon = item.icon
           const isActive =
             item.href === "/"
@@ -76,6 +87,26 @@ export function BottomNav() {
             </Link>
           )
         })}
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative group"
+          title="Logout"
+        >
+          <motion.div
+            className="relative"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+          >
+            <div className="p-1.5 rounded-xl transition-all duration-200 text-muted-foreground group-hover:text-red-500">
+              <LogOut className="size-5 transition-all duration-200" />
+            </div>
+          </motion.div>
+          <span className="text-[10px] leading-tight truncate max-w-full transition-all duration-200 text-muted-foreground group-hover:text-red-500">
+            Logout
+          </span>
+        </button>
       </div>
     </nav>
   )

@@ -23,6 +23,10 @@ import {
   Eye,
   Download,
   Trash2,
+  Loader2,
+  Receipt,
+  Banknote,
+  CreditCard,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -104,6 +108,10 @@ export default function OrdersPage() {
   const [sortField, setSortField] = useState<SortField>("created_at")
   const [sortDir, setSortDir] = useState<SortDir>("desc")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [b2cConfirmOpen, setB2cConfirmOpen] = useState(false)
+  const [b2cConfirmOrder, setB2cConfirmOrder] = useState<Order | null>(null)
+  const [b2cConfirming, setB2cConfirming] = useState(false)
+  const [b2cConfirmed, setB2cConfirmed] = useState(false)
 
   const loadOrders = useCallback(async () => {
     setLoading(true)
@@ -210,16 +218,22 @@ export default function OrdersPage() {
     }
   }
 
-  const handleApproveB2C = async (order: Order) => {
-    setUpdating(true)
+  const handleApproveB2C = (order: Order) => {
+    setB2cConfirmOrder(order)
+    setB2cConfirmed(false)
+    setB2cConfirmOpen(true)
+  }
+
+  const handleB2CConfirmSubmit = async () => {
+    if (!b2cConfirmOrder) return
+    setB2cConfirming(true)
     try {
-      await clientApi.post(`/api/v1/b2c/shopkeeper/orders/${order.id}/confirm`, {})
+      await clientApi.post(`/api/v1/b2c/shopkeeper/orders/${b2cConfirmOrder.id}/confirm`, {})
+      setB2cConfirmed(true)
       await loadOrders()
-      toast.success("B2C order approved & completed")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Failed to approve/complete order")
-    } finally {
-      setUpdating(false)
+      setB2cConfirming(false)
     }
   }
 
@@ -430,7 +444,7 @@ export default function OrdersPage() {
                                   handleApproveB2C(order)
                                 }}
                                 disabled={updating}
-                                className="h-8 px-3 rounded-lg gap-1 text-xs"
+                                className="h-8 px-3 rounded-lg gap-1 text-xs bg-green-600 hover:bg-green-700 text-white"
                               >
                                 <CheckCircle className="size-3.5" />
                                 Approve
@@ -604,6 +618,141 @@ export default function OrdersPage() {
               {updating ? "Updating..." : "Confirm"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* B2C Confirm Modal */}
+      <Dialog open={b2cConfirmOpen} onOpenChange={(open) => { if (!b2cConfirming) setB2cConfirmOpen(open) }}>
+        <DialogContent className="sm:max-w-xl">
+          {b2cConfirmed ? (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className="size-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <CheckCircle className="size-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl">Order Completed</DialogTitle>
+                    <DialogDescription>
+                      B2C order has been approved and completed successfully.
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center">
+                <Receipt className="size-8 mx-auto mb-2 text-green-600 dark:text-green-400" />
+                <p className="font-semibold text-green-800 dark:text-green-300">{b2cConfirmOrder?.order_number}</p>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                  Receipt generated & inventory deducted
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null); setB2cConfirmed(false) }}
+                  className="rounded-lg bg-green-600 hover:bg-green-700 text-white">
+                  Done
+                </Button>
+              </DialogFooter>
+            </>
+          ) : b2cConfirming ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Processing Order...</DialogTitle>
+                <DialogDescription>Approving order, deducting inventory, and generating receipt.</DialogDescription>
+              </DialogHeader>
+              <div className="text-center py-10">
+                <Loader2 className="size-10 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-sm text-muted-foreground">Please wait while the order is being processed.</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Confirm B2C Order</DialogTitle>
+                <DialogDescription>
+                  Review the order details before approving. Inventory will be deducted and a receipt will be generated.
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Order Info */}
+              <div className="bg-muted rounded-xl p-4 space-y-1 text-sm border">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Order</span>
+                  <span className="font-mono font-medium">{b2cConfirmOrder?.order_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Customer</span>
+                  <span className="font-medium">{b2cConfirmOrder?.customer_name || "Walk-in"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Payment</span>
+                  <span className="font-medium capitalize">
+                    {b2cConfirmOrder?.payment_method === "credit" ? "Khata" : b2cConfirmOrder?.payment_method || "Online"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[b2cConfirmOrder?.status || "pending"]?.color || "")}>
+                    {ORDER_STATUS_CONFIG[b2cConfirmOrder?.status || "pending"]?.label || "Pending"}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Items */}
+              {b2cConfirmOrder?.items && b2cConfirmOrder.items.length > 0 && (
+                <div className="max-h-[30vh] overflow-y-auto space-y-1.5 py-1">
+                  {b2cConfirmOrder.items.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.product_name}</p>
+                        <p className="text-xs text-muted-foreground">₹{Number((item as { unit_price?: number }).unit_price || 0).toFixed(2)} each</p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-sm text-muted-foreground">x{item.quantity}</span>
+                        <span className="text-sm font-medium w-20 text-right tabular-nums">
+                          ₹{Number((item as { total_price?: number }).total_price || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Totals */}
+              {b2cConfirmOrder && (
+                <div className="space-y-1 text-sm border-t pt-3">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="tabular-nums">₹{(b2cConfirmOrder.subtotal || 0).toFixed(2)}</span>
+                  </div>
+                  {b2cConfirmOrder.discount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Discount</span>
+                      <span className="tabular-nums text-destructive">-₹{(b2cConfirmOrder.discount || 0).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">GST</span>
+                    <span className="tabular-nums">₹{(b2cConfirmOrder.gst || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold text-base border-t pt-1">
+                    <span>Total</span>
+                    <span className="tabular-nums">₹{(b2cConfirmOrder.total || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="mt-2">
+                <Button variant="outline" onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null) }} disabled={b2cConfirming} className="rounded-lg">
+                  Cancel
+                </Button>
+                <Button onClick={handleB2CConfirmSubmit} disabled={b2cConfirming}
+                  className="rounded-lg gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+                  <CheckCircle className="size-4" />
+                  {b2cConfirming ? "Processing..." : "Confirm & Complete"}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

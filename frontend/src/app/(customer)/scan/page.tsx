@@ -123,7 +123,7 @@ function ScanContent() {
         </div>
       </div>
 
-      <div className="px-4 mt-5 max-w-sm mx-auto">
+      <div className="px-4 mt-5 mx-auto" style={{ maxWidth: "480px" }}>
         {/* Scanner */}
         <div className={`bg-card rounded-2xl border p-3 shadow-sm transition-all duration-300 ${cameraActive ? "border-primary/30 ring-2 ring-primary/10" : "border-border"}`}>
           <div className="relative aspect-video rounded-xl bg-gradient-to-br from-muted to-primary/10 overflow-hidden">

@@ -184,7 +184,6 @@ export default function CustomerHome() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <div className="max-w-7xl mx-auto">
         {/* Loading State */}
         {storesLoading && (
           <div className="px-5 mt-6 pt-6 space-y-4">
@@ -363,7 +362,6 @@ export default function CustomerHome() {
             )}
           </>
         )}
-      </div>
 
       <BottomNav />
     </div>

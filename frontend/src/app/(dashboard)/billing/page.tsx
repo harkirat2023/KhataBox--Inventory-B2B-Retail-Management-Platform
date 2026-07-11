@@ -361,7 +361,7 @@ export default function BillingPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={() => {
+                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground hover:bg-muted rounded-[6px]" onClick={() => {
                     const currentQty = getCartQty(lastScanned.id)
                     if (currentQty <= 1) {
                       removeItemFromActiveCart(lastScanned.id)
@@ -372,7 +372,7 @@ export default function BillingPage() {
                     <Minus className="size-4" />
                   </Button>
                   <span className="w-12 text-center font-medium">{getCartQty(lastScanned.id)}</span>
-                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={() => {
+                  <Button variant="outline" size="icon" className="bg-card border border-border text-foreground hover:bg-muted rounded-[6px]" onClick={() => {
                     const maxStock = stockMap.get(lastScanned.id) ?? Infinity
                     const currentQty = getCartQty(lastScanned.id)
                     if (currentQty + 1 > maxStock) {
@@ -425,7 +425,7 @@ export default function BillingPage() {
                     className="rounded-[6px] bg-muted border-0 h-11 pl-10"
                   />
                 </div>
-                <Button onClick={handleScan} className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px] h-11 px-5">Lookup</Button>
+                <Button onClick={handleScan} className="bg-card border border-border text-foreground hover:bg-muted rounded-[6px] h-11 px-5">Lookup</Button>
               </div>
             </CardContent>
           </Card>
@@ -502,13 +502,13 @@ export default function BillingPage() {
                 <div className="flex items-center gap-1">
                   {navigableCount > 1 && (
                     <>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={switchToPrev} title="Previous cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground hover:bg-muted rounded-[6px]" onClick={switchToPrev} title="Previous cart">
                         <ChevronLeft className="size-3.5" />
                       </Button>
                       <span className="text-xs text-muted-foreground min-w-[4rem] text-center tabular-nums">
                         {activeIdx + 1} of {navigableCount}
                       </span>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground/80 hover:bg-muted rounded-[6px]" onClick={switchToNext} title="Next cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground hover:bg-muted rounded-[6px]" onClick={switchToNext} title="Next cart">
                         <ChevronRight className="size-3.5" />
                       </Button>
                     </>
