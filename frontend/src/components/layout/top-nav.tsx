@@ -101,38 +101,38 @@ export function TopNav() {
 
   return (
     <header className="sticky top-0 z-40 flex items-center h-[64px] border-b border-border bg-white dark:bg-[#121214] backdrop-blur-xl px-4 lg:px-6 gap-3">
-      <SidebarTrigger className="hidden lg:flex -ml-1 text-muted-foreground hover:text-foreground" />
+      <SidebarTrigger className="hidden lg:flex -ml-1 text-muted-foreground hover:text-foreground rounded-lg transition-colors" />
 
       <Link href={homeLink} className="flex items-center gap-2.5 lg:hidden">
-        <div className="flex items-center justify-center size-8 rounded-[4px] bg-primary/10">
+        <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
           <Boxes className="size-5 text-primary" />
         </div>
         <span className="font-semibold text-lg tracking-tight text-foreground">KhataBox</span>
       </Link>
 
       <div ref={searchRef} className="hidden sm:flex relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <input
           ref={searchInputRef}
           placeholder={role === "customer" ? "Search products..." : "Search products, orders..."}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => { if (searchResults.length > 0) setShowResults(true) }}
-          className="w-full h-10 pl-10 pr-12 rounded-[6px] border border-border bg-muted/50 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-primary/60 focus:bg-background transition-all" />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          className="w-full h-10 pl-10 pr-14 rounded-full border border-border bg-muted/50 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/60 focus:bg-background transition-all" />
+        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {searching && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
-          <kbd className="hidden md:inline-flex items-center gap-1 rounded-[3px] border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground font-mono">
+          <kbd className="hidden md:inline-flex items-center gap-0.5 rounded-md border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground/60 font-mono">
             <Command className="size-3" />K
           </kbd>
         </div>
 
         {showResults && (
-          <div className="absolute top-full left-0 right-0 mt-1 rounded-[6px] border border-border bg-card shadow-lg overflow-hidden z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-border bg-card shadow-lg overflow-hidden z-50">
             {searchResults.map((product) => (
               <button
                 key={product.id}
                 onClick={() => selectResult(product)}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-accent transition-colors border-b border-border last:border-0"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent transition-colors border-b border-border last:border-0"
               >
                 <Package className="size-4 shrink-0 text-muted-foreground" />
                 <div className="flex-1 min-w-0">
@@ -156,37 +156,37 @@ export function TopNav() {
 
       <div className="flex items-center gap-1 ml-auto">
         <ThemeToggle />
-        <Button variant="ghost" size="icon" className="relative rounded-[6px] text-muted-foreground hover:text-foreground" onClick={() => router.push("/notifications")}>
+        <Button variant="ghost" size="icon" className="relative rounded-xl text-muted-foreground hover:text-foreground" onClick={() => router.push("/notifications")}>
           <Bell className="size-5" />
           <span className="absolute top-2 right-2 size-2 rounded-full bg-destructive ring-2 ring-background" />
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 h-9 px-2 rounded-[6px] hover:bg-accent outline-none cursor-pointer">
-            <Avatar className="size-7 rounded-[4px]">
-              <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
+          <DropdownMenuTrigger className="flex items-center gap-2 h-10 pl-2 pr-3 rounded-xl hover:bg-accent outline-none cursor-pointer transition-colors">
+            <Avatar className="size-8 rounded-lg">
+              <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">{initials}</AvatarFallback>
             </Avatar>
             <span className="hidden md:block text-sm font-medium max-w-[120px] truncate text-foreground">{user?.name}</span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 border-border bg-card">
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span className="font-medium text-foreground">{user?.name}</span>
+          <DropdownMenuContent align="end" className="w-56 border-border bg-card rounded-xl p-1.5">
+            <DropdownMenuLabel className="px-2 py-1.5">
+              <div className="flex flex-col gap-0.5">
+                <span className="font-semibold text-sm text-foreground">{user?.name}</span>
                 <span className="text-xs text-muted-foreground font-normal">{user?.email}</span>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem onSelect={() => router.push("/settings")} className="text-muted-foreground focus:text-foreground focus:bg-accent">
+            <DropdownMenuSeparator className="bg-border/60 mx-1" />
+            <DropdownMenuItem onSelect={() => router.push("/settings")} className="rounded-lg text-muted-foreground focus:text-foreground focus:bg-accent">
               <SettingsIcon className="size-4 mr-2" />Settings
             </DropdownMenuItem>
             {role && ["admin", "shopkeeper"].includes(role) && activeStore?.id && (
-              <DropdownMenuItem onSelect={() => setRenameDialogOpen(true)} className="text-muted-foreground focus:text-foreground focus:bg-accent">
+              <DropdownMenuItem onSelect={() => setRenameDialogOpen(true)} className="rounded-lg text-muted-foreground focus:text-foreground focus:bg-accent">
                 <Pencil className="size-4 mr-2" />Rename Store
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuSeparator className="bg-border/60 mx-1" />
             <DropdownMenuItem onSelect={() => { clearAuthToken(); window.location.href = "https://khataboxapp.vercel.app" }}
-              className="text-destructive focus:text-destructive focus:bg-destructive/10">
+              className="rounded-lg text-destructive focus:text-destructive focus:bg-destructive/10">
               <LogOut className="size-4 mr-2" />Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>

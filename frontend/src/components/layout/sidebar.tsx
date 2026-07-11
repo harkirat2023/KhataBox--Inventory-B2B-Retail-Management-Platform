@@ -145,8 +145,16 @@ function NavItem({
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <SidebarMenuButton isActive={active} tooltip={item.label} asChild href={item.href}>
-        <Icon className={cn("size-4 shrink-0", active ? "text-amber-brand" : "text-zinc-400")} />
-        <span className={active ? "text-foreground" : "text-zinc-400"}>{item.label}</span>
+        <div className={cn(
+          "flex items-center justify-center size-4.5 shrink-0 rounded-md transition-colors",
+          active ? "text-amber-brand" : "text-muted-foreground group-hover/menu-button:text-foreground"
+        )}>
+          <Icon className="size-4" />
+        </div>
+        <span className={cn(
+          "transition-colors",
+          active ? "text-amber-brand font-semibold" : "text-muted-foreground group-hover/menu-button:text-foreground"
+        )}>{item.label}</span>
       </SidebarMenuButton>
     </motion.div>
   )
@@ -180,23 +188,23 @@ export function AppSidebar() {
     .filter((group) => group.items.length > 0)
 
   return (
-    <Sidebar className="max-h-dvh overflow-y-auto">
-      <SidebarHeader>
+    <Sidebar className="max-h-dvh overflow-y-auto border-r border-sidebar-border">
+      <SidebarHeader className="p-4 pb-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild href="/dashboard">
-              <div className="flex items-center justify-center size-8 rounded-[4px] bg-amber-brand/10 shrink-0">
+            <SidebarMenuButton size="lg" asChild href="/dashboard" className="h-12">
+              <div className="flex items-center justify-center size-9 rounded-xl bg-amber-brand/10 shrink-0">
                 <Boxes className="size-5 text-amber-brand" />
               </div>
-              <span className="font-semibold text-lg tracking-tight text-foreground">KhataBox</span>
+              <span className="font-semibold text-lg tracking-tight text-foreground ml-1">KhataBox</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
 
         {role && ["admin", "shopkeeper"].includes(role) && (
-          <div className="px-1 pt-1">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">Store</span>
+          <div className="mt-2 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Store</span>
               {activeStore.id && (
                 <button
                   onClick={() => {
@@ -206,7 +214,7 @@ export function AppSidebar() {
                       setRenameDialogOpen(true)
                     }
                   }}
-                  className="text-zinc-500 hover:text-foreground transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
                 >
                   <Pencil className="size-3" />
                 </button>
@@ -219,7 +227,7 @@ export function AppSidebar() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-full h-8 text-sm rounded-[4px] border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+              <SelectTrigger className="w-full h-9 text-sm rounded-lg border-border bg-card">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -235,10 +243,10 @@ export function AppSidebar() {
         )}
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="px-3 py-1">
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="text-zinc-500 text-[11px] uppercase tracking-wider font-medium">
+            <SidebarGroupLabel className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -253,9 +261,9 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="px-2 py-1">
-          <p className="text-xs text-zinc-400 dark:text-zinc-600 text-center font-mono">KhataBox v1.0</p>
+      <SidebarFooter className="p-4 pt-2 border-t border-sidebar-border">
+        <div className="px-2">
+          <p className="text-[11px] text-muted-foreground/50 text-center font-mono">KhataBox v1.0</p>
         </div>
       </SidebarFooter>
 

@@ -92,14 +92,14 @@ function MetricSkeleton() {
 function EmptyState({ icon: Icon, title, description, action }: { icon: React.ElementType; title: string; description: string; action?: { label: string; href: string } }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="flex items-center justify-center size-12 rounded-[4px] bg-muted mb-4">
-        <Icon className="size-6 text-muted-foreground" />
+      <div className="flex items-center justify-center size-14 rounded-2xl bg-muted mb-4">
+        <Icon className="size-7 text-muted-foreground" />
       </div>
-      <p className="text-sm font-medium text-foreground">{title}</p>
-      <p className="text-sm text-muted-foreground mt-1 max-w-[200px]">{description}</p>
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="text-sm text-muted-foreground mt-1 max-w-[220px]">{description}</p>
       {action && (
         <Link href={action.href}>
-          <Button variant="outline" size="sm" className="mt-4 rounded-[4px]">
+          <Button variant="outline" size="sm" className="mt-4 rounded-xl">
             {action.label}
             <ArrowRight className="size-3 ml-1.5" />
           </Button>
@@ -191,9 +191,9 @@ export default function DashboardPage() {
 
   const iconBgMap: Record<string, string> = {
     default: "bg-primary/10 text-primary",
-    success: "bg-success/10 text-success",
-    warning: "bg-warning/10 text-warning",
-    danger: "bg-destructive/10 text-destructive",
+    success: "bg-emerald-100 text-emerald-600",
+    warning: "bg-amber-100 text-amber-600",
+    danger: "bg-rose-100 text-rose-600",
   }
 
   return (
@@ -218,7 +218,7 @@ export default function DashboardPage() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-[180px] h-9 rounded-[4px]">
+              <SelectTrigger className="w-[180px] h-9 rounded-lg">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -234,13 +234,13 @@ export default function DashboardPage() {
 
       {/* Onboarding — first-time setup */}
       {!statsLoading && stats && stats.total_products === 0 && (
-        <motion.div variants={itemVariants} className="rounded-[8px] border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4">
+        <motion.div variants={itemVariants} className="rounded-2xl border border-primary/30 bg-primary/5 p-5 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-foreground">Welcome! Your inventory is empty</p>
+            <p className="text-sm font-semibold text-foreground">Welcome! Your inventory is empty</p>
             <p className="text-xs text-muted-foreground mt-0.5">Add products to start billing and tracking inventory.</p>
           </div>
           <Link href="/setup-inventory">
-            <Button size="sm" className="rounded-[6px] whitespace-nowrap">
+            <Button size="sm" className="rounded-xl whitespace-nowrap">
               <Package className="size-4 mr-1.5" />
               Setup Inventory
             </Button>
@@ -248,24 +248,24 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" variants={itemVariants}>
+      <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" variants={itemVariants}>
         {quickActions.map((action) => {
           const Icon = action.icon
           return (
             <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
               <motion.div
-                whileHover={{ translateY: -2 }}
+                whileHover={{ translateY: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
               >
                 <Button
                   variant="outline"
-                  className="w-full h-auto py-3.5 flex-col gap-2 hover:bg-accent rounded-[6px] transition-all border-border"
+                  className="w-full h-auto py-4 flex-col gap-2.5 hover:bg-accent rounded-xl transition-all border-border shadow-sm hover:shadow-md"
                 >
-                  <div className={cn("flex items-center justify-center size-9 rounded-[6px]", action.color)}>
-                    <Icon className="size-4" />
+                  <div className={cn("flex items-center justify-center size-10 rounded-xl", action.color)}>
+                    <Icon className="size-5" />
                   </div>
-                  <span className="text-xs font-medium text-foreground">{action.label}</span>
+                  <span className="text-xs font-semibold text-foreground">{action.label}</span>
                 </Button>
               </motion.div>
             </Link>
@@ -273,40 +273,40 @@ export default function DashboardPage() {
         })}
       </motion.div>
 
-      <motion.div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" variants={itemVariants}>
+      <motion.div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" variants={itemVariants}>
         {cards.map((card) => {
           const Icon = card.icon
           const iconStyle = iconBgMap[card.metricStyle]
           return (
             <motion.div
               key={card.title}
-              whileHover={{ translateY: -2 }}
+              whileHover={{ translateY: -3 }}
               transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
             >
-              <Card className="relative border-border">
-                <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+              <Card className="relative">
+                <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
-                  <div className={cn("flex items-center justify-center size-8 rounded-[6px]", iconStyle)}>
-                    <Icon className="size-4" />
+                  <div className={cn("flex items-center justify-center size-9 rounded-xl", iconStyle)}>
+                    <Icon className="size-4.5" />
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 pt-0">
+                <CardContent className="px-6 pb-6 pt-0">
                   {statsLoading ? (
                     <MetricSkeleton />
                   ) : (
                     <>
-                      <div className="text-2xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</div>
+                      <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</div>
                       {card.subtitle && (
-                        <p className="text-xs text-muted-foreground mt-0.5 font-mono">{card.subtitle}</p>
+                        <p className="text-xs text-muted-foreground mt-1 font-mono">{card.subtitle}</p>
                       )}
-                      <div className="flex items-center gap-1 mt-2">
+                      <div className="flex items-center gap-1.5 mt-3">
                         {card.changePositive ? (
-                          <ArrowUpRight className="size-3 text-success" />
+                          <ArrowUpRight className="size-3.5 text-success" />
                         ) : (
-                          <ArrowDownRight className="size-3 text-warning" />
+                          <ArrowDownRight className="size-3.5 text-warning" />
                         )}
                         <p className={cn(
-                          "text-xs font-medium",
+                          "text-xs font-semibold",
                           card.changePositive ? "text-success" : "text-warning"
                         )}>
                           {card.change}
@@ -322,17 +322,17 @@ export default function DashboardPage() {
       </motion.div>
 
       <motion.div className="grid gap-6 lg:grid-cols-2" variants={itemVariants}>
-        <motion.div whileHover={{ translateY: -2 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
-          <Card className="border-border">
-            <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+        <motion.div whileHover={{ translateY: -3 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
               <CardTitle className="text-base font-semibold text-foreground">Recent Orders</CardTitle>
               <Link href="/orders">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[6px] gap-1">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl gap-1">
                   View All <ChevronRight className="size-3" />
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="px-6 pb-6 pt-2">
               {recentOrders.length === 0 ? (
                 <EmptyState
                   icon={ClipboardList}
@@ -344,21 +344,21 @@ export default function DashboardPage() {
                 <div className="space-y-1">
                   {recentOrders.map((order) => (
                     <Link key={order.id} href={`/orders?id=${order.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-[6px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
+                      <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent transition-all duration-200 border border-transparent hover:border-border">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex items-center justify-center size-8 rounded-[6px] bg-muted shrink-0">
-                            <ShoppingCart className="size-4 text-muted-foreground" />
+                          <div className="flex items-center justify-center size-9 rounded-xl bg-muted shrink-0">
+                            <ShoppingCart className="size-4.5 text-muted-foreground" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{order.order_number}</p>
+                            <p className="text-sm font-semibold text-foreground truncate">{order.order_number}</p>
                             <p className="text-xs text-muted-foreground">{order.customer_name || "Walk-in"}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color)}>
+                          <Badge variant="outline" className={cn("text-xs font-medium rounded-lg px-2 py-0.5", ORDER_STATUS_CONFIG[order.status]?.color)}>
                             {order.status}
                           </Badge>
-                          <span className="text-sm font-medium tabular-nums text-foreground">₹{order.total.toFixed(2)}</span>
+                          <span className="text-sm font-semibold tabular-nums text-foreground">₹{order.total.toFixed(2)}</span>
                         </div>
                       </div>
                     </Link>
@@ -369,17 +369,17 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div whileHover={{ translateY: -2 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
-          <Card className="border-border">
-            <CardHeader className="flex flex-row items-center justify-between p-4 pb-0">
+        <motion.div whileHover={{ translateY: -3 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
               <CardTitle className="text-base font-semibold text-foreground">Low Stock Alert</CardTitle>
               <Link href="/inventory">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-[6px] gap-1">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl gap-1">
                   View All <ChevronRight className="size-3" />
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent className="px-6 pb-6 pt-2">
               {lowStockProducts.length === 0 ? (
                 <EmptyState
                   icon={Package}
@@ -390,18 +390,18 @@ export default function DashboardPage() {
                 <div className="space-y-1">
                   {lowStockProducts.map((product) => (
                     <Link key={product.id} href={`/inventory?product=${product.id}`}>
-                      <div className="flex items-center justify-between p-3 rounded-[6px] hover:bg-accent transition-all duration-150 border border-transparent hover:border-border">
+                      <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent transition-all duration-200 border border-transparent hover:border-border">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex items-center justify-center size-8 rounded-[6px] bg-destructive/10 shrink-0">
-                            <Package className="size-4 text-destructive" />
+                          <div className="flex items-center justify-center size-9 rounded-xl bg-destructive/10 shrink-0">
+                            <Package className="size-4.5 text-destructive" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
+                            <p className="text-sm font-semibold text-foreground truncate">{product.name}</p>
                             <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-sm font-medium text-destructive tabular-nums">{product.stock_quantity}</p>
+                          <p className="text-sm font-semibold text-destructive tabular-nums">{product.stock_quantity}</p>
                           <p className="text-xs text-muted-foreground font-mono">in stock</p>
                         </div>
                       </div>
