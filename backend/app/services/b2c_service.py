@@ -349,9 +349,10 @@ async def complete_order(
     db: AsyncSession,
     order_id: int,
     shopkeeper_id: int,
+    payload=None,
 ):
     """Shopkeeper completes a pending or confirmed B2C order → generate receipt.
-    Note: Inventory was already deducted when order was placed (PENDING status)."""
+    Payload can contain edited items, discount, and apply_gst."""
     result = await db.execute(
         select(B2COrder)
         .where(
@@ -370,95 +371,97 @@ async def complete_order(
             detail=f"Order cannot be completed from status: {order.status}. Expected: {B2COrderStatus.PENDING.value} or {B2COrderStatus.CONFIRMED.value}",
         )
 
-    order.status = B2COrderStatus.COMPLETED.value
-    await db.flush()
-
-    # Deduct inventory on completion
-    for oi in order.items:
-        product_result = await db.execute(
-            select(Product).where(
-                Product.id == oi.product_id,
-                Product.owner_id == shopkeeper_id,
-            )
-        )
-        product = product_result.scalar_one_or_none()
-        if not product:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Product '{oi.product_name}' not found",
-            )
-        if product.stock_quantity < oi.quantity:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Insufficient stock for {oi.product_name}: have {product.stock_quantity}, need {oi.quantity}",
-            )
-        product.stock_quantity -= oi.quantity
-        movement = InventoryMovement(
-            product_id=oi.product_id,
-            shopkeeper_id=shopkeeper_id,
-            movement_type=MovementType.CONSUME_OUT,
-            quantity=-oi.quantity,
-            reference=f"B2C Order #{order.order_number}",
-        )
-        db.add(movement)
-        await db.flush()
-        await check_low_stock(oi.product_id, shopkeeper_id, db)
-
-    # Generate receipt linked via b2c_order_id
-    store_result = await db.execute(
-        select(Store).where(Store.id == order.store_id)
-    )
-    store = store_result.scalar_one_or_none()
-    if store and order.items:
-        receipt = Receipt(
-            receipt_number=f"RCPT-B2C-{order.id:08d}",
-            b2c_order_id=order.id,
-            shopkeeper_id=shopkeeper_id,
-            customer_id=None,
-            store_id=order.store_id,
-            payment_method="upi" if order.payment_type == "online" else order.payment_type,
-            subtotal=order.subtotal,
-            discount=order.discount,
-            taxes=order.gst,
-            total_amount=order.total,
-        )
-        db.add(receipt)
-        await db.flush()
-        for oi in order.items:
-            db.add(ReceiptItem(
-                receipt_id=receipt.id,
-                order_item_id=None,
-                product_id=oi.product_id,
-                product_name=oi.product_name,
-                quantity=oi.quantity,
-                unit_price=oi.unit_price,
-                line_total=oi.total_price,
-                taxes=order.gst,
-                discount=order.discount,
-            ))
-
-    alert = Notification(
-        user_id=shopkeeper_id,
-        type="low_stock",
-        title="B2C Order Completed",
-        message=f"B2C Order #{order.order_number} completed. ₹{order.total:.2f} from {order.customer_name}",
-        reference_id=order.id,
-    )
-    db.add(alert)
-
     try:
+        order.status = B2COrderStatus.COMPLETED.value
+        await db.flush()
+
+        edited_items = payload.items if payload and payload.items is not None else None
+        discount = payload.discount if payload and payload.discount is not None else order.discount
+        apply_gst = payload.apply_gst if payload else True
+
+        order_items = edited_items if edited_items else order.items
+
+        subtotal = sum(item.quantity * item.unit_price for item in order_items) if edited_items else order.subtotal
+        gst = round(subtotal * 0.18, 2) if apply_gst else 0
+        total = max(0, subtotal + gst - discount)
+
+        order.subtotal = subtotal
+        order.discount = discount
+        order.gst = gst
+        order.total = total
+        await db.flush()
+
+        # Deduct inventory
+        for item in order_items:
+            pid = item.product_id if edited_items else item.product_id
+            qty = item.quantity if edited_items else item.quantity
+            pname = item.product_name if edited_items else item.product_name
+            uprice = item.unit_price if edited_items else item.unit_price
+
+            product_result = await db.execute(
+                select(Product).where(Product.id == pid, Product.owner_id == shopkeeper_id)
+            )
+            product = product_result.scalar_one_or_none()
+            if not product:
+                raise HTTPException(status_code=400, detail=f"Product '{pname}' not found")
+            if product.stock_quantity < qty:
+                raise HTTPException(status_code=400, detail=f"Insufficient stock for {pname}: have {product.stock_quantity}, need {qty}")
+            product.stock_quantity -= qty
+            movement = InventoryMovement(
+                product_id=pid, shopkeeper_id=shopkeeper_id,
+                movement_type=MovementType.CONSUME_OUT, quantity=-qty,
+                reference=f"B2C Order #{order.order_number}",
+            )
+            db.add(movement)
+            await db.flush()
+            await check_low_stock(pid, shopkeeper_id, db)
+
+        # Generate receipt
+        store_result = await db.execute(select(Store).where(Store.id == order.store_id))
+        store = store_result.scalar_one_or_none()
+        if store and order_items:
+            receipt = Receipt(
+                receipt_number=f"RCPT-B2C-{order.id:08d}",
+                b2c_order_id=order.id, shopkeeper_id=shopkeeper_id,
+                customer_id=None, store_id=order.store_id,
+                payment_method="upi" if order.payment_type == "online" else order.payment_type,
+                subtotal=subtotal, discount=discount, taxes=gst, total_amount=total,
+            )
+            db.add(receipt)
+            await db.flush()
+            for item in order_items:
+                pid = item.product_id if edited_items else item.product_id
+                pname = item.product_name if edited_items else item.product_name
+                qty = item.quantity if edited_items else item.quantity
+                uprice = item.unit_price if edited_items else item.unit_price
+                line_total = qty * uprice
+                db.add(ReceiptItem(
+                    receipt_id=receipt.id, order_item_id=None,
+                    product_id=pid, product_name=pname, quantity=qty,
+                    unit_price=uprice, line_total=line_total, taxes=gst, discount=discount,
+                ))
+
+        alert = Notification(
+            user_id=shopkeeper_id, type="low_stock",
+            title="B2C Order Completed",
+            message=f"B2C Order #{order.order_number} completed. ₹{total:.2f} from {order.customer_name}",
+            reference_id=order.id,
+        )
+        db.add(alert)
+
         await db.commit()
     except IntegrityError:
         await db.rollback()
-        order_result = await db.execute(
+        existing_result = await db.execute(
             select(B2COrder)
             .where(B2COrder.id == order_id, B2COrder.shopkeeper_id == shopkeeper_id)
             .options(selectinload(B2COrder.items))
         )
-        existing = order_result.scalar_one_or_none()
+        existing = existing_result.scalar_one_or_none()
         if existing and existing.status == B2COrderStatus.COMPLETED.value:
             return await _order_to_response(db, existing)
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Database conflict completing order")
+
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")
     await emit_order_status_changed(shopkeeper_id, order.id, B2COrderStatus.COMPLETED.value)

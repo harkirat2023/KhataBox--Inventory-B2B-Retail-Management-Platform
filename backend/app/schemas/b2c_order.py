@@ -53,6 +53,12 @@ class B2COrderResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class B2CConfirmRequest(BaseModel):
+    items: list[B2COrderItemCreate] | None = None
+    discount: float | None = None
+    apply_gst: bool = True
+
+
 class B2COrderApproval(BaseModel):
     """Empty payload for approval request."""
     pass

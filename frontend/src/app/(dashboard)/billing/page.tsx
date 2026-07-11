@@ -896,6 +896,39 @@ export default function BillingPage() {
                   </div>
                 </div>
 
+                {/* Khata Customer Selector — visible when credit selected */}
+                {paymentMethod === "credit" && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1.5">Khata Customer</p>
+                    <Select
+                      value={selectedCustomerId ? String(selectedCustomerId) : ""}
+                      onValueChange={(v) => setSelectedCustomerId(v ? Number(v) : null)}
+                    >
+                      <SelectTrigger className="h-9 rounded-[6px] border-border text-sm">
+                        <SelectValue placeholder="Select a khata customer..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.length === 0 && (
+                          <SelectItem value="-" disabled>No customers found</SelectItem>
+                        )}
+                        {customers.map((c) => {
+                          const remaining = c.credit_limit - c.credit_used
+                          return (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              <span className="flex items-center gap-2">
+                                <span>{c.company_name || c.contact_person}</span>
+                                <span className={`text-xs ${remaining <= 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                                  (₹{Math.max(0, remaining).toFixed(2)} left)
+                                </span>
+                              </span>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {/* Discount + GST Toggle */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1">

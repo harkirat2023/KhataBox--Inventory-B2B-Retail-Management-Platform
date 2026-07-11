@@ -27,6 +27,8 @@ import {
   Receipt,
   Banknote,
   CreditCard,
+  Plus,
+  Minus,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -63,6 +65,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Order, OrderStatus } from "@/types/order"
+import { Product } from "@/types/product"
 import { clientApi } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
 import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
@@ -112,6 +115,12 @@ export default function OrdersPage() {
   const [b2cConfirmOrder, setB2cConfirmOrder] = useState<Order | null>(null)
   const [b2cConfirming, setB2cConfirming] = useState(false)
   const [b2cConfirmed, setB2cConfirmed] = useState(false)
+  const [editableItems, setEditableItems] = useState<{ product_id: number; product_name: string; quantity: number; unit_price: number }[]>([])
+  const [editDiscount, setEditDiscount] = useState(0)
+  const [editApplyGst, setEditApplyGst] = useState(true)
+  const [editProductSearch, setEditProductSearch] = useState("")
+  const [editSearchResults, setEditSearchResults] = useState<Product[]>([])
+  const [editAllProducts, setEditAllProducts] = useState<Product[]>([])
 
   const loadOrders = useCallback(async () => {
     setLoading(true)
@@ -218,17 +227,44 @@ export default function OrdersPage() {
     }
   }
 
-  const handleApproveB2C = (order: Order) => {
+  const handleApproveB2C = async (order: Order) => {
     setB2cConfirmOrder(order)
     setB2cConfirmed(false)
+    setEditableItems((order.items || []).map(i => ({
+      product_id: i.product_id,
+      product_name: i.product_name,
+      quantity: i.quantity,
+      unit_price: Number((i as { unit_price?: number }).unit_price || 0),
+    })))
+    setEditDiscount(order.discount || 0)
+    setEditApplyGst(order.status !== "B2C-pending" || true)
+    setEditProductSearch("")
+    setEditSearchResults([])
+    try {
+      const data = await clientApi.get<Product[]>("/api/v1/products/")
+      setEditAllProducts(data)
+    } catch { /* ignore */ }
     setB2cConfirmOpen(true)
   }
 
   const handleB2CConfirmSubmit = async () => {
     if (!b2cConfirmOrder) return
+    if (editableItems.length === 0) {
+      toast.error("Order must have at least one item")
+      return
+    }
     setB2cConfirming(true)
     try {
-      await clientApi.post(`/api/v1/b2c/shopkeeper/orders/${b2cConfirmOrder.id}/confirm`, {})
+      await clientApi.post(`/api/v1/b2c/shopkeeper/orders/${b2cConfirmOrder.id}/confirm`, {
+        items: editableItems.map(i => ({
+          product_id: i.product_id,
+          product_name: i.product_name,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+        })),
+        discount: editDiscount,
+        apply_gst: editApplyGst,
+      })
       setB2cConfirmed(true)
       await loadOrders()
     } catch (err: unknown) {
@@ -248,6 +284,51 @@ export default function OrdersPage() {
     } finally {
       setUpdating(false)
     }
+  }
+
+  const editFilteredProducts = editProductSearch
+    ? editAllProducts.filter(p =>
+        p.name.toLowerCase().includes(editProductSearch.toLowerCase()) ||
+        p.sku.toLowerCase().includes(editProductSearch.toLowerCase())
+      )
+    : []
+
+  const editRecalc = () => {
+    const sub = editableItems.reduce((s, i) => s + i.quantity * i.unit_price, 0)
+    const gst = editApplyGst ? Math.round(sub * 0.18 * 100) / 100 : 0
+    const disc = editDiscount || 0
+    return { subtotal: sub, gst, total: Math.max(0, sub + gst - disc), disc }
+  }
+
+  const handleEditQty = (productId: number, delta: number) => {
+    setEditableItems(prev => prev.map(i =>
+      i.product_id === productId
+        ? { ...i, quantity: Math.max(1, i.quantity + delta) }
+        : i
+    ))
+  }
+
+  const handleEditRemove = (productId: number) => {
+    setEditableItems(prev => prev.filter(i => i.product_id !== productId))
+  }
+
+  const handleEditAddProduct = (product: Product) => {
+    setEditableItems(prev => {
+      const existing = prev.find(i => i.product_id === product.id)
+      if (existing) {
+        return prev.map(i =>
+          i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+        )
+      }
+      return [...prev, {
+        product_id: product.id,
+        product_name: product.name,
+        quantity: 1,
+        unit_price: product.selling_price,
+      }]
+    })
+    setEditProductSearch("")
+    setEditSearchResults([])
   }
 
   const currentOrders = tab === "b2c" ? b2cOrders : orders
@@ -621,9 +702,9 @@ export default function OrdersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* B2C Confirm Modal */}
+      {/* B2C Confirm Modal — Full Editing */}
       <Dialog open={b2cConfirmOpen} onOpenChange={(open) => { if (!b2cConfirming) setB2cConfirmOpen(open) }}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-2xl">
           {b2cConfirmed ? (
             <>
               <DialogHeader>
@@ -667,85 +748,133 @@ export default function OrdersPage() {
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Confirm B2C Order</DialogTitle>
+                <DialogTitle>Edit & Confirm B2C Order</DialogTitle>
                 <DialogDescription>
-                  Review the order details before approving. Inventory will be deducted and a receipt will be generated.
+                  Adjust items, add products, discount, or toggle GST before approving.
                 </DialogDescription>
               </DialogHeader>
 
-              {/* Order Info */}
-              <div className="bg-muted rounded-xl p-4 space-y-1 text-sm border">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Order</span>
-                  <span className="font-mono font-medium">{b2cConfirmOrder?.order_number}</span>
+              {/* Order Info Summary */}
+              <div className="bg-muted rounded-xl p-3 flex flex-wrap gap-x-6 gap-y-1 text-sm border">
+                <div className="flex gap-1.5"><span className="text-muted-foreground">Order</span><span className="font-mono font-medium">{b2cConfirmOrder?.order_number}</span></div>
+                <div className="flex gap-1.5"><span className="text-muted-foreground">Customer</span><span className="font-medium">{b2cConfirmOrder?.customer_name || "Walk-in"}</span></div>
+                <div className="flex gap-1.5"><span className="text-muted-foreground">Payment</span><span className="font-medium capitalize">{b2cConfirmOrder?.payment_method === "credit" ? "Khata" : b2cConfirmOrder?.payment_method || "Online"}</span></div>
+              </div>
+
+              {/* Add Product Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Search products to add..."
+                  value={editProductSearch}
+                  onChange={e => setEditProductSearch(e.target.value)}
+                  className="pl-9 h-8 text-sm rounded-lg bg-muted/50 border-0"
+                />
+                {editProductSearch && editFilteredProducts.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                    {editFilteredProducts.slice(0, 10).map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => handleEditAddProduct(p)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{p.name}</p>
+                          <p className="text-xs text-muted-foreground">{p.sku} · Stock: {p.stock_quantity}</p>
+                        </div>
+                        <span className="text-sm font-medium shrink-0 ml-2 tabular-nums">₹{p.selling_price.toFixed(2)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Editable Items */}
+              <div className="max-h-[30vh] overflow-y-auto space-y-1.5">
+                {editableItems.length === 0 ? (
+                  <div className="text-center py-6 text-sm text-muted-foreground">
+                    No items. Search and add products above.
+                  </div>
+                ) : (
+                  editableItems.map(item => (
+                    <div key={item.product_id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-card">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.product_name}</p>
+                        <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleEditQty(item.product_id, -1)}>
+                          <Minus className="size-3" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleEditQty(item.product_id, 1)}>
+                          <Plus className="size-3" />
+                        </Button>
+                      </div>
+                      <p className="text-sm font-medium w-20 text-right tabular-nums">₹{(item.quantity * item.unit_price).toFixed(2)}</p>
+                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:text-destructive rounded-[4px]" onClick={() => handleEditRemove(item.product_id)}>
+                        <Trash2 className="size-3" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Discount + GST */}
+              <div className="flex items-center gap-3 border-t pt-3">
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Discount (₹)</p>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={editDiscount}
+                    onChange={e => setEditDiscount(parseFloat(e.target.value) || 0)}
+                    className="h-8 text-sm rounded-[4px] border-border"
+                  />
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Customer</span>
-                  <span className="font-medium">{b2cConfirmOrder?.customer_name || "Walk-in"}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Payment</span>
-                  <span className="font-medium capitalize">
-                    {b2cConfirmOrder?.payment_method === "credit" ? "Khata" : b2cConfirmOrder?.payment_method || "Online"}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Status</span>
-                  <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[b2cConfirmOrder?.status || "pending"]?.color || "")}>
-                    {ORDER_STATUS_CONFIG[b2cConfirmOrder?.status || "pending"]?.label || "Pending"}
-                  </Badge>
+                <div className="flex items-center gap-2 pt-4">
+                  <span className="text-xs text-muted-foreground">GST</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditApplyGst(!editApplyGst)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editApplyGst ? "bg-primary" : "bg-muted-foreground/30"}`}
+                  >
+                    <span className={`inline-block size-3.5 rounded-full bg-white transition-transform ${editApplyGst ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+                  </button>
                 </div>
               </div>
 
-              {/* Items */}
-              {b2cConfirmOrder?.items && b2cConfirmOrder.items.length > 0 && (
-                <div className="max-h-[30vh] overflow-y-auto space-y-1.5 py-1">
-                  {b2cConfirmOrder.items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-card">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.product_name}</p>
-                        <p className="text-xs text-muted-foreground">₹{Number((item as { unit_price?: number }).unit_price || 0).toFixed(2)} each</p>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-sm text-muted-foreground">x{item.quantity}</span>
-                        <span className="text-sm font-medium w-20 text-right tabular-nums">
-                          ₹{Number((item as { total_price?: number }).total_price || 0).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Totals */}
-              {b2cConfirmOrder && (
-                <div className="space-y-1 text-sm border-t pt-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="tabular-nums">₹{(b2cConfirmOrder.subtotal || 0).toFixed(2)}</span>
-                  </div>
-                  {b2cConfirmOrder.discount > 0 && (
+              {/* Recalculated Totals */}
+              {(() => {
+                const { subtotal, gst, total, disc } = editRecalc()
+                return (
+                  <div className="space-y-1 text-sm border-t pt-3">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Discount</span>
-                      <span className="tabular-nums text-destructive">-₹{(b2cConfirmOrder.discount || 0).toFixed(2)}</span>
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="tabular-nums">₹{subtotal.toFixed(2)}</span>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">GST</span>
-                    <span className="tabular-nums">₹{(b2cConfirmOrder.gst || 0).toFixed(2)}</span>
+                    {disc > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Discount</span>
+                        <span className="tabular-nums text-destructive">-₹{disc.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">GST</span>
+                      <span className="tabular-nums">₹{gst.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold text-base border-t pt-1">
+                      <span>Total</span>
+                      <span className="tabular-nums">₹{total.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between font-semibold text-base border-t pt-1">
-                    <span>Total</span>
-                    <span className="tabular-nums">₹{(b2cConfirmOrder.total || 0).toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
+                )
+              })()}
 
               <DialogFooter className="mt-2">
                 <Button variant="outline" onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null) }} disabled={b2cConfirming} className="rounded-lg">
                   Cancel
                 </Button>
-                <Button onClick={handleB2CConfirmSubmit} disabled={b2cConfirming}
+                <Button onClick={handleB2CConfirmSubmit} disabled={b2cConfirming || editableItems.length === 0}
                   className="rounded-lg gap-1.5 bg-green-600 hover:bg-green-700 text-white">
                   <CheckCircle className="size-4" />
                   {b2cConfirming ? "Processing..." : "Confirm & Complete"}

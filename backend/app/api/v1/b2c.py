@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.models.user import User
-from app.schemas.b2c_order import B2COrderCreate, B2COrderResponse, B2COrderValidationResult
+from app.schemas.b2c_order import B2COrderCreate, B2COrderResponse, B2COrderValidationResult, B2CConfirmRequest
 from app.services import b2c_service
 
 router = APIRouter()
@@ -137,8 +137,9 @@ async def cancel_b2c_order(
 @router.post("/shopkeeper/orders/{order_id}/confirm", response_model=B2COrderResponse)
 async def confirm_b2c_order(
     order_id: int,
+    payload: B2CConfirmRequest,
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):
     """Shopkeeper marks a confirmed B2C order as completed → inventory deducted, receipt generated."""
-    return await b2c_service.complete_order(db, order_id, current_user.id)
+    return await b2c_service.complete_order(db, order_id, current_user.id, payload)
