@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { Suspense, useEffect, useState, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
@@ -85,8 +84,7 @@ function StoreSwitchModal({
 }
 
 function CatalogContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const searchParams = useSearchParams()
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
@@ -110,7 +108,7 @@ function CatalogContent() {
   useEffect(() => {
     if (!isLoaded) return
     if (!isSignedIn) { router.push("/login"); return }
-    if (role !== "customer") { router.push("/dashboard"); return }
+    if (role && role !== "customer") { router.push("/dashboard"); return }
   }, [isLoaded, isSignedIn, role, router])
 
   useEffect(() => {
@@ -181,7 +179,7 @@ function CatalogContent() {
 
   const handleCancelSwitch = () => { cancelStoreConflict(); setSwitchModalOpen(false); setPendingProduct(null) }
 
-  if (!isLoaded || role !== "customer") {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center"><Package className="size-10 animate-pulse mx-auto text-primary" /><p className="text-muted-foreground mt-3">Loading...</p></div>

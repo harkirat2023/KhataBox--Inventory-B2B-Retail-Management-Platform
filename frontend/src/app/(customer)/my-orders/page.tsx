@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect, useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -44,8 +43,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string; i
 }
 
 function OrdersContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const params = useSearchParams()
   const { selectedStore } = useCustomerStore()
   const [orders, setOrders] = useState<Order[]>([])
@@ -55,7 +53,7 @@ function OrdersContent() {
   useEffect(() => {
     if (!isLoaded) return
     if (!isSignedIn) redirect("/login")
-    if (role !== "customer") redirect("/dashboard")
+    if (role && role !== "customer") redirect("/dashboard")
   }, [isLoaded, isSignedIn, role])
 
   useEffect(() => {

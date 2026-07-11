@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
@@ -19,8 +18,7 @@ function formatCurrency(amount: number) {
 }
 
 export function CartContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const router = useRouter()
   const [placing, setPlacing] = useState(false)
 
@@ -87,7 +85,7 @@ export function CartContent() {
   useEffect(() => {
     if (!isLoaded) return
     if (!isSignedIn) redirect("/login")
-    if (role !== "customer") redirect("/dashboard")
+    if (role && role !== "customer") redirect("/dashboard")
   }, [isLoaded, isSignedIn, role])
 
   const handleUpdateQuantity = async (productId: number, newQuantity: number) => {

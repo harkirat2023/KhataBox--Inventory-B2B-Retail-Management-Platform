@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -18,8 +17,7 @@ function formatCurrency(amount: number) {
 }
 
 function PaymentContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { selectedStore } = useCustomerStore()
@@ -42,7 +40,7 @@ function PaymentContent() {
     if (!isSignedIn) {
       redirect("/login")
     }
-    if (role !== "customer") {
+    if (role && role !== "customer") {
       redirect("/dashboard")
     }
   }, [isLoaded, isSignedIn, role])

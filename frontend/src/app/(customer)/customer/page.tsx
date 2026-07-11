@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -145,8 +144,7 @@ function StoreCard({
 }
 
 export default function CustomerHome() {
-  const { isLoaded, isSignedIn, user } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, user, role } = useRole()
   const router = useRouter()
   const { items } = useCustomerCartStore()
   const { selectedStore, setSelectedStore } = useCustomerStore()

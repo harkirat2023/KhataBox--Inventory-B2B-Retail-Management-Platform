@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -61,8 +60,7 @@ const paymentLabels: Record<string, { icon: any; label: string }> = {
 }
 
 function ReceiptContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const params = useParams()
   const orderId = params?.id as string
   const [order, setOrder] = useState<Order | null>(null)
@@ -74,7 +72,7 @@ function ReceiptContent() {
     if (!isSignedIn) {
       redirect("/login")
     }
-    if (role !== "customer") {
+    if (role && role !== "customer") {
       redirect("/dashboard")
     }
   }, [isLoaded, isSignedIn, role])

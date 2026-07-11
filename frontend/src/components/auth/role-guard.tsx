@@ -35,13 +35,16 @@ export function RoleGuard({
 }
 
 export function useRole() {
-  const { user, isLoaded } = useUser()
+  const { user, isLoaded, isSignedIn } = useUser()
 
   return {
+    user,
     role: user?.role as Role | undefined,
     isAdmin: user?.role === "admin",
     isShopkeeper: user?.role === "shopkeeper",
     isCustomer: user?.role === "customer",
     loading: !isLoaded,
+    isLoaded,
+    isSignedIn,
   }
 }

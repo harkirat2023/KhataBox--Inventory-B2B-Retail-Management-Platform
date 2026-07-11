@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect, useParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
@@ -84,8 +83,7 @@ const paymentLabels: Record<string, { icon: LucideIcon; label: string }> = {
 }
 
 function OrderDetailContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const params = useParams()
   const orderId = params?.id as string
   const { selectedStore } = useCustomerStore()
@@ -98,7 +96,7 @@ function OrderDetailContent() {
     if (!isSignedIn) {
       redirect("/login")
     }
-    if (role !== "customer") {
+    if (role && role !== "customer") {
       redirect("/dashboard")
     }
   }, [isLoaded, isSignedIn, role])

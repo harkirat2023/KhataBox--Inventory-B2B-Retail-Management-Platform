@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/hooks/use-user"
 import { redirect } from "next/navigation"
 import { useEffect, useRef, useState, Suspense } from "react"
 import Link from "next/link"
@@ -27,8 +26,7 @@ interface ProductInfo {
 }
 
 function ScanContent() {
-  const { isLoaded, isSignedIn } = useUser()
-  const { role } = useRole()
+  const { isLoaded, isSignedIn, role } = useRole()
   const [manualUuid, setManualUuid] = useState("")
   const [loading, setLoading] = useState(false)
   const [cameraActive, setCameraActive] = useState(false)
@@ -41,7 +39,7 @@ function ScanContent() {
   useEffect(() => {
     if (!isLoaded) return
     if (!isSignedIn) redirect("/login")
-    if (role !== "customer") redirect("/dashboard")
+    if (role && role !== "customer") redirect("/dashboard")
   }, [isLoaded, isSignedIn, role])
 
   const lookUpProduct = async (uuid: string) => {
