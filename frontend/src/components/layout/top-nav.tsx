@@ -185,7 +185,7 @@ export function TopNav() {
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem onSelect={() => { clearAuthToken(); router.push("/khatabox") }}
+            <DropdownMenuItem onSelect={() => { clearAuthToken(); window.location.href = "https://khataboxapp.vercel.app" }}
               className="text-destructive focus:text-destructive focus:bg-destructive/10">
               <LogOut className="size-4 mr-2" />Sign Out
             </DropdownMenuItem>

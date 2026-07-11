@@ -15,6 +15,7 @@ from app.services.cache import get as cache_get, set as cache_set, is_available 
 router = APIRouter()
 
 
+@router.get("")
 @router.get("/stats")
 async def get_dashboard_stats(
     store_id: int | None = Query(None),

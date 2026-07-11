@@ -11,6 +11,13 @@ class ProductCreate(BaseModel):
     description: str | None = None
     cost_price: float
     selling_price: float
+    market_price: float | None = None
+    vendor_price: float | None = None
+    shipping_cost: float | None = None
+    freight: float | None = None
+    handling: float | None = None
+    packaging: float | None = None
+    tariff: float | None = None
     stock_quantity: int = 0
     reorder_threshold: int = 10
     batch_number: str | None = None
@@ -27,6 +34,13 @@ class ProductUpdate(BaseModel):
     description: str | None = None
     cost_price: float | None = None
     selling_price: float | None = None
+    market_price: float | None = None
+    vendor_price: float | None = None
+    shipping_cost: float | None = None
+    freight: float | None = None
+    handling: float | None = None
+    packaging: float | None = None
+    tariff: float | None = None
     stock_quantity: int | None = None
     reorder_threshold: int | None = None
     batch_number: str | None = None
@@ -45,6 +59,13 @@ class ProductResponse(BaseModel):
     description: str | None
     cost_price: float
     selling_price: float
+    market_price: float | None = None
+    vendor_price: float | None = None
+    shipping_cost: float | None = None
+    freight: float | None = None
+    handling: float | None = None
+    packaging: float | None = None
+    tariff: float | None = None
     stock_quantity: int
     reorder_threshold: int
     batch_number: str | None

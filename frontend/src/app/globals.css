@@ -64,7 +64,7 @@
 }
 
 :root {
-  --background: #ffffff;
+  --background: #fafafa;
   --foreground: #09090b;
   --card: #ffffff;
   --card-foreground: #09090b;
@@ -79,6 +79,9 @@
   --accent: #f4f4f5;
   --accent-foreground: #09090b;
   --destructive: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --info: #3b82f6;
   --border: #e4e4e7;
   --input: #e4e4e7;
   --ring: #f97316;

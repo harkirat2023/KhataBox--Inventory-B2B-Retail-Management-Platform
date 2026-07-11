@@ -97,7 +97,7 @@ const staffNavGroups = [
     items: [
       { label: "Forecasting", href: "/forecasting", icon: TrendingUp, roles: ["admin", "shopkeeper"] },
       { label: "Reports", href: "/reports", icon: BarChart3, roles: ["admin", "shopkeeper"] },
-      { label: "Price Analysis", href: "/suppliers/price-analysis", icon: LineChart, roles: ["admin", "shopkeeper"] },
+      { label: "Price Analysis", href: "/price-analysis", icon: LineChart, roles: ["admin", "shopkeeper"] },
     ],
   },
   {

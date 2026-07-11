@@ -26,6 +26,13 @@ class Product(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     cost_price: Mapped[float] = mapped_column(Float, nullable=False)
     selling_price: Mapped[float] = mapped_column(Float, nullable=False)
+    market_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    vendor_price: Mapped[float | None] = mapped_column(Float, nullable=True)
+    shipping_cost: Mapped[float | None] = mapped_column(Float, nullable=True)
+    freight: Mapped[float | None] = mapped_column(Float, nullable=True)
+    handling: Mapped[float | None] = mapped_column(Float, nullable=True)
+    packaging: Mapped[float | None] = mapped_column(Float, nullable=True)
+    tariff: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Existing field represents *available* stock (what dashboards show).
     stock_quantity: Mapped[int] = mapped_column(Integer, default=0)

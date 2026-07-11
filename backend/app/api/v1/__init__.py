@@ -8,6 +8,7 @@ from app.api.v1 import (
     dashboard,
     data,
     payments,
+    price_analysis,
     products,
     orders,
     suppliers,
@@ -54,3 +55,4 @@ router.include_router(customer_cart.router, prefix="/cart", tags=["Customer Cart
 router.include_router(payments.router, prefix="/payment", tags=["Payments"])
 router.include_router(seed_products.router, prefix="/seed-products", tags=["Seed Products"])
 router.include_router(b2c.router, prefix="/b2c", tags=["B2C Orders"])
+router.include_router(price_analysis.router, prefix="/price-analysis", tags=["Price Analysis"])
