@@ -26,6 +26,8 @@ export function RoleGuard({
 
   if (!allowedRoles.includes(user.role as Role)) {
     if (fallback) return <>{fallback}</>
+    if (user.role === "customer") redirect("/customer")
+    if (user.role === "admin") redirect("/admin/users")
     redirect("/dashboard")
   }
 

@@ -136,6 +136,7 @@ class RegisterWithOTPRequest(BaseModel):
 class LoginWithOTPRequest(BaseModel):
     email: EmailStr
     otp: str
+    role: str = "customer"
 
 
 class RefreshRequest(BaseModel):
@@ -145,6 +146,7 @@ class RefreshRequest(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    role: str = "customer"
 
 
 class UserResponse(BaseModel):

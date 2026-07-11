@@ -27,7 +27,7 @@ export function BottomNav() {
   if (role === "shopkeeper") return null
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-zinc-900/95 border-t border-zinc-800/80 backdrop-blur-xl">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-zinc-900 border-t border-border dark:border-zinc-800 backdrop-blur-xl">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {customerItems.map((item) => {
           const Icon = item.icon
@@ -49,8 +49,8 @@ export function BottomNav() {
               >
                 <div
                   className={cn(
-                    "p-1.5 rounded-[4px] transition-all duration-200",
-                    isActive ? "text-amber-brand bg-amber-brand/10" : "text-zinc-500 group-hover:text-zinc-300"
+                    "p-1.5 rounded-xl transition-all duration-200",
+                    isActive ? "text-amber-brand bg-amber-brand/10" : "text-muted-foreground group-hover:text-foreground"
                   )}
                 >
                   <Icon className={cn("size-5 transition-all duration-200", isActive && "scale-110")} />
@@ -59,7 +59,7 @@ export function BottomNav() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-amber-brand text-[10px] font-bold text-primary-foreground rounded-full flex items-center justify-center leading-none shadow-sm"
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-amber-brand text-[10px] font-bold text-white rounded-full flex items-center justify-center leading-none shadow-sm"
                   >
                     {cartCount > 99 ? "99+" : cartCount}
                   </motion.span>
@@ -68,7 +68,7 @@ export function BottomNav() {
               <span
                 className={cn(
                   "text-[10px] leading-tight truncate max-w-full transition-all duration-200",
-                  isActive ? "text-amber-brand font-semibold" : "text-zinc-500"
+                  isActive ? "text-amber-brand font-semibold" : "text-muted-foreground"
                 )}
               >
                 {item.label}

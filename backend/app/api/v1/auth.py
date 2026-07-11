@@ -43,9 +43,9 @@ async def register_with_otp(payload: RegisterWithOTPRequest, db: AsyncSession = 
     if payload.role == "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin registration is restricted")
 
-    result = await db.execute(select(User).where(User.email == payload.email))
+    result = await db.execute(select(User).where(User.email == payload.email, User.role == payload.role))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered for this role")
 
     role = payload.role if payload.role == "shopkeeper" else "customer"
     password_hash = hash_password(payload.password) if payload.password else None
@@ -96,13 +96,13 @@ async def register_with_otp(payload: RegisterWithOTPRequest, db: AsyncSession = 
 
 @router.post("/login-with-otp", response_model=TokenResponse)
 async def login_with_otp(payload: LoginWithOTPRequest, db: AsyncSession = Depends(get_db)):
-    logger.info("OTP login attempt for %s", payload.email)
+    logger.info("OTP login attempt for %s (role=%s)", payload.email, payload.role)
 
     valid = await _verify_otp(payload.email, payload.otp)
     if not valid:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired OTP")
 
-    result = await db.execute(select(User).where(User.email == payload.email))
+    result = await db.execute(select(User).where(User.email == payload.email, User.role == payload.role))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
@@ -118,9 +118,9 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     if payload.role == "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin registration is restricted")
 
-    result = await db.execute(select(User).where(User.email == payload.email))
+    result = await db.execute(select(User).where(User.email == payload.email, User.role == payload.role))
     if result.scalar_one_or_none():
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered for this role")
 
     role = payload.role if payload.role == "shopkeeper" else "customer"
 
@@ -168,7 +168,7 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: UserLogin, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == payload.email))
+    result = await db.execute(select(User).where(User.email == payload.email, User.role == payload.role))
     user = result.scalar_one_or_none()
     if not user or not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")

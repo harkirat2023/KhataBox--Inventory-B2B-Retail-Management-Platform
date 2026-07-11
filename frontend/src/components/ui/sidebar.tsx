@@ -201,14 +201,12 @@ SidebarRail.displayName = "SidebarRail"
 
 const SidebarInset = React.forwardRef<HTMLDivElement, React.ComponentProps<"main">>(
   ({ className, ...props }, ref) => {
-    const { open } = useSidebar()
     return (
       <main
         ref={ref}
         data-slot="sidebar-inset"
         className={cn(
-          "bg-[#fafafa] dark:bg-[#09090b] relative flex min-h-svh flex-1 flex-col transition-[margin] duration-200 ease-linear",
-          open ? "md:ml-(--sidebar-width)" : "md:ml-0",
+          "bg-[#fafafa] dark:bg-[#09090b] relative flex min-h-svh flex-1 flex-col",
           className
         )}
         {...props}

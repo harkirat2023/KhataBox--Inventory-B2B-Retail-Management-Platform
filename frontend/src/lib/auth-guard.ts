@@ -31,6 +31,8 @@ export async function requireAuth(roles?: Role[]) {
   }
 
   if (roles && !roles.includes(user.role as Role)) {
+    if (user.role === "customer") redirect("/customer")
+    if (user.role === "admin") redirect("/admin/users")
     redirect("/dashboard")
   }
 

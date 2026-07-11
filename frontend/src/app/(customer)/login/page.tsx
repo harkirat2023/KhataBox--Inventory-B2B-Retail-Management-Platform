@@ -24,7 +24,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const roleParam = searchParams.get("role") as Role | null
 
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+  const [selectedRole, setSelectedRole] = useState<Role | null>(roleParam || null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -45,7 +45,7 @@ function LoginForm() {
       const res = await fetch(API("/api/v1/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role: selectedRole }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -94,7 +94,7 @@ function LoginForm() {
       const res = await fetch(API("/api/v1/auth/login-with-otp"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpStr }),
+        body: JSON.stringify({ email, otp: otpStr, role: selectedRole }),
       })
       if (!res.ok) {
         const data = await res.json()

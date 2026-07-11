@@ -213,7 +213,7 @@ export default function CustomerHome() {
             <div className="bg-gradient-to-b from-primary to-primary/90 text-white px-5 pt-6 pb-7">
               <div className="flex items-start justify-between">
                 <div className="space-y-0.5">
-                  <p className="text-primary-foreground/80 text-sm font-medium">Welcome back 👋</p>
+                  <p className="text-primary-foreground/80 text-sm font-medium">Welcome back</p>
                   <h1 className="text-xl font-bold">{userName}</h1>
                   <p className="text-primary-foreground/60 text-xs mt-0.5">{todayDate}</p>
                 </div>

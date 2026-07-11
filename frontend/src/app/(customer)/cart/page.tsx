@@ -1,10 +1,10 @@
 "use client"
 
 import { Suspense } from "react"
-import dynamicImport from "next/dynamic"
+import dynamic from "next/dynamic"
 import { ShoppingCart } from "lucide-react"
 
-const CartContent = dynamicImport(() => import("./cart-content").then(mod => ({ default: mod.CartContent })), {
+const CartContent = dynamic(() => import("./cart-content").then(mod => ({ default: mod.CartContent })), {
   loading: () => (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-background">
       <div className="text-center">
