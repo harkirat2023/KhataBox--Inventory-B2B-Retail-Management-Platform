@@ -13,6 +13,7 @@ async def _register_and_get_tokens(client, *, role: str, email: str, password: s
     payload = {
         "email": email,
         "password": password,
+        "confirm_password": password,
         "name": "Phase2 User",
         "role": role,
     }
@@ -42,8 +43,8 @@ async def _register_and_get_tokens(client, *, role: str, email: str, password: s
     return data["access_token"]
 
 
-async def _login(client, *, email: str, password: str) -> str:
-    r = await client.post("/api/v1/auth/login", json={"email": email, "password": password})
+async def _login(client, *, email: str, password: str, role: str = "customer") -> str:
+    r = await client.post("/api/v1/auth/login", json={"email": email, "password": password, "role": role})
     assert r.status_code == 200, f"login failed: {r.status_code} {r.text}"
     return r.json()["access_token"]
 
@@ -85,7 +86,7 @@ async def test_phase2_customer_shopkeeper_admin_e2e(client):
     password = "Phase2@123"
 
     # ===== Register: customer + shopkeeper + admin via existing seeded accounts =====
-    admin_login = await _login(client, email="admin@khatabox.com", password="Admin@123")
+    admin_login = await _login(client, email="admin@khatabox.com", password="Admin@123", role="admin")
     admin_headers = {"Authorization": f"Bearer {admin_login}"}
 
     customer_email = _email("customer")

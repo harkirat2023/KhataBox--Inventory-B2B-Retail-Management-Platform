@@ -70,14 +70,14 @@ async def client() -> AsyncGenerator[httpx.AsyncClient, None]:
 
 @pytest_asyncio.fixture(scope="session")
 async def admin_token(client: httpx.AsyncClient) -> str:
-    r = await client.post("/api/v1/auth/login", json={"email": "admin@khatabox.com", "password": "Admin@123"})
+    r = await client.post("/api/v1/auth/login", json={"email": "admin@khatabox.com", "password": "Admin@123", "role": "admin"})
     assert r.status_code == 200, f"Login failed: {r.text}"
     return r.json()["access_token"]
 
 
 @pytest_asyncio.fixture(scope="session")
 async def shop_token(client: httpx.AsyncClient) -> str:
-    r = await client.post("/api/v1/auth/login", json={"email": "shop@khatabox.com", "password": "Shop@123"})
+    r = await client.post("/api/v1/auth/login", json={"email": "shop@khatabox.com", "password": "Shop@123", "role": "shopkeeper"})
     assert r.status_code == 200, f"Login failed: {r.text}"
     return r.json()["access_token"]
 
