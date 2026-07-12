@@ -202,7 +202,7 @@ export function TopNav() {
                     <Icon className="size-3" />
                     {CATEGORY_LABELS[category] || category}
                   </div>
-                  {items.map((item) => (
+                  {items.map((item: SearchResultItem) => (
                     <button
                       key={`${category}-${item.id}`}
                       onClick={() => selectResult(item)}
