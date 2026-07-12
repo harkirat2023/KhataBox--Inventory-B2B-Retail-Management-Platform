@@ -75,8 +75,8 @@ function StoreSwitchModal({
           Continuing will clear your existing cart and start a new cart for <strong className="text-foreground/80">{newStoreName}</strong>.
         </p>
         <div className="flex gap-2 mt-6">
-          <Button variant="outline" className="flex-1 rounded-xl h-11" onClick={onCancel}>Cancel</Button>
-          <Button className="flex-1 rounded-xl h-11 bg-amber-600 hover:bg-amber-700" onClick={onConfirm}>Continue</Button>
+          <Button className="flex-1 rounded-xl h-11 bg-red-600 hover:bg-red-700 text-white" onClick={onCancel}>Cancel</Button>
+          <Button className="flex-1 rounded-xl h-11 gap-1.5 bg-green-600 hover:bg-green-700 text-white" onClick={onConfirm}>Continue</Button>
         </div>
       </div>
     </div>

@@ -302,8 +302,8 @@ export default function TransfersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button className="bg-card border border-border text-foreground/80 hover:bg-muted hover:border-border rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={handleCreate} disabled={creating}>{creating ? "Creating..." : "Create Transfer"}</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 px-5" onClick={handleCreate} disabled={creating}>{creating ? "Creating..." : "Create Transfer"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

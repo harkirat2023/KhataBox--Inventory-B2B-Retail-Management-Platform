@@ -746,11 +746,11 @@ export default function OrderHistoryPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setUnpackedDialog(prev => ({ ...prev, open: false }))}>
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl" onClick={() => setUnpackedDialog(prev => ({ ...prev, open: false }))}>
               Cancel
             </Button>
             <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+              className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl"
               disabled={savingProduct}
               onClick={async () => {
                 if (!newProductName.trim()) {

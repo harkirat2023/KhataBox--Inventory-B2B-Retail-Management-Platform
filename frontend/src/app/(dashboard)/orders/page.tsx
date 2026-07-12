@@ -960,10 +960,10 @@ export default function OrdersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={updating} className="rounded-lg">
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-lg" onClick={() => setDialogOpen(false)} disabled={updating}>
               Cancel
             </Button>
-            <Button onClick={handleStatusConfirm} disabled={updating} className="rounded-lg gap-1.5">
+            <Button onClick={handleStatusConfirm} disabled={updating} className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg">
               {updating && <RefreshCw className="size-3.5 animate-spin" />}
               {updating ? "Updating..." : "Confirm"}
             </Button>
@@ -1081,9 +1081,9 @@ export default function OrdersPage() {
                 </div>
               )})()}
               <DialogFooter className="mt-2">
-                <Button variant="outline" onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null) }} disabled={b2cConfirming} className="rounded-lg">Cancel</Button>
+                <Button className="bg-red-600 hover:bg-red-700 text-white rounded-lg" onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null) }} disabled={b2cConfirming}>Cancel</Button>
                 <Button onClick={handleB2CConfirmSubmit} disabled={b2cConfirming || editableItems.length === 0}
-                  className="rounded-lg gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+                  className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg">
                   <CheckCircle className="size-4" />{b2cConfirming ? "Processing..." : "Confirm & Complete"}
                 </Button>
               </DialogFooter>
@@ -1225,11 +1225,11 @@ export default function OrdersPage() {
           )}
 
           <DialogFooter className="mt-2 gap-2">
-            <Button variant="outline" onClick={() => { setRevisionOpen(false); setRevisionOrder(null) }} disabled={revising} className="rounded-[8px]">
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-[8px]" onClick={() => { setRevisionOpen(false); setRevisionOrder(null) }} disabled={revising}>
               Cancel
             </Button>
             <Button onClick={() => setRevConfirmOpen(true)} disabled={revising || revisedItems.length === 0}
-              className="rounded-[8px] gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+              className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-[8px]">
               <CheckCircle className="size-4" />
               {revising ? "Updating..." : "Update Order"}
             </Button>
@@ -1258,8 +1258,8 @@ export default function OrdersPage() {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setRevConfirmOpen(false)} className="rounded-[8px]">Cancel</Button>
-            <Button onClick={handleUpdateOrder} className="rounded-[8px] gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-[8px]" onClick={() => setRevConfirmOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateOrder} className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-[8px]">
               <CheckCircle className="size-4" />Confirm Update
             </Button>
           </DialogFooter>
@@ -1286,8 +1286,8 @@ export default function OrdersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRevUnpackedOpen(false)} className="rounded-[6px]">Cancel</Button>
-            <Button onClick={handleRevAddUnpacked} disabled={!revUnpackedPrice || revUnpackedPrice <= 0} className="rounded-[6px]">Add to Order</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-[6px]" onClick={() => setRevUnpackedOpen(false)}>Cancel</Button>
+            <Button onClick={handleRevAddUnpacked} disabled={!revUnpackedPrice || revUnpackedPrice <= 0} className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-[6px]">Add to Order</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

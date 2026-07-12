@@ -765,10 +765,10 @@ export default function BillingPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" className="rounded-[6px]" onClick={() => setUnpackedOpen(false)}>
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-[6px]" onClick={() => setUnpackedOpen(false)}>
               Cancel
             </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-[6px]" onClick={handleAddUnpackedToCart}>
+            <Button className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-[6px]" onClick={handleAddUnpackedToCart}>
               Add to Cart
             </Button>
           </DialogFooter>
@@ -785,13 +785,13 @@ export default function BillingPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" className="rounded-[6px]" onClick={() => {
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-[6px]" onClick={() => {
               setCustomerChangeModalOpen(false)
               setPendingCustomerId(null)
             }}>
               Cancel
             </Button>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-[6px]" onClick={() => {
+            <Button className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-[6px]" onClick={() => {
               if (pendingCustomerId !== null) {
                 setSelectedCustomerId(pendingCustomerId)
               }
@@ -986,9 +986,9 @@ export default function BillingPage() {
               </div>
 
               <DialogFooter className="mt-3">
-                <Button variant="outline" className="rounded-[6px]" disabled={generating} onClick={() => setCheckoutOpen(false)}>Cancel</Button>
+                <Button className="bg-red-600 hover:bg-red-700 text-white rounded-[6px]" disabled={generating} onClick={() => setCheckoutOpen(false)}>Cancel</Button>
                 <Button
-                  className="rounded-[6px]"
+                  className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-[6px]"
                   disabled={generating || items.length === 0}
                   onClick={async () => {
                     setGenerating(true)

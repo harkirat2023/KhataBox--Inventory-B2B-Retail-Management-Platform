@@ -206,8 +206,8 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product, prefi
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={loading}>{loading ? "Saving..." : product ? "Update" : "Create"}</Button>
+            <Button type="button" className="bg-red-600 hover:bg-red-700 text-white rounded-xl" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" disabled={loading} className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl">{loading ? "Saving..." : product ? "Update" : "Create"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

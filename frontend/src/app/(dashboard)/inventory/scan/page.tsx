@@ -703,10 +703,10 @@ export default function InventoryScanPage() {
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={handleModalCancel} className="rounded-xl">
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl" onClick={handleModalCancel}>
               Cancel
             </Button>
-            <Button onClick={handleModalAdd} className="rounded-xl gap-1">
+            <Button onClick={handleModalAdd} className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl">
               <Plus className="size-4" />
               Add to Inventory
             </Button>

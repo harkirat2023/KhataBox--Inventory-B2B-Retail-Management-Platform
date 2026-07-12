@@ -54,10 +54,10 @@ export function RenameStoreDialog({ open, onOpenChange, store, onRenamed }: Rena
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" className="rounded-xl" onClick={() => onOpenChange(false)}>
+          <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl" onClick={handleSave} disabled={saving}>
+          <Button className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl" onClick={handleSave} disabled={saving}>
             {saving ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>

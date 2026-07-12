@@ -191,8 +191,8 @@ export default function SuppliersPage() {
             <DialogDescription>Are you sure you want to delete this supplier? This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
-            <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}>Delete</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+            <Button className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 px-5" onClick={() => deleteConfirmId && handleDelete(deleteConfirmId)}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -267,8 +267,8 @@ function SupplierFormDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" disabled={loading}>{loading ? "Saving..." : supplier ? "Update" : "Create"}</Button>
+            <Button type="button" className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-5" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 px-5" disabled={loading}>{loading ? "Saving..." : supplier ? "Update" : "Create"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

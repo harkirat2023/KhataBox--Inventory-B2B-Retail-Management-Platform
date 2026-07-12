@@ -173,15 +173,14 @@ export function EditStockModal({
 
         <DialogFooter>
           <Button
-            variant="outline"
-            className="rounded-xl"
+            className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
             onClick={() => onOpenChange(false)}
             disabled={loading}
           >
             Cancel
           </Button>
           <Button
-            className="bg-primary hover:bg-primary/90 text-white rounded-xl"
+            className="gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl"
             onClick={handleConfirm}
             disabled={loading || !isValid()}
           >
