@@ -1,4 +1,11 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
+function getApiUrl(): string {
+  const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
+  if (typeof window !== "undefined" && window.location.protocol === "https:" && url.startsWith("http://")) {
+    return url.replace("http://", "https://")
+  }
+  return url
+}
+const API_URL = getApiUrl()
 
 function getCookie(name: string): string | undefined {
   if (typeof document === "undefined") return undefined

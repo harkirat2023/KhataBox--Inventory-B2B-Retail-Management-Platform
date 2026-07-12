@@ -27,6 +27,7 @@ import {
   UserPlus,
   FileText,
   PlusCircle,
+  Lightbulb,
 } from "lucide-react"
 import {
   Select,
@@ -77,6 +78,7 @@ interface DashboardStats {
 interface Store {
   id: number
   name: string
+  store_type: string | null
 }
 
 const containerVariants = {
@@ -102,6 +104,7 @@ const quickActions = [
   { label: "Purchase Order", href: "/purchase-orders", icon: Truck, query: "new", color: "bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400" },
   { label: "Scan Inventory", href: "/inventory/scan", icon: Camera, color: "bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400" },
   { label: "View Orders", href: "/orders", icon: ShoppingCart, color: "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400" },
+  { label: "Our Suggestions", href: "/setup-inventory", icon: Lightbulb, query: "store_type", color: "bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400" },
 ]
 
 function MetricSkeleton() {
@@ -144,6 +147,8 @@ export default function DashboardPage() {
     queryFn: () => clientApi.get<Store[]>("/api/v1/stores/"),
     refetchInterval: 60_000,
   })
+
+  const activeStoreType = stores?.find(s => s.id === activeStore.id)?.store_type || "kirana"
 
   useEffect(() => {
     if (stores && stores.length > 0 && !activeStore.id) {
@@ -316,11 +321,14 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
-      <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4" variants={itemVariants}>
+      <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" variants={itemVariants}>
         {quickActions.map((action) => {
           const Icon = action.icon
+          const href = action.label === "Our Suggestions"
+            ? `/setup-inventory?store_type=${activeStoreType}`
+            : `${action.href}${action.query ? `?${action.query}` : ""}`
           return (
-            <Link key={action.href} href={`${action.href}${action.query ? `?${action.query}` : ""}`}>
+            <Link key={action.href} href={href}>
               <motion.div
                 whileHover={{ translateY: -3, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
