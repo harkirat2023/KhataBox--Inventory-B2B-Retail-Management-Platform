@@ -71,7 +71,8 @@ export const clientApi = {
 }
 
 function setCookie(name: string, value: string, maxAgeDays = 1) {
-  document.cookie = `${name}=${value}; Path=/; SameSite=Lax; Secure; Max-Age=${maxAgeDays * 86400}`
+  const secure = window.location.protocol === "https:" ? "; Secure" : ""
+  document.cookie = `${name}=${value}; Path=/; SameSite=Lax${secure}; Max-Age=${maxAgeDays * 86400}`
 }
 
 export function setAuthToken(token: string) {

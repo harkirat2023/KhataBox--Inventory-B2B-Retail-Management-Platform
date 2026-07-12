@@ -29,8 +29,8 @@ async def create_notification(
 
     # Enforce max 50 per user — delete oldest if over limit
     count = (await db.execute(select(func.count()).select_from(Notification).where(Notification.user_id == user_id))).scalar()
-    if count > MAX_NOTIFICATIONS_PER_USER:
-        excess = count - MAX_NOTIFICATIONS_PER_USER
+    if count >= MAX_NOTIFICATIONS_PER_USER:
+        excess = count - MAX_NOTIFICATIONS_PER_USER + 1
         old = (await db.execute(
             select(Notification.id)
             .where(Notification.user_id == user_id)

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useUser } from "@/hooks/use-user"
 import { clearAuthToken, clientApi } from "@/lib/client-api"
 import { useRouter } from "next/navigation"
-import { Bell, LogOut, Search, Boxes, Command, Settings as SettingsIcon, Pencil, Package, Loader2, BellDot } from "lucide-react"
+import { Bell, LogOut, Search, Boxes, Command, Settings as SettingsIcon, Pencil, Package, Loader2, BellDot, ShoppingCart, Users, Truck, Store, FileText } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -22,13 +22,50 @@ import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useRole } from "@/components/auth/role-guard"
 import { useStoreContext } from "@/lib/store-context"
 
-interface SearchResult {
+interface SearchResultItem {
   id: number
-  name: string
-  sku: string
-  selling_price: number
-  stock_quantity: number
+  type: string
+  name?: string
+  sku?: string
+  selling_price?: number
+  stock_quantity?: number
   category?: string
+  order_number?: string
+  status?: string
+  total?: number
+  customer_name?: string
+  email?: string
+  phone?: string
+  contact_person?: string
+  po_number?: string
+  store_type?: string
+}
+
+interface GlobalSearchResponse {
+  products?: SearchResultItem[]
+  orders?: SearchResultItem[]
+  customers?: SearchResultItem[]
+  suppliers?: SearchResultItem[]
+  purchase_orders?: SearchResultItem[]
+  stores?: SearchResultItem[]
+}
+
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  product: Package,
+  order: ShoppingCart,
+  customer: Users,
+  supplier: Truck,
+  purchase_order: FileText,
+  store: Store,
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  product: "Products",
+  order: "Orders",
+  customer: "Customers",
+  supplier: "Suppliers",
+  purchase_order: "Purchase Orders",
+  store: "Stores",
 }
 
 export function TopNav() {
@@ -38,7 +75,7 @@ export function TopNav() {
   const { activeStore } = useStoreContext()
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searchResults, setSearchResults] = useState<GlobalSearchResponse>({})
   const [searching, setSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
@@ -50,17 +87,19 @@ export function TopNav() {
 
   const doSearch = useCallback(async (q: string) => {
     if (!q.trim()) {
-      setSearchResults([])
+      setSearchResults({})
       setShowResults(false)
       return
     }
     setSearching(true)
     try {
-      const data = await clientApi.get<SearchResult[]>(`/api/v1/products/?search=${encodeURIComponent(q)}&page_size=8`)
+      const data = await clientApi.get<GlobalSearchResponse>(`/api/v1/search/?q=${encodeURIComponent(q)}&limit=5`)
       setSearchResults(data)
-      setShowResults(data.length > 0)
+      const hasResults = Object.values(data).some((arr) => arr && arr.length > 0)
+      setShowResults(hasResults)
     } catch {
-      setSearchResults([])
+      setSearchResults({})
+      setShowResults(false)
     } finally {
       setSearching(false)
     }
@@ -93,16 +132,37 @@ export function TopNav() {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [])
 
-  const selectResult = (product: SearchResult) => {
+  const selectResult = (item: SearchResultItem) => {
     setShowResults(false)
     setSearchQuery("")
-    router.push(`/billing?product_id=${product.id}`)
+    switch (item.type) {
+      case "product":
+        router.push(`/inventory?product_id=${item.id}`)
+        break
+      case "order":
+        router.push(`/orders?id=${item.id}`)
+        break
+      case "customer":
+        router.push(`/customers?id=${item.id}`)
+        break
+      case "supplier":
+        router.push(`/suppliers?id=${item.id}`)
+        break
+      case "purchase_order":
+        router.push(`/purchase-orders?id=${item.id}`)
+        break
+      case "store":
+        router.push(`/stores?id=${item.id}`)
+        break
+    }
   }
 
   const handleSignOut = () => {
     clearAuthToken()
     router.push("/login")
   }
+
+  const totalResults = Object.values(searchResults).reduce((sum, arr) => sum + (arr?.length || 0), 0)
 
   return (
     <header className="sticky top-0 z-40 flex items-center h-[64px] border-b border-border bg-white dark:bg-[#121214] backdrop-blur-xl px-4 lg:px-6 gap-2 lg:gap-3">
@@ -119,10 +179,10 @@ export function TopNav() {
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <input
           ref={searchInputRef}
-          placeholder={role === "customer" ? "Search products..." : "Search products, orders..."}
+          placeholder="Search products, orders, customers..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          onFocus={() => { if (searchResults.length > 0) setShowResults(true) }}
+          onFocus={() => { if (totalResults > 0) setShowResults(true) }}
           className="w-full h-10 pl-10 pr-14 rounded-full border border-border bg-muted/50 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/60 focus:bg-background transition-all" />
         <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {searching && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
@@ -132,29 +192,51 @@ export function TopNav() {
         </div>
 
         {showResults && (
-          <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-border bg-card shadow-lg overflow-hidden z-50">
-            {searchResults.map((product) => (
-              <button
-                key={product.id}
-                onClick={() => selectResult(product)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent transition-colors border-b border-border last:border-0"
-              >
-                <Package className="size-4 shrink-0 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-mono">{product.sku}</span>
-                    {product.category && <span> &middot; {product.category}</span>}
-                  </p>
+          <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-border bg-card shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
+            {Object.entries(searchResults).map(([category, items]) => {
+              if (!items || items.length === 0) return null
+              const Icon = CATEGORY_ICONS[category] || Package
+              return (
+                <div key={category}>
+                  <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 flex items-center gap-1.5">
+                    <Icon className="size-3" />
+                    {CATEGORY_LABELS[category] || category}
+                  </div>
+                  {items.map((item) => (
+                    <button
+                      key={`${category}-${item.id}`}
+                      onClick={() => selectResult(item)}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-accent transition-colors border-b border-border last:border-0"
+                    >
+                      <Icon className="size-4 shrink-0 text-muted-foreground" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{item.name || item.order_number || item.po_number || item.contact_person || "Unknown"}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {item.sku && <span className="font-mono">{item.sku} · </span>}
+                          {item.category && <span>{item.category} · </span>}
+                          {item.status && <span>{item.status} · </span>}
+                          {item.email && <span>{item.email} · </span>}
+                          {item.store_type && <span>{item.store_type}</span>}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        {item.selling_price != null && (
+                          <p className="text-sm font-semibold text-foreground">₹{item.selling_price.toFixed(2)}</p>
+                        )}
+                        {item.total != null && (
+                          <p className="text-sm font-semibold text-foreground">₹{item.total.toFixed(2)}</p>
+                        )}
+                        {item.stock_quantity != null && (
+                          <p className={`text-xs ${item.stock_quantity <= 5 ? "text-destructive" : "text-muted-foreground"}`}>
+                            {item.stock_quantity} left
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-foreground">₹{product.selling_price.toFixed(2)}</p>
-                  <p className={`text-xs ${product.stock_quantity <= 5 ? "text-destructive" : "text-muted-foreground"}`}>
-                    {product.stock_quantity} left
-                  </p>
-                </div>
-              </button>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

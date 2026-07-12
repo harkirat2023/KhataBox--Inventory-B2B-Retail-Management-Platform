@@ -27,9 +27,10 @@ interface Props {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: ProductFormData) => Promise<void>
   product?: Product | null
+  prefillData?: { name?: string; brand?: string; category?: string | null }
 }
 
-export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Props) {
+export function ProductFormDialog({ open, onOpenChange, onSubmit, product, prefillData }: Props) {
   const [form, setForm] = useState<ProductFormData>({
     name: "",
     sku: "",
@@ -75,6 +76,19 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
         reorder_threshold: product.reorder_threshold ?? 10,
         store_id: product.store_id ?? null,
       })
+    } else if (prefillData) {
+      setForm({
+        name: prefillData.name || "",
+        sku: "",
+        category: prefillData.category || "",
+        brand: prefillData.brand || "",
+        description: "",
+        cost_price: 0,
+        selling_price: 0,
+        stock_quantity: 1,
+        reorder_threshold: 10,
+        store_id: null,
+      })
     } else {
       setForm({
         name: "", sku: "", category: "", brand: "", description: "",
@@ -82,7 +96,7 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
       })
     }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, open])
+  }, [product, prefillData, open])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,6 +106,7 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product }: Pro
 
       // Required fields (Shopkeeper Inventory)
       if (!data.name?.trim()) return
+      if (!data.cost_price || data.cost_price <= 0) return
       if (!data.selling_price || data.selling_price <= 0) return
       if (!Number.isInteger(data.stock_quantity) || data.stock_quantity < 0) return
 

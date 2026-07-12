@@ -162,7 +162,7 @@ def _xlsx_response(rows: list[dict], filename: str) -> StreamingResponse:
 
 @router.get("/export/orders")
 async def export_orders(
-    format: str = Query("csv", regex="^(csv|xlsx)$"),
+    format: str = Query("csv", pattern="^(csv|xlsx)$"),
     start_date: datetime | None = Query(None),
     end_date: datetime | None = Query(None),
     current_user: User = Depends(require_role("admin", "shopkeeper")),
@@ -196,7 +196,7 @@ async def export_orders(
 
 @router.get("/export/products")
 async def export_products(
-    format: str = Query("csv", regex="^(csv|xlsx)$"),
+    format: str = Query("csv", pattern="^(csv|xlsx)$"),
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -221,7 +221,7 @@ async def export_products(
 
 @router.get("/export/customers")
 async def export_customers(
-    format: str = Query("csv", regex="^(csv|xlsx)$"),
+    format: str = Query("csv", pattern="^(csv|xlsx)$"),
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):
@@ -244,7 +244,7 @@ async def export_customers(
 
 @router.get("/export/suppliers")
 async def export_suppliers(
-    format: str = Query("csv", regex="^(csv|xlsx)$"),
+    format: str = Query("csv", pattern="^(csv|xlsx)$"),
     current_user: User = Depends(require_role("admin", "shopkeeper")),
     db: AsyncSession = Depends(get_db),
 ):

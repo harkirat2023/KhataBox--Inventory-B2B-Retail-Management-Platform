@@ -651,45 +651,49 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
 
             previous_total = order.total
             price_diff = round(new_total - previous_total, 2)
-
-            # Inventory: adjust by difference per product
-            old_items_map = {it.product_id: it for it in (order.items or [])}
-            for rev_item in payload.revised_items:
-                product_result = await db.execute(
-                    select(Product).where(Product.id == rev_item.product_id, Product.owner_id == shopkeeper_id)
-                )
-                product = product_result.scalar_one_or_none()
-                if not product:
-                    raise HTTPException(status_code=404, detail=f"Product '{rev_item.product_name}' not found")
-
-                old_qty = old_items_map.get(rev_item.product_id, OrderItem(quantity=0)).quantity
-                diff_qty = rev_item.quantity - old_qty
-
-                if diff_qty > 0:
-                    if product.stock_quantity < diff_qty:
-                        raise HTTPException(
-                            status_code=400,
-                            detail=f"Insufficient stock for {rev_item.product_name}: have {product.stock_quantity}, need {diff_qty} more",
-                        )
-                    product.stock_quantity -= diff_qty
-                    db.add(InventoryMovement(
-                        product_id=rev_item.product_id, shopkeeper_id=shopkeeper_id,
-                        movement_type=MovementType.CONSUME_OUT, quantity=-diff_qty,
-                        reference=f"Order #{order.order_number} Rev-{order.revision_number + 1}",
-                    ))
-                elif diff_qty < 0:
-                    restore_qty = -diff_qty
-                    product.stock_quantity += restore_qty
-                    db.add(InventoryMovement(
-                        product_id=rev_item.product_id, shopkeeper_id=shopkeeper_id,
-                        movement_type=MovementType.RETURN, quantity=restore_qty,
-                        reference=f"Order #{order.order_number} Rev-{order.revision_number + 1}",
-                    ))
-                await db.flush()
-                await check_low_stock(rev_item.product_id, shopkeeper_id, db)
+            has_change = price_diff != 0
 
             # Update existing OrderItems with new quantities
             existing_items = {it.product_id: it for it in (order.items or [])}
+            old_items_map = {it.product_id: it for it in (order.items or [])}
+
+            # Inventory: adjust by difference per product (only if changed)
+            if has_change:
+                for rev_item in payload.revised_items:
+                    product_result = await db.execute(
+                        select(Product).where(Product.id == rev_item.product_id, Product.owner_id == shopkeeper_id)
+                    )
+                    product = product_result.scalar_one_or_none()
+                    if not product:
+                        # Unpacked product — skip stock deduction
+                        continue
+
+                    old_qty = old_items_map.get(rev_item.product_id, OrderItem(quantity=0)).quantity
+                    diff_qty = rev_item.quantity - old_qty
+
+                    if diff_qty > 0:
+                        if product.stock_quantity < diff_qty:
+                            raise HTTPException(
+                                status_code=400,
+                                detail=f"Insufficient stock for {rev_item.product_name}: have {product.stock_quantity}, need {diff_qty} more",
+                            )
+                        product.stock_quantity -= diff_qty
+                        db.add(InventoryMovement(
+                            product_id=rev_item.product_id, shopkeeper_id=shopkeeper_id,
+                            movement_type=MovementType.CONSUME_OUT, quantity=-diff_qty,
+                            reference=f"Order #{order.order_number} Rev-{order.revision_number + 1}",
+                        ))
+                    elif diff_qty < 0:
+                        restore_qty = -diff_qty
+                        product.stock_quantity += restore_qty
+                        db.add(InventoryMovement(
+                            product_id=rev_item.product_id, shopkeeper_id=shopkeeper_id,
+                            movement_type=MovementType.RETURN, quantity=restore_qty,
+                            reference=f"Order #{order.order_number} Rev-{order.revision_number + 1}",
+                        ))
+                    await db.flush()
+                    await check_low_stock(rev_item.product_id, shopkeeper_id, db)
+
             for rev_item in payload.revised_items:
                 if rev_item.product_id in existing_items:
                     oi = existing_items[rev_item.product_id]
@@ -718,52 +722,60 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
             order.total = new_total
             order.previous_total = previous_total
             order.adjustment_total = price_diff
-            order.revision_number += 1
-            order.status = OrderStatus.COMPLETED
 
-            if payload.settlement_type == "leftover":
-                leftover_due = max(0, price_diff - (payload.leftover_amount or 0))
-                order.revision_status = f"Due ₹{leftover_due:.0f}" if leftover_due > 0 else "Settled"
+            if has_change:
+                order.revision_number += 1
+                order.status = OrderStatus.COMPLETED
+                if payload.settlement_type == "leftover":
+                    leftover_due = max(0, price_diff - (payload.leftover_amount or 0))
+                    order.revision_status = f"Due ₹{leftover_due:.0f}" if leftover_due > 0 else "Settled"
+                else:
+                    order.revision_status = "Updated"
             else:
-                order.revision_status = "Updated"
+                # No change — keep completed, no revision metadata update
+                order.status = OrderStatus.COMPLETED
+                # Don't increment revision_number
 
             if payload.notes:
                 order.notes = payload.notes
 
             await db.flush()
 
-            # Generate adjustment receipt
-            store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
-            store = store_result.scalar_one_or_none()
-            if store and price_diff != 0:
-                adj_sign = "UP" if price_diff > 0 else "DOWN"
-                adj_amt = abs(price_diff)
-                receipt = Receipt(
-                    receipt_number=f"RCPT-{order.id:08d}-ADJ-{order.revision_number}",
-                    order_id=order.id, shopkeeper_id=shopkeeper_id,
-                    customer_id=order.customer_id, store_id=store.id,
-                    payment_method=order.payment_method,
-                    subtotal=0, discount=0, taxes=0, total_amount=adj_amt,
-                )
-                db.add(receipt)
-                await db.flush()
-                for rev_item in payload.revised_items:
-                    db.add(ReceiptItem(
-                        receipt_id=receipt.id,
-                        product_id=rev_item.product_id,
-                        product_name=rev_item.product_name,
-                        quantity=rev_item.quantity,
-                        unit_price=rev_item.unit_price,
-                        line_total=rev_item.quantity * rev_item.unit_price,
-                        taxes=0, discount=0,
-                    ))
+            # Generate adjustment receipt only if price changed
+            if has_change:
+                store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
+                store = store_result.scalar_one_or_none()
+                if store:
+                    adj_sign = "UP" if price_diff > 0 else "DOWN"
+                    adj_amt = abs(price_diff)
+                    receipt = Receipt(
+                        receipt_number=f"RCPT-{order.id:08d}-ADJ-{order.revision_number}",
+                        order_id=order.id, shopkeeper_id=shopkeeper_id,
+                        customer_id=order.customer_id, store_id=store.id,
+                        payment_method=order.payment_method,
+                        subtotal=0, discount=0, taxes=0, total_amount=adj_amt,
+                    )
+                    db.add(receipt)
+                    await db.flush()
+                    for rev_item in payload.revised_items:
+                        db.add(ReceiptItem(
+                            receipt_id=receipt.id,
+                            product_id=rev_item.product_id,
+                            product_name=rev_item.product_name,
+                            quantity=rev_item.quantity,
+                            unit_price=rev_item.unit_price,
+                            line_total=rev_item.quantity * rev_item.unit_price,
+                            taxes=0, discount=0,
+                        ))
 
-            await create_notification(
-                db=db, user_id=shopkeeper_id, type=NotificationType.ORDER_REVISED,
-                title="Order Revised",
-                message=f"Order #{order.order_number} revised (Rev #{order.revision_number}) — new total ₹{order.total:.2f}",
-                reference_id=order.id,
-            )
+            # Only create notification if price changed
+            if has_change:
+                await create_notification(
+                    db=db, user_id=shopkeeper_id, type=NotificationType.ORDER_REVISED,
+                    title="Order Revised",
+                    message=f"Order #{order.order_number} revised (Rev #{order.revision_number}) — new total ₹{order.total:.2f}",
+                    reference_id=order.id,
+                )
             await db.commit()
             await db.refresh(order, ["items"])
 

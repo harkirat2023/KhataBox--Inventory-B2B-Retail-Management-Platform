@@ -136,7 +136,6 @@ async def get_demand_forecast(
                 "day_of_week": now.weekday(),
                 "month": now.month,
                 "day_of_month": now.day,
-                "is_holiday": 1 if now.weekday() >= 5 else 0,
                 "is_weekend": 1 if now.weekday() >= 5 else 0,
             }
             forecast = ml_predict.predict_demand(ml_input)

@@ -3,7 +3,7 @@
 from alembic import op
 import sqlalchemy as sa
 
-revision = '0024_notification_type_extensions'
+revision = '0024_noti_ext'
 down_revision = '0023_order_revision_fields'
 branch_labels = None
 depends_on = None

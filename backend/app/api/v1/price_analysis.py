@@ -46,11 +46,11 @@ async def get_price_analysis_overview(
         if p.shipping_cost or p.freight or p.handling or p.packaging or p.tariff:
             landed_cost += (p.shipping_cost or 0) + (p.freight or 0) + (p.handling or 0) + (p.packaging or 0) + (p.tariff or 0)
 
-        gross_profit = p.selling_price - p.cost_price
+        gross_profit = p.selling_price - landed_cost
         gross_margin = round((gross_profit / p.selling_price) * 100, 2) if p.selling_price > 0 else 0
         revenue_projection = p.selling_price * p.stock_quantity
         total_profit = gross_profit * p.stock_quantity
-        gmroi = round((gross_margin / (p.cost_price or 1)) * 100, 2) if p.cost_price > 0 else 0
+        gmroi = round((gross_profit / landed_cost) * 100, 2) if landed_cost > 0 else 0
 
         procurement_analysis.append({
             "product_id": p.id,

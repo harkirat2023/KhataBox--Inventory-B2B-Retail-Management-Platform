@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { clientApi } from "@/lib/client-api"
+import { ProductFormDialog } from "@/components/products/product-form-dialog"
+import { Product, ProductFormData } from "@/types/product"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -65,6 +67,12 @@ export default function InventoryScanPage() {
   const [showModal, setShowModal] = useState(false)
   const [modalProduct, setModalProduct] = useState<BarcodeProduct>({ barcode: "", product_name: "", price: 0, quantity: 1 })
   const [inventory, setInventory] = useState<BarcodeProduct[]>([])
+
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [prefillName, setPrefillName] = useState("")
+  const [prefillBrand, setPrefillBrand] = useState("")
+  const [prefillCategory, setPrefillCategory] = useState("")
+  const [addDialogLoading, setAddDialogLoading] = useState(false)
 
   const scannerRef = useRef<HTMLDivElement>(null)
   const html5QrCodeRef = useRef<any>(null)
@@ -140,11 +148,96 @@ export default function InventoryScanPage() {
     }
   }, [scannerPaused])
 
+  const handleCreateProductFromScan = async (data: ProductFormData) => {
+    setAddDialogLoading(true)
+    try {
+      const created = await clientApi.post<Product>("/api/v1/products/", data)
+      toast.success(`Product created: ${created.name}`)
+      setShowAddDialog(false)
+      // Auto-add to inventory (stock update)
+      if (data.stock_quantity > 0) {
+        try {
+          await clientApi.post("/api/v1/inventory/stock-update", {
+            product_id: created.id,
+            action: "add",
+            quantity: data.stock_quantity,
+          })
+        } catch (e) {
+          console.error("stock update failed", e)
+        }
+      }
+      // Immediately look up and show the product
+      setPrefillName("")
+      setPrefillBrand("")
+      setPrefillCategory("")
+      await lookUpProduct(created.product_uuid)
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to create product")
+      throw err
+    } finally {
+      setAddDialogLoading(false)
+    }
+  }
+
   const handleScan = async (code: string, mode: ScanMode) => {
     if (mode === "qr") {
       lookUpProduct(code.trim())
     } else {
-      await fetchOpenFoodFacts(code.trim())
+      await searchLocalThenOpenFoodFacts(code.trim())
+    }
+  }
+
+  const searchLocalThenOpenFoodFacts = async (barcode: string) => {
+    setBarcodeLoading(true)
+    try {
+      // 1. Search local database first by SKU or name
+      const localProducts = await clientApi.get<Product[]>(`/api/v1/products/?search=${encodeURIComponent(barcode)}&page_size=5`)
+      if (localProducts && localProducts.length > 0) {
+        const found = localProducts[0]
+        setProduct({
+          id: found.id,
+          product_uuid: found.product_uuid,
+          name: found.name,
+          sku: found.sku,
+          stock_quantity: found.stock_quantity,
+          store_name: found.store_name || null,
+          category: found.category || "",
+        })
+        setScannedUuid(found.product_uuid)
+        await resumeScanner()
+        toast.success(`Found: ${found.name}`)
+        return
+      }
+
+      // 2. Try OpenFoodFacts
+      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`)
+      const data = await res.json()
+      if (data?.status === 1 && data.product) {
+        const productName = data.product.product_name || data.product.generic_name || `Product (${barcode})`
+        const brand = data.product.brands || ""
+        const category = data.product.categories || ""
+        setPrefillName(productName)
+        setPrefillBrand(brand)
+        setPrefillCategory(category)
+        setShowAddDialog(true)
+        await resumeScanner()
+      } else {
+        // 3. OpenFoodFacts also failed - open Add Product dialog empty
+        setPrefillName(`Product (${barcode})`)
+        setPrefillBrand("")
+        setPrefillCategory("")
+        setShowAddDialog(true)
+        await resumeScanner()
+      }
+    } catch {
+      // OpenFoodFacts error - open Add Product dialog
+      setPrefillName(`Product (${barcode})`)
+      setPrefillBrand("")
+      setPrefillCategory("")
+      setShowAddDialog(true)
+      await resumeScanner()
+    } finally {
+      setBarcodeLoading(false)
     }
   }
 
@@ -157,33 +250,14 @@ export default function InventoryScanPage() {
       setProduct(data)
       setScannedUuid(uuid)
     } catch {
-      toast.error("Product not found for this QR code")
+      // QR code not found in local DB - open Add Product dialog
+      setPrefillName("")
+      setPrefillBrand("")
+      setPrefillCategory("")
+      setShowAddDialog(true)
       await resumeScanner()
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchOpenFoodFacts = async (barcode: string) => {
-    setBarcodeLoading(true)
-    try {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`)
-      const data = await res.json()
-      let productName = `Product (${barcode})`
-      let productPrice = 0
-      if (data?.status === 1 && data.product) {
-        productName = data.product.product_name || data.product.generic_name || productName
-        const priceTags = data.product.product_name || ""
-        const price = data.product.price || data.product.kilocalories || 0
-        productPrice = typeof price === "number" && price > 0 ? price : 0
-      }
-      setModalProduct({ barcode, product_name: productName, price: productPrice, quantity: 1 })
-      setShowModal(true)
-    } catch {
-      setModalProduct({ barcode, product_name: `Product (${barcode})`, price: 0, quantity: 1 })
-      setShowModal(true)
-    } finally {
-      setBarcodeLoading(false)
     }
   }
 
@@ -265,7 +339,6 @@ export default function InventoryScanPage() {
   }
 
   const subtotal = inventory.reduce((s, i) => s + i.price * i.quantity, 0)
-
   const totalQuantity = inventory.reduce((s, i) => s + i.quantity, 0)
 
   return (
@@ -374,7 +447,7 @@ export default function InventoryScanPage() {
 
           {scanMode === "barcode" && (
             <p className="text-xs text-muted-foreground text-center">
-              Supports EAN-13, UPC-A, CODE-128, and more. Scanned products are looked up via Open Food Facts.
+              Supports EAN-13, UPC-A, CODE-128, and more. Searches local database first, then Open Food Facts.
             </p>
           )}
         </CardContent>
@@ -385,7 +458,7 @@ export default function InventoryScanPage() {
         <Card className="rounded-2xl border-border shadow-sm">
           <CardContent className="py-6 text-center">
             <Loader2 className="size-6 animate-spin text-primary mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Looking up product on Open Food Facts...</p>
+            <p className="text-sm text-muted-foreground">Searching local database & Open Food Facts...</p>
           </CardContent>
         </Card>
       )}
@@ -534,7 +607,7 @@ export default function InventoryScanPage() {
               <div className="text-center py-12">
                 <Barcode className="size-12 mx-auto mb-3 text-muted-foreground" />
                 <p className="text-sm font-medium text-foreground">No products scanned yet</p>
-                <p className="text-xs text-muted-foreground mt-1">Scan barcodes to add products to your local inventory list</p>
+                <p className="text-xs text-muted-foreground mt-1">Scan barcodes to search local DB, then Open Food Facts, or add manually</p>
               </div>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-border">
@@ -573,6 +646,24 @@ export default function InventoryScanPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* ProductFormDialog for adding new products from scan */}
+      <ProductFormDialog
+        open={showAddDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowAddDialog(false)
+            resumeScanner()
+          }
+        }}
+        onSubmit={handleCreateProductFromScan}
+        product={null}
+        prefillData={{
+          name: prefillName,
+          brand: prefillBrand,
+          category: prefillCategory || null,
+        }}
+      />
 
       {/* Barcode Modal */}
       <Dialog open={showModal} onOpenChange={(open) => { if (!open) handleModalCancel() }}>

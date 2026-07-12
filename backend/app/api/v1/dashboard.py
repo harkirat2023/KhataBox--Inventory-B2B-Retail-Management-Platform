@@ -127,7 +127,7 @@ async def get_dashboard_stats(
                 "message": n.message,
                 "icon": n.type.value if hasattr(n.type, "value") else str(n.type),
                 "is_read": n.is_read,
-                "created_at": n.created_at,
+                "created_at": n.created_at.isoformat(),
                 "reference_id": n.reference_id,
             })
         for o in recent_orders:
@@ -138,7 +138,7 @@ async def get_dashboard_stats(
                 "message": f"Status: {o.status.value if hasattr(o.status, 'value') else o.status}",
                 "status": o.status.value if hasattr(o.status, "value") else str(o.status),
                 "total": float(o.total),
-                "created_at": o.created_at,
+                "created_at": o.created_at.isoformat(),
             })
         feed.sort(key=lambda x: x["created_at"], reverse=True)
         return feed[:20]
