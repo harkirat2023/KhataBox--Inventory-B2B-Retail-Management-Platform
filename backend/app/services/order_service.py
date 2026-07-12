@@ -21,7 +21,10 @@ from app.models.product import Product
 from app.models.receipt import Receipt, ReceiptItem
 from app.models.store import Store
 from app.services.cache import invalidate_pattern as invalidate_cache
-from app.services.notifications import check_low_stock
+from app.models.notification import NotificationType
+from app.models.product_activity import ActivityType
+from app.services.notifications import check_low_stock, create_notification
+from app.services.product_activity_service import log_activity
 from app.services.socketio_manager import emit_order_created, emit_order_status_changed
 
 
@@ -204,6 +207,12 @@ async def create_order(db, payload, shopkeeper_id):
                     reference=f"Order #{order.order_number}",
                 )
                 db.add(movement)
+                await log_activity(
+                    db=db, product_id=item.product_id, shopkeeper_id=shopkeeper_id,
+                    activity_type=ActivityType.ORDER_CONSUMED,
+                    quantity=-item.quantity,
+                    reference=f"Order #{order.order_number}",
+                )
                 logger.debug("Before flush (InventoryMovement %s)", idx)
                 await db.flush()
                 logger.debug("After flush (InventoryMovement)")
@@ -335,6 +344,20 @@ async def create_order(db, payload, shopkeeper_id):
         print("=" * 80, flush=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {exc}")
 
+    await create_notification(
+        db=db, user_id=shopkeeper_id, type=NotificationType.ORDER_COMPLETED,
+        title="Order Completed",
+        message=f"Order #{order.order_number} for ₹{order.total:.2f} completed",
+        reference_id=order.id,
+    )
+    if order.customer_id:
+        await create_notification(
+            db=db, user_id=shopkeeper_id, type=NotificationType.INVOICE_GENERATED,
+            title="Invoice Generated",
+            message=f"Invoice generated for Order #{order.order_number}",
+            reference_id=order.id,
+        )
+
     logger.debug("Enriching orders for response")
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
     logger.debug("Emitting order_created event")
@@ -428,6 +451,12 @@ async def create_bulk_order(db, payload, user_email):
                     reference=f"Order #{order.order_number}",
                 )
                 db.add(movement)
+                await log_activity(
+                    db=db, product_id=item.product_id, shopkeeper_id=customer.owner_id,
+                    activity_type=ActivityType.ORDER_CONSUMED,
+                    quantity=-item.quantity,
+                    reference=f"Order #{order.order_number}",
+                )
                 await db.flush()
                 await check_low_stock(item.product_id, customer.owner_id, db)
 
@@ -508,6 +537,19 @@ async def create_bulk_order(db, payload, user_email):
         traceback.print_exc()
         print("=" * 80, flush=True)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Unexpected error: {exc}")
+
+    await create_notification(
+        db=db, user_id=order.shopkeeper_id, type=NotificationType.ORDER_COMPLETED,
+        title="Order Completed",
+        message=f"Order #{order.order_number} for ₹{order.total:.2f} completed",
+        reference_id=order.id,
+    )
+    await create_notification(
+        db=db, user_id=order.shopkeeper_id, type=NotificationType.INVOICE_GENERATED,
+        title="Invoice Generated",
+        message=f"Invoice generated for Order #{order.order_number}",
+        reference_id=order.id,
+    )
 
     customers_by_id, products_by_id = await _enrich_orders(db, [order])
     await invalidate_cache("dashboard:*")
@@ -716,6 +758,12 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
                         taxes=0, discount=0,
                     ))
 
+            await create_notification(
+                db=db, user_id=shopkeeper_id, type=NotificationType.ORDER_REVISED,
+                title="Order Revised",
+                message=f"Order #{order.order_number} revised (Rev #{order.revision_number}) — new total ₹{order.total:.2f}",
+                reference_id=order.id,
+            )
             await db.commit()
             await db.refresh(order, ["items"])
 
@@ -806,11 +854,30 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
                                     movement_type=MovementType.RETURN, quantity=it.quantity,
                                     reference=f"Order #{order.order_number} rejected",
                                 ))
+                                await log_activity(
+                                    db=db, product_id=it.product_id, shopkeeper_id=shopkeeper_id,
+                                    activity_type=ActivityType.RETURN,
+                                    quantity=it.quantity,
+                                    reference=f"Order #{order.order_number} rejected",
+                                )
                         if order.customer_id:
                             cust_result = await db.execute(select(Customer).where(Customer.id == order.customer_id))
                             customer = cust_result.scalar_one_or_none()
                             if customer:
                                 customer.credit_used = max(0, (customer.credit_used or 0) - order.total)
+                        await create_notification(
+                            db=db, user_id=shopkeeper_id, type=NotificationType.ORDER_REJECTED,
+                            title="Order Rejected",
+                            message=f"Order #{order.order_number} for ₹{order.total:.2f} has been rejected (stock returned)",
+                            reference_id=order.id,
+                        )
+                    else:
+                        await create_notification(
+                            db=db, user_id=shopkeeper_id, type=NotificationType.ORDER_CANCELLED,
+                            title="Order Cancelled",
+                            message=f"Order #{order.order_number} for ₹{order.total:.2f} has been cancelled",
+                            reference_id=order.id,
+                        )
 
                 order.status = new_status
                 await db.commit()

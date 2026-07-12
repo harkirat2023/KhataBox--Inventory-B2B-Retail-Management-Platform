@@ -584,7 +584,7 @@ async def reject_order(
         )
 
     order.status = "rejected"
-    await db.flush()
+    await db.commit()
 
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")
@@ -618,7 +618,7 @@ async def cancel_order(
         )
 
     order.status = "cancelled"
-    await db.flush()
+    await db.commit()
 
     await db.refresh(order, ["items"])
     await invalidate_cache("dashboard:*")

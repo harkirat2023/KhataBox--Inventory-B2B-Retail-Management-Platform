@@ -7,12 +7,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
+from app.models.notification import NotificationType
+from app.models.price_history import PriceHistory
 from app.models.product import Product
+from app.models.product_activity import ActivityType
 from app.models.store import Store
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.cache import invalidate_pattern as invalidate_cache
-from app.services.notifications import check_low_stock
+from app.services.notifications import check_low_stock, create_notification
+from app.services.product_activity_service import log_activity
 from app.services.storage import upload as r2_upload, is_available as r2_available
 from app.config import settings
 
@@ -119,6 +123,17 @@ async def create_product(payload: ProductCreate, current_user: User = Depends(re
     db.add(product)
     await db.flush()
     await check_low_stock(product.id, current_user.id, db)
+    await log_activity(
+        db=db, product_id=product.id, shopkeeper_id=current_user.id,
+        activity_type=ActivityType.PRODUCT_CREATED,
+        reference=f"Created by {current_user.email}",
+    )
+    await create_notification(
+        db=db, user_id=current_user.id, type=NotificationType.PRODUCT_CREATED,
+        title="Product Created",
+        message=f"{product.name} ({product.sku}) — ₹{product.selling_price}",
+        reference_id=product.id,
+    )
     await db.commit()
     await db.refresh(product)
     await invalidate_cache("dashboard:*")
@@ -153,11 +168,40 @@ async def update_product(product_id: int, payload: ProductUpdate, current_user: 
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
-    for key, value in payload.model_dump(exclude_unset=True).items():
+    updated = payload.model_dump(exclude_unset=True)
+    # Track price changes before applying
+    for field in ("cost_price", "selling_price"):
+        if field in updated and updated[field] != getattr(product, field):
+            db.add(PriceHistory(
+                product_id=product.id, shopkeeper_id=current_user.id,
+                field_name=field, previous_value=getattr(product, field),
+                new_value=updated[field],
+                changed_by=current_user.email, reason="Manual update",
+            ))
+            await log_activity(
+                db=db, product_id=product.id, shopkeeper_id=current_user.id,
+                activity_type=ActivityType.PRICE_CHANGE,
+                previous_value=float(getattr(product, field) or 0),
+                new_value=float(updated[field]),
+                reference=f"{field}: {getattr(product, field)} → {updated[field]}",
+            )
+    for key, value in updated.items():
         setattr(product, key, value)
     await db.flush()
-    if "stock_quantity" in payload.model_dump(exclude_unset=True):
+    if "stock_quantity" in updated:
+        await log_activity(
+            db=db, product_id=product.id, shopkeeper_id=current_user.id,
+            activity_type=ActivityType.STOCK_UPDATE,
+            quantity=product.stock_quantity,
+            reference="Manual stock update",
+        )
         await check_low_stock(product.id, current_user.id, db)
+    await create_notification(
+        db=db, user_id=current_user.id, type=NotificationType.STOCK_UPDATED,
+        title="Product Updated",
+        message=f"{product.name} ({product.sku}) — stock: {product.stock_quantity}, price: ₹{product.selling_price}",
+        reference_id=product.id,
+    )
     await db.commit()
     await db.refresh(product)
     await invalidate_cache("dashboard:*")

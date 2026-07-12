@@ -21,6 +21,12 @@ import {
   ChevronRight,
   Store,
   X,
+  Bell,
+  Clock,
+  RefreshCw,
+  UserPlus,
+  FileText,
+  PlusCircle,
 } from "lucide-react"
 import {
   Select,
@@ -49,6 +55,23 @@ interface DashboardStats {
   today_sales_amount: number
   pending_orders_count: number
   low_stock_count: number
+  out_of_stock_count: number
+  total_revenue_this_month: number
+  total_revenue_this_year: number
+  total_orders_this_month: number
+  total_orders_this_year: number
+  sales_chart: { month: string; revenue: number; orders: number }[]
+  activity_feed: {
+    type: string
+    id: number
+    title: string
+    message: string
+    icon?: string
+    is_read?: boolean
+    status?: string
+    total?: number
+    created_at: string
+  }[]
 }
 
 interface Store {
@@ -456,7 +479,62 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        <motion.div whileHover={{ translateY: -3 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+              <CardTitle className="text-base font-semibold text-foreground">Activity Feed</CardTitle>
+              <Link href="/notifications">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl gap-1">
+                  View All <ChevronRight className="size-3" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="px-6 pb-6 pt-2">
+              {statsLoading ? (
+                <div className="space-y-3">
+                  {[1,2,3].map((i) => <Skeleton key={i} className="h-12 w-full rounded-xl" />)}
+                </div>
+              ) : stats?.activity_feed && stats.activity_feed.length > 0 ? (
+                <div className="space-y-1">
+                  {stats.activity_feed.slice(0, 8).map((item) => (
+                    <div key={`${item.type}-${item.id}`} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent transition-all duration-200">
+                      <div className={cn(
+                        "flex items-center justify-center size-8 rounded-lg shrink-0",
+                        item.type === "notification" ? (item.is_read ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary") : "bg-success/10 text-success"
+                      )}>
+                        {item.type === "notification" ? <Bell className="size-4" /> : <ShoppingCart className="size-4" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{item.message}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.total != null && <span className="text-sm font-semibold tabular-nums text-foreground">₹{item.total.toFixed(2)}</span>}
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {timeAgo(item.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState icon={Bell} title="No recent activity" description="Activity from orders and notifications will appear here." />
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </motion.div>
     </motion.div>
   )
+}
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}m`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  return `${days}d`
 }

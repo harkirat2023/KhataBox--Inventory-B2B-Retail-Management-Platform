@@ -12,6 +12,16 @@ import {
   Bell,
   LogOut,
   Store,
+  ShoppingCart,
+  XCircle,
+  RefreshCw,
+  FileText,
+  Truck,
+  UserPlus,
+  Users,
+  PlusCircle,
+  TrendingUp,
+  QrCode,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +32,7 @@ import { toast } from "sonner"
 import { clientApi } from "@/lib/client-api"
 
 
-type NotificationType = "low_stock" | "expiry" | "payment" | "ai_recommendation"
+type NotificationType = string
 
 interface Notification {
   id: number
@@ -41,6 +51,18 @@ const typeConfig: Record<string, { icon: typeof Package; color: string; label: s
   payment: { icon: CreditCard, color: "text-blue-600 bg-blue-100", label: "Payment" },
   ai_recommendation: { icon: Lightbulb, color: "text-green-600 bg-green-100", label: "AI Insight" },
   b2c_order: { icon: Store, color: "text-purple-600 bg-purple-100", label: "B2C Order" },
+  order_completed: { icon: ShoppingCart, color: "text-green-600 bg-green-100", label: "Order" },
+  order_cancelled: { icon: XCircle, color: "text-red-600 bg-red-100", label: "Cancelled" },
+  order_rejected: { icon: XCircle, color: "text-red-600 bg-red-100", label: "Rejected" },
+  order_revised: { icon: RefreshCw, color: "text-blue-600 bg-blue-100", label: "Revised" },
+  invoice_generated: { icon: FileText, color: "text-violet-600 bg-violet-100", label: "Invoice" },
+  purchase_order_received: { icon: Truck, color: "text-indigo-600 bg-indigo-100", label: "PO" },
+  supplier_added: { icon: UserPlus, color: "text-teal-600 bg-teal-100", label: "Supplier" },
+  customer_added: { icon: Users, color: "text-cyan-600 bg-cyan-100", label: "Customer" },
+  product_created: { icon: PlusCircle, color: "text-emerald-600 bg-emerald-100", label: "Product" },
+  stock_updated: { icon: Package, color: "text-orange-600 bg-orange-100", label: "Stock" },
+  price_updated: { icon: TrendingUp, color: "text-pink-600 bg-pink-100", label: "Price" },
+  qr_generated: { icon: QrCode, color: "text-slate-600 bg-slate-100", label: "QR Code" },
 }
 
 const typeLabels: { value: string; label: string }[] = [
@@ -48,6 +70,8 @@ const typeLabels: { value: string; label: string }[] = [
   { value: "low_stock", label: "Low Stock" },
   { value: "expiry", label: "Expiry" },
   { value: "payment", label: "Payment" },
+  { value: "order_completed", label: "Orders" },
+  { value: "stock_updated", label: "Stock" },
   { value: "ai_recommendation", label: "AI Insight" },
 ]
 

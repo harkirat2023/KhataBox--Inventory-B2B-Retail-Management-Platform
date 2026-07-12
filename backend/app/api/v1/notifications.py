@@ -1,14 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, update
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.models.notification import Notification, NotificationType
 from app.models.user import User
-from app.schemas.notification import NotificationResponse
+from app.schemas.notification import NotificationResponse, UnreadCountResponse
 
 router = APIRouter()
+
+
+@router.get("/unread-count", response_model=UnreadCountResponse)
+async def get_unread_count(
+    current_user: User = Depends(require_role("admin", "shopkeeper", "customer")),
+    db: AsyncSession = Depends(get_db),
+):
+    count = (await db.execute(
+        select(func.count()).select_from(Notification).where(
+            Notification.user_id == current_user.id, Notification.is_read == False
+        )
+    )).scalar()
+    return UnreadCountResponse(count=count or 0)
 
 
 @router.get("/", response_model=list[NotificationResponse])

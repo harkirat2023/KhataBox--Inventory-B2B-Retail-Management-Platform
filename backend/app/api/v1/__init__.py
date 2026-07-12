@@ -9,7 +9,9 @@ from app.api.v1 import (
     data,
     payments,
     price_analysis,
+    price_history,
     products,
+    product_activity,
     orders,
     suppliers,
     customers,
@@ -27,6 +29,7 @@ from app.api.v1 import (
     stores,
     transfers,
     seed_products,
+    global_search,
 )
 
 router = APIRouter(prefix="/api/v1")
@@ -55,4 +58,7 @@ router.include_router(customer_cart.router, prefix="/cart", tags=["Customer Cart
 router.include_router(payments.router, prefix="/payment", tags=["Payments"])
 router.include_router(seed_products.router, prefix="/seed-products", tags=["Seed Products"])
 router.include_router(b2c.router, prefix="/b2c", tags=["B2C Orders"])
+router.include_router(price_history.router, prefix="/price-history", tags=["Price History"])
+router.include_router(product_activity.router, prefix="/product-activity", tags=["Product Activity"])
+router.include_router(global_search.router, prefix="/search", tags=["Global Search"])
 router.include_router(price_analysis.router, prefix="/price-analysis", tags=["Price Analysis"])

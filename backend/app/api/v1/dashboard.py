@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
+from app.models.notification import Notification
 from app.models.order import Order, OrderStatus
 from app.models.product import Product
 from app.models.user import User
@@ -107,10 +108,45 @@ async def get_dashboard_stats(
             for r in rows
         ]
 
+    async def activity_feed():
+        # Last 20 notifications + recent orders as unified feed
+        notifications = (await db.execute(
+            select(Notification).where(Notification.user_id == current_user.id)
+            .order_by(Notification.created_at.desc()).limit(20)
+        )).scalars().all()
+        recent_orders = (await db.execute(
+            select(Order).where(Order.shopkeeper_id == current_user.id)
+            .order_by(Order.created_at.desc()).limit(10)
+        )).scalars().all()
+        feed = []
+        for n in notifications:
+            feed.append({
+                "type": "notification",
+                "id": n.id,
+                "title": n.title,
+                "message": n.message,
+                "icon": n.type.value if hasattr(n.type, "value") else str(n.type),
+                "is_read": n.is_read,
+                "created_at": n.created_at,
+                "reference_id": n.reference_id,
+            })
+        for o in recent_orders:
+            feed.append({
+                "type": "order",
+                "id": o.id,
+                "title": f"Order {o.order_number}",
+                "message": f"Status: {o.status.value if hasattr(o.status, 'value') else o.status}",
+                "status": o.status.value if hasattr(o.status, "value") else str(o.status),
+                "total": float(o.total),
+                "created_at": o.created_at,
+            })
+        feed.sort(key=lambda x: x["created_at"], reverse=True)
+        return feed[:20]
+
     results = await asyncio.gather(
         count_products(), inventory_value(), today_sales(), pending_count(),
         low_stock_count(), out_of_stock_count(), this_month_sales(),
-        this_year_sales(), sales_chart(),
+        this_year_sales(), sales_chart(), activity_feed(),
     )
 
     month_counts, month_revenue = results[6]
@@ -131,6 +167,7 @@ async def get_dashboard_stats(
         "total_orders_this_month": month_counts,
         "total_orders_this_year": year_counts,
         "sales_chart": results[8],
+        "activity_feed": results[9],
     }
 
     if await cache_available():

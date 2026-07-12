@@ -72,6 +72,7 @@ class OrderStatusUpdate(BaseModel):
     settlement_type: str | None = None  # "settled" or "leftover"
     leftover_amount: float | None = None
     notes: str | None = None
+    revision_status: str | None = None
 
 
 class BulkOrderCreate(BaseModel):

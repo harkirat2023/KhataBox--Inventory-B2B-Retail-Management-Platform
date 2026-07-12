@@ -24,6 +24,9 @@ import {
   Repeat,
   Wallet,
   Store,
+  Download,
+  FileSpreadsheet,
+  FileText,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -39,6 +42,13 @@ import {
 } from "@/components/ui/table"
 import { clientApi } from "@/lib/client-api"
 import { toast } from "sonner"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 import { useStoreContext } from "@/lib/store-context"
 
 interface DashboardData {
@@ -121,6 +131,21 @@ export default function ReportsPage() {
 
   const productsChartData = useMemo(() => (dashboard?.sales_chart?.length ? dashboard.sales_chart.map(d => ({ category: d.month, count: d.orders })) : []), [dashboard])
 
+  const exportReport = useCallback(async (entity: string, format: string) => {
+    try {
+      const url = `/api/v1/reports/export/${entity}?format=${format}`
+      const response = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem("auth_token")}` } })
+      if (!response.ok) throw new Error("Export failed")
+      const blob = await response.blob()
+      const link = document.createElement("a")
+      link.href = URL.createObjectURL(blob)
+      link.download = `${entity}_export.${format}`
+      link.click()
+      URL.revokeObjectURL(link.href)
+      toast.success(`${entity} exported as ${format.toUpperCase()}`)
+    } catch { toast.error("Export failed") }
+  }, [])
+
   const loadCustomerReports = useCallback(async () => {
     setCustomersLoading(true)
     try {
@@ -145,12 +170,39 @@ export default function ReportsPage() {
         </p>
       </div>
 
-      {activeStore?.id && (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
-          <Store className="size-3" />
-          {activeStore.name}
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        {activeStore?.id && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
+            <Store className="size-3" />
+            {activeStore.name}
+          </div>
+        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card hover:bg-accent px-3 py-1.5 text-sm font-medium outline-none transition-colors">
+            <Download className="size-3.5" /> Export
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44 rounded-xl border-border bg-card p-1">
+            <DropdownMenuItem onClick={() => exportReport("orders", "csv")} className="rounded-lg cursor-pointer gap-2">
+              <FileSpreadsheet className="size-4" /> Orders CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportReport("orders", "xlsx")} className="rounded-lg cursor-pointer gap-2">
+              <FileText className="size-4" /> Orders XLSX
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportReport("products", "csv")} className="rounded-lg cursor-pointer gap-2">
+              <FileSpreadsheet className="size-4" /> Products CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportReport("products", "xlsx")} className="rounded-lg cursor-pointer gap-2">
+              <FileText className="size-4" /> Products XLSX
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportReport("customers", "csv")} className="rounded-lg cursor-pointer gap-2">
+              <FileSpreadsheet className="size-4" /> Customers CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => exportReport("suppliers", "csv")} className="rounded-lg cursor-pointer gap-2">
+              <FileSpreadsheet className="size-4" /> Suppliers CSV
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       <Tabs defaultValue="sales">
         <TabsList className="rounded-xl bg-muted p-1">

@@ -12,6 +12,18 @@ class NotificationType(str, enum.Enum):
     EXPIRY = "expiry"
     PAYMENT_REMINDER = "payment_reminder"
     AI_RECOMMENDATION = "ai_recommendation"
+    ORDER_COMPLETED = "order_completed"
+    ORDER_CANCELLED = "order_cancelled"
+    ORDER_REJECTED = "order_rejected"
+    ORDER_REVISED = "order_revised"
+    INVOICE_GENERATED = "invoice_generated"
+    PURCHASE_ORDER_RECEIVED = "purchase_order_received"
+    SUPPLIER_ADDED = "supplier_added"
+    CUSTOMER_ADDED = "customer_added"
+    PRODUCT_CREATED = "product_created"
+    STOCK_UPDATED = "stock_updated"
+    PRICE_UPDATED = "price_updated"
+    QR_GENERATED = "qr_generated"
 
 
 class Notification(Base):

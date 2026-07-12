@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useUser } from "@/hooks/use-user"
 import { clearAuthToken, clientApi } from "@/lib/client-api"
 import { useRouter } from "next/navigation"
-import { Bell, LogOut, Search, Boxes, Command, Settings as SettingsIcon, Pencil, Package, Loader2 } from "lucide-react"
+import { Bell, LogOut, Search, Boxes, Command, Settings as SettingsIcon, Pencil, Package, Loader2, BellDot } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -161,10 +161,7 @@ export function TopNav() {
 
       <div className="flex items-center gap-1 ml-auto">
         <ThemeToggle />
-        <Button variant="ghost" size="icon" className="relative rounded-xl text-muted-foreground hover:text-foreground" onClick={() => router.push("/notifications")}>
-          <Bell className="size-5" />
-          <span className="absolute top-2 right-2 size-2 rounded-full bg-destructive ring-2 ring-background" />
-        </Button>
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 h-10 pl-2 pr-3 rounded-xl hover:bg-accent outline-none cursor-pointer transition-colors">
@@ -207,5 +204,35 @@ export function TopNav() {
         />
       )}
     </header>
+  )
+}
+
+
+function NotificationBell() {
+  const [unreadCount, setUnreadCount] = useState(0)
+  const router = useRouter()
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchCount = async () => {
+      try {
+        const data = await clientApi.get<{ count: number }>("/api/v1/notifications/unread-count")
+        if (!cancelled) setUnreadCount(data.count)
+      } catch { /* ignore */ }
+    }
+    fetchCount()
+    const interval = setInterval(fetchCount, 30000)
+    return () => { cancelled = true; clearInterval(interval) }
+  }, [])
+
+  return (
+    <Button variant="ghost" size="icon" className="relative rounded-xl text-muted-foreground hover:text-foreground" onClick={() => router.push("/notifications")}>
+      {unreadCount > 0 ? <BellDot className="size-5" /> : <Bell className="size-5" />}
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 flex items-center justify-center size-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground ring-2 ring-background">
+          {unreadCount > 9 ? "9+" : unreadCount}
+        </span>
+      )}
+    </Button>
   )
 }

@@ -11,7 +11,6 @@ import {
   XCircle,
   Clock,
   Store,
-  BadgePercent,
   MoreHorizontal,
   ChevronUp,
   ChevronsUpDown,
@@ -63,14 +62,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Order, OrderStatus } from "@/types/order"
 import { Product } from "@/types/product"
-import { clientApi } from "@/lib/client-api"
+import { clientApi, authHeaders } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
 import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
 import { STATUS_DOT_COLORS } from "@/lib/ui-constants"
@@ -424,64 +422,82 @@ export default function OrdersPage() {
     setRevSearchResults([])
   }
 
-  const handleReviseSettled = async () => {
-    if (!revisionOrder) return
-    if (revisedItems.length === 0) {
-      toast.error("Order must have at least one item")
+  const [leftoverAmount, setLeftoverAmount] = useState(0)
+  const [revConfirmOpen, setRevConfirmOpen] = useState(false)
+  const [revUnpackedOpen, setRevUnpackedOpen] = useState(false)
+  const [revUnpackedName, setRevUnpackedName] = useState("")
+  const [revUnpackedPrice, setRevUnpackedPrice] = useState<number | null>(null)
+
+  const handleRevAddUnpacked = () => {
+    if (revUnpackedPrice === null || !Number.isFinite(revUnpackedPrice) || revUnpackedPrice <= 0) {
+      toast.error("Price is required and must be greater than 0")
       return
     }
-    setRevising(true)
-    try {
-      await clientApi.patch(`/api/v1/orders/${revisionOrder.id}/status`, {
-        status: "completed",
-        revised_items: revisedItems.map(i => ({
-          product_id: i.product_id,
-          product_name: i.product_name,
-          quantity: i.quantity,
-          unit_price: i.unit_price,
-        })),
-        discount: revDiscount,
-        apply_gst: revApplyGst,
-        settlement_type: "settled",
-      })
-      await loadOrders()
-      setRevisionOpen(false)
-      toast.success(`Order revised. Adjustment: ₹${Math.abs(revPriceDiff).toFixed(2)}`)
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to revise order")
-    } finally {
-      setRevising(false)
-    }
+    const product_id = -(Date.now() % 1000000000 + 1)
+    const itemName = revUnpackedName.trim() || "Unpacked Product"
+    setRevisedItems(prev => [...prev, {
+      product_id,
+      product_name: itemName,
+      quantity: 1,
+      unit_price: revUnpackedPrice,
+    }])
+    setRevUnpackedOpen(false)
+    setRevUnpackedName("")
+    setRevUnpackedPrice(null)
+    toast.success(`${itemName} added to order`)
   }
 
-  const [leftoverAmount, setLeftoverAmount] = useState(0)
-
-  const handleReviseLeftover = async () => {
+  const handleUpdateOrder = async () => {
     if (!revisionOrder) return
     if (revisedItems.length === 0) {
       toast.error("Order must have at least one item")
       return
     }
+    setRevConfirmOpen(false)
     setRevising(true)
     try {
-      await clientApi.patch(`/api/v1/orders/${revisionOrder.id}/status`, {
-        status: "completed",
-        revised_items: revisedItems.map(i => ({
-          product_id: i.product_id,
-          product_name: i.product_name,
-          quantity: i.quantity,
-          unit_price: i.unit_price,
-        })),
-        discount: revDiscount,
-        apply_gst: revApplyGst,
-        settlement_type: "leftover",
-        leftover_amount: leftoverAmount,
+      const resp = await fetch(`${API_URL}/api/v1/orders/${revisionOrder.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({
+          status: "completed",
+          revised_items: revisedItems.map(i => ({
+            product_id: i.product_id,
+            product_name: i.product_name,
+            quantity: Number(i.quantity) || 0,
+            unit_price: Number(i.unit_price) || 0,
+          })),
+          discount: revDiscount,
+          apply_gst: revApplyGst,
+          revision_status: "Updated",
+        }),
       })
+      if (!resp.ok) {
+        const err = await resp.json()
+        throw new Error(err.detail || "Failed to update order")
+      }
       await loadOrders()
       setRevisionOpen(false)
-      toast.success(`Order revised. Due: ₹${Math.max(0, revPriceDiff - leftoverAmount).toFixed(2)}`)
+      toast.success("Order updated successfully")
+
+      // Auto-download revised invoice
+      try {
+        const invoiceResp = await fetch(`${API_URL}/api/v1/invoices/generate/${revisionOrder.id}`, {
+          method: "POST",
+          headers: authHeaders(),
+        })
+        if (invoiceResp.ok) {
+          const blob = await invoiceResp.blob()
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement("a")
+          a.href = url
+          a.download = `invoice-${revisionOrder.id}-rev-${(revisionOrder.revision_number || 0) + 1}.pdf`
+          a.click()
+          URL.revokeObjectURL(url)
+        }
+      } catch { /* silent fail on invoice download */ }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Failed to revise order")
+      toast.error(err instanceof Error ? err.message : "Failed to update order")
     } finally {
       setRevising(false)
     }
@@ -1078,51 +1094,48 @@ export default function OrdersPage() {
 
       {/* --- Revision Modal --- */}
       <Dialog open={revisionOpen} onOpenChange={(open) => { if (!revising) setRevisionOpen(open) }}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl bg-white dark:bg-[#121214]">
           <DialogHeader>
-            <DialogTitle>Edit Order — {revisionOrder?.order_number}</DialogTitle>
-            <DialogDescription>
-              Modify items, quantities, discount, or GST. Inventory will be adjusted by the difference.
-            </DialogDescription>
+            <DialogTitle>Edit — {revisionOrder?.order_number}</DialogTitle>
           </DialogHeader>
 
-          {/* Original vs New Summary */}
-          <div className="bg-muted rounded-xl p-3 space-y-1 text-sm border">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Original Total</span>
-              <span className="tabular-nums">₹{revOriginalTotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-medium">
-              <span>New Total</span>
-              <span className="tabular-nums">₹{revCalc.total.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between border-t pt-1">
-              <span className="font-semibold">Difference</span>
-              <span className={cn("tabular-nums font-semibold", revPriceDiff >= 0 ? "text-green-600" : "text-red-600")}>
-                {revPriceDiff >= 0 ? "+" : ""}₹{revPriceDiff.toFixed(2)}
-              </span>
-            </div>
+          {/* Order Header */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm bg-muted/50 rounded-[8px] p-4 border">
+            <div className="text-muted-foreground">Status</div>
+            <div><Badge variant="outline" className="text-xs font-normal bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400">Updated</Badge></div>
+            <div className="text-muted-foreground">Date</div>
+            <div>{revisionOrder ? new Date(revisionOrder.created_at).toLocaleString("en-IN") : "—"}</div>
+            <div className="text-muted-foreground">Customer</div>
+            <div>{revisionOrder?.customer_name || "Walk-in"}</div>
+            <div className="text-muted-foreground">Payment</div>
+            <div className="capitalize">{revisionOrder?.payment_method || "—"}</div>
           </div>
 
-          {/* Product search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-            <Input placeholder="Search products to add..." value={revSearchQuery} onChange={e => setRevSearchQuery(e.target.value)}
-              className="pl-9 h-8 text-sm rounded-lg bg-muted/50 border-0" />
-            {revSearchQuery && revFilteredProducts.length > 0 && (
-              <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border rounded-xl shadow-lg max-h-40 overflow-y-auto">
-                {revFilteredProducts.slice(0, 10).map(p => (
-                  <button key={p.id} onClick={() => handleRevAddProduct(p)}
-                    className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.sku} · Stock: {p.stock_quantity}</p>
-                    </div>
-                    <span className="text-sm font-medium shrink-0 ml-2 tabular-nums">₹{p.selling_price.toFixed(2)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Product search + Unpacked button */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+              <Input placeholder="Search products to add..." value={revSearchQuery} onChange={e => setRevSearchQuery(e.target.value)}
+                className="pl-9 h-8 text-sm rounded-[6px] bg-muted/50 border-0" />
+              {revSearchQuery && revFilteredProducts.length > 0 && (
+                <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border rounded-[8px] shadow-lg max-h-40 overflow-y-auto">
+                  {revFilteredProducts.slice(0, 10).map(p => (
+                    <button key={p.id} onClick={() => handleRevAddProduct(p)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">{p.sku} · Stock: {p.stock_quantity}</p>
+                      </div>
+                      <span className="text-sm font-medium shrink-0 ml-2 tabular-nums">₹{Number(p.selling_price).toFixed(2)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setRevUnpackedOpen(true)} className="h-8 rounded-[6px] gap-1 shrink-0">
+              <Package className="size-3.5" />
+              Unpacked
+            </Button>
           </div>
 
           {/* Editable items */}
@@ -1131,17 +1144,17 @@ export default function OrdersPage() {
               <div className="text-center py-6 text-sm text-muted-foreground">No items. Search and add products above.</div>
             ) : (
               revisedItems.map(item => (
-                <div key={item.product_id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-card">
+                <div key={item.product_id} className="flex items-center justify-between gap-2 p-2.5 rounded-[8px] border bg-card">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.product_name}</p>
-                    <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
+                    <p className="text-xs text-muted-foreground">₹{Number(item.unit_price).toFixed(2)} each</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleRevQty(item.product_id, -1)}><Minus className="size-3" /></Button>
-                    <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
+                    <span className="w-8 text-center text-sm font-medium tabular-nums">{Number(item.quantity)}</span>
                     <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleRevQty(item.product_id, 1)}><Plus className="size-3" /></Button>
                   </div>
-                  <p className="text-sm font-medium w-20 text-right tabular-nums">₹{(item.quantity * item.unit_price).toFixed(2)}</p>
+                  <p className="text-sm font-medium w-20 text-right tabular-nums">₹{(Number(item.quantity) * Number(item.unit_price)).toFixed(2)}</p>
                   <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:text-destructive rounded-[4px]" onClick={() => handleRevRemove(item.product_id)}><Trash2 className="size-3" /></Button>
                 </div>
               ))
@@ -1149,10 +1162,10 @@ export default function OrdersPage() {
           </div>
 
           {/* Discount + GST */}
-          <div className="flex items-center gap-3 border-t pt-3">
+          <div className="flex items-center gap-3 pt-2">
             <div className="flex-1">
               <p className="text-xs font-medium text-muted-foreground mb-1">Discount (₹)</p>
-              <Input type="number" min="0" step="0.01" value={revDiscount} onChange={e => setRevDiscount(parseFloat(e.target.value) || 0)} className="h-8 text-sm rounded-[4px] border-border" />
+              <Input type="number" min="0" step="0.01" value={revDiscount} onChange={e => setRevDiscount(parseFloat(e.target.value) || 0)} className="h-8 text-sm rounded-[6px] border-border" />
             </div>
             <div className="flex items-center gap-2 pt-4">
               <span className="text-xs text-muted-foreground">GST</span>
@@ -1164,26 +1177,47 @@ export default function OrdersPage() {
           </div>
 
           {/* Totals */}
-          <div className="space-y-1 text-sm border-t pt-3">
-            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">₹{revCalc.subtotal.toFixed(2)}</span></div>
-            {revCalc.disc > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="tabular-nums text-destructive">-₹{revCalc.disc.toFixed(2)}</span></div>}
-            <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span className="tabular-nums">₹{revCalc.gst.toFixed(2)}</span></div>
-            <div className="flex justify-between font-semibold text-base border-t pt-1"><span>Total</span><span className="tabular-nums">₹{revCalc.total.toFixed(2)}</span></div>
+          <div className="space-y-1 text-sm bg-muted/30 rounded-[8px] p-3 border">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Original Total</span>
+              <span className="tabular-nums">₹{revOriginalTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span className="tabular-nums">₹{revCalc.subtotal.toFixed(2)}</span>
+            </div>
+            {revCalc.disc > 0 && (
+              <div className="flex justify-between text-destructive">
+                <span>Discount</span>
+                <span className="tabular-nums">-₹{revCalc.disc.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-muted-foreground">
+              <span>GST</span>
+              <span className="tabular-nums">₹{revCalc.gst.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-semibold text-base border-t pt-1">
+              <span>Grand Total</span>
+              <span className="tabular-nums">₹{revCalc.total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between border-t pt-1">
+              <span className="font-medium">Difference</span>
+              <span className={cn("tabular-nums font-medium", revPriceDiff >= 0 ? "text-green-600" : "text-red-600")}>
+                {revPriceDiff >= 0 ? "+" : ""}₹{revPriceDiff.toFixed(2)}
+              </span>
+            </div>
           </div>
 
           {revPriceDiff > 0 && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-sm">
+            <div className="rounded-[8px] border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-sm">
               <p className="font-medium text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
                 <AlertTriangle className="size-4" />
-                Price increased by ₹{revPriceDiff.toFixed(2)}
-              </p>
-              <p className="text-amber-600 dark:text-amber-400 text-xs mt-0.5">
-                An adjustment invoice for ₹{revPriceDiff.toFixed(2)} will be generated.
+                Price increased by ₹{revPriceDiff.toFixed(2)}. Adjustment invoice will be generated.
               </p>
             </div>
           )}
           {revPriceDiff < 0 && (
-            <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3 text-sm">
+            <div className="rounded-[8px] border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3 text-sm">
               <p className="font-medium text-green-800 dark:text-green-300">
                 Price decreased by ₹{Math.abs(revPriceDiff).toFixed(2)}. Inventory will be restored.
               </p>
@@ -1191,32 +1225,69 @@ export default function OrdersPage() {
           )}
 
           <DialogFooter className="mt-2 gap-2">
-            <Button variant="outline" onClick={() => { setRevisionOpen(false); setRevisionOrder(null) }} disabled={revising} className="rounded-lg">
+            <Button variant="outline" onClick={() => { setRevisionOpen(false); setRevisionOrder(null) }} disabled={revising} className="rounded-[8px]">
               Cancel
             </Button>
-            {revPriceDiff > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-muted-foreground">Leftover:</span>
-                  <Input
-                    type="number" min="0" step="0.01"
-                    value={leftoverAmount}
-                    onChange={e => setLeftoverAmount(parseFloat(e.target.value) || 0)}
-                    className="h-8 w-24 text-sm rounded-[4px] border-border"
-                  />
-                </div>
-                <Button onClick={handleReviseLeftover} disabled={revising || revisedItems.length === 0}
-                  className="rounded-lg gap-1.5 bg-orange-600 hover:bg-orange-700 text-white">
-                  <BadgePercent className="size-4" />
-                  {revising ? "Processing..." : "Leftover"}
-                </Button>
-              </div>
-            )}
-            <Button onClick={handleReviseSettled} disabled={revising || revisedItems.length === 0}
-              className="rounded-lg gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+            <Button onClick={() => setRevConfirmOpen(true)} disabled={revising || revisedItems.length === 0}
+              className="rounded-[8px] gap-1.5 bg-green-600 hover:bg-green-700 text-white">
               <CheckCircle className="size-4" />
-              {revising ? "Processing..." : "Settled"}
+              {revising ? "Updating..." : "Update Order"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Update Confirmation Dialog --- */}
+      <Dialog open={revConfirmOpen} onOpenChange={setRevConfirmOpen}>
+        <DialogContent className="sm:max-w-md bg-white dark:bg-[#121214]">
+          <DialogHeader>
+            <DialogTitle>Confirm Update</DialogTitle>
+            <DialogDescription>
+              Updating this order will adjust inventory according to the quantity difference and generate a revised invoice.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="bg-muted rounded-[8px] p-4 space-y-1.5 text-sm border">
+            <div className="flex justify-between"><span className="text-muted-foreground">Order</span><span className="font-medium">{revisionOrder?.order_number}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Original</span><span className="tabular-nums">₹{revOriginalTotal.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">New Total</span><span className="tabular-nums font-medium">₹{revCalc.total.toFixed(2)}</span></div>
+            <div className="flex justify-between border-t pt-1">
+              <span className="text-muted-foreground">Difference</span>
+              <span className={cn("tabular-nums font-semibold", revPriceDiff >= 0 ? "text-green-600" : "text-red-600")}>
+                {revPriceDiff >= 0 ? "+" : ""}₹{revPriceDiff.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setRevConfirmOpen(false)} className="rounded-[8px]">Cancel</Button>
+            <Button onClick={handleUpdateOrder} className="rounded-[8px] gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+              <CheckCircle className="size-4" />Confirm Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Unpacked Product Dialog --- */}
+      <Dialog open={revUnpackedOpen} onOpenChange={setRevUnpackedOpen}>
+        <DialogContent className="sm:max-w-sm bg-white dark:bg-[#121214]">
+          <DialogHeader>
+            <DialogTitle>Add Unpacked Product</DialogTitle>
+            <DialogDescription>Add a custom line item. It won't affect inventory.</DialogDescription>
+          </DialogHeader>
+          <div className="py-2 space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80">Name (optional)</label>
+              <Input value={revUnpackedName} onChange={e => setRevUnpackedName(e.target.value)} className="rounded-[6px] border-border h-11" placeholder="Unpacked Product" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80">Price *</label>
+              <Input type="number" min="0" step="0.01" value={revUnpackedPrice ?? ""}
+                onChange={e => setRevUnpackedPrice(e.target.value === "" ? null : parseFloat(e.target.value))}
+                className="rounded-[6px] border-border h-11" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRevUnpackedOpen(false)} className="rounded-[6px]">Cancel</Button>
+            <Button onClick={handleRevAddUnpacked} disabled={!revUnpackedPrice || revUnpackedPrice <= 0} className="rounded-[6px]">Add to Order</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
