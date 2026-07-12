@@ -29,6 +29,9 @@ import {
   CreditCard,
   Plus,
   Minus,
+  Pencil,
+  History,
+  AlertTriangle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -63,6 +66,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Order, OrderStatus } from "@/types/order"
 import { Product } from "@/types/product"
@@ -71,14 +75,24 @@ import { cn } from "@/lib/utils"
 import { ORDER_STATUS_CONFIG } from "@/lib/ui-constants"
 import { STATUS_DOT_COLORS } from "@/lib/ui-constants"
 
-type OrderTab = "all" | "regular" | "b2c"
+type OrderTab = "changed" | "b2c"
 
 type SortField = "order_number" | "customer_name" | "total" | "status" | "created_at"
 type SortDir = "asc" | "desc" | null
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
+
 const statusTransitionMessages: Record<string, string> = {
   completed: "Are you sure you want to complete this order? Inventory will be deducted and receipt generated.",
   cancelled: "Are you sure you want to cancel this order?",
+  rejected: "Are you sure you want to reject this order? Inventory will be restored.",
+}
+
+interface EditableItem {
+  product_id: number
+  product_name: string
+  quantity: number
+  unit_price: number
 }
 
 function OrderRowSkeleton() {
@@ -102,7 +116,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [b2cOrders, setB2cOrders] = useState<Order[]>([])
   const [search, setSearch] = useState("")
-  const [tab, setTab] = useState<OrderTab>((searchParams.get("tab") as OrderTab) || "b2c")
+  const [tab, setTab] = useState<OrderTab>((searchParams.get("tab") as OrderTab) || "changed")
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [pendingStatus, setPendingStatus] = useState<OrderStatus | null>(null)
@@ -116,12 +130,23 @@ export default function OrdersPage() {
   const [b2cConfirmOrder, setB2cConfirmOrder] = useState<Order | null>(null)
   const [b2cConfirming, setB2cConfirming] = useState(false)
   const [b2cConfirmed, setB2cConfirmed] = useState(false)
-  const [editableItems, setEditableItems] = useState<{ product_id: number; product_name: string; quantity: number; unit_price: number }[]>([])
+  const [editableItems, setEditableItems] = useState<EditableItem[]>([])
   const [editDiscount, setEditDiscount] = useState(0)
   const [editApplyGst, setEditApplyGst] = useState(true)
   const [editProductSearch, setEditProductSearch] = useState("")
   const [editSearchResults, setEditSearchResults] = useState<Product[]>([])
   const [editAllProducts, setEditAllProducts] = useState<Product[]>([])
+
+  // Revision state
+  const [revisionOpen, setRevisionOpen] = useState(false)
+  const [revisionOrder, setRevisionOrder] = useState<Order | null>(null)
+  const [revisedItems, setRevisedItems] = useState<EditableItem[]>([])
+  const [revSearchQuery, setRevSearchQuery] = useState("")
+  const [revSearchResults, setRevSearchResults] = useState<Product[]>([])
+  const [revAllProducts, setRevAllProducts] = useState<Product[]>([])
+  const [revDiscount, setRevDiscount] = useState(0)
+  const [revApplyGst, setRevApplyGst] = useState(true)
+  const [revising, setRevising] = useState(false)
 
   const loadOrders = useCallback(async () => {
     setLoading(true)
@@ -155,7 +180,6 @@ export default function OrdersPage() {
   const getSortedFiltered = (items: Order[]) => {
     let filtered = items
 
-    // Apply search
     if (search) {
       filtered = filtered.filter((o) =>
         o.order_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -163,19 +187,17 @@ export default function OrdersPage() {
       )
     }
 
-    // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter((o) => o.status === statusFilter)
     }
 
-    // Apply tab filter
-    if (tab === "regular") {
-      filtered = filtered.filter((o) => o.status !== "completed" && o.status !== "cancelled")
+    if (tab === "changed") {
+      const includeStatuses = ["completed"]
+      filtered = filtered.filter((o) => includeStatuses.includes(o.status))
     } else if (tab === "b2c") {
       filtered = filtered.filter((o) => o.status === "pending" || o.status === "B2C-pending")
     }
 
-    // Apply sort
     if (sortDir) {
       filtered.sort((a, b) => {
         let cmp = 0
@@ -219,6 +241,7 @@ export default function OrdersPage() {
       const messages: Record<string, string> = {
         completed: "Order completed! Inventory deducted and receipt generated.",
         cancelled: "Order cancelled.",
+        rejected: "Order rejected. Inventory restored.",
       }
       toast.success(messages[pendingStatus] || "Status updated")
     } catch (err: unknown) {
@@ -244,7 +267,7 @@ export default function OrdersPage() {
     try {
       const data = await clientApi.get<Product[]>("/api/v1/products/")
       setEditAllProducts(data)
-    } catch { /* ignore */ }
+    } catch { }
     setB2cConfirmOpen(true)
   }
 
@@ -332,14 +355,151 @@ export default function OrdersPage() {
     setEditSearchResults([])
   }
 
+  // --- Revision Logic ---
+  const handleOpenRevision = async (order: Order) => {
+    setRevisionOrder(order)
+    setRevisedItems((order.items || []).map(i => ({
+      product_id: i.product_id,
+      product_name: i.product_name,
+      quantity: i.quantity,
+      unit_price: Number((i as { unit_price?: number }).unit_price || 0),
+    })))
+    setRevDiscount(order.discount || 0)
+    setRevApplyGst(order.gst > 0)
+    setRevSearchQuery("")
+    setRevSearchResults([])
+    try {
+      const data = await clientApi.get<Product[]>("/api/v1/products/")
+      setRevAllProducts(data)
+    } catch { }
+    setRevisionOpen(true)
+  }
+
+  const revFilteredProducts = revSearchQuery
+    ? revAllProducts.filter(p =>
+        p.name.toLowerCase().includes(revSearchQuery.toLowerCase()) ||
+        p.sku.toLowerCase().includes(revSearchQuery.toLowerCase())
+      )
+    : []
+
+  const revRecalc = useCallback(() => {
+    const sub = revisedItems.reduce((s, i) => s + i.quantity * i.unit_price, 0)
+    const gst = revApplyGst ? Math.round(sub * 0.18 * 100) / 100 : 0
+    const disc = revDiscount || 0
+    return { subtotal: sub, gst, total: Math.max(0, sub + gst - disc), disc }
+  }, [revisedItems, revDiscount, revApplyGst])
+
+  const revOriginalTotal = revisionOrder?.total || 0
+  const revCalc = revRecalc()
+  const revPriceDiff = Math.round((revCalc.total - revOriginalTotal) * 100) / 100
+
+  const handleRevQty = (productId: number, delta: number) => {
+    setRevisedItems(prev => prev.map(i =>
+      i.product_id === productId
+        ? { ...i, quantity: Math.max(1, i.quantity + delta) }
+        : i
+    ))
+  }
+
+  const handleRevRemove = (productId: number) => {
+    setRevisedItems(prev => prev.filter(i => i.product_id !== productId))
+  }
+
+  const handleRevAddProduct = (product: Product) => {
+    setRevisedItems(prev => {
+      const existing = prev.find(i => i.product_id === product.id)
+      if (existing) {
+        return prev.map(i =>
+          i.product_id === product.id ? { ...i, quantity: i.quantity + 1 } : i
+        )
+      }
+      return [...prev, {
+        product_id: product.id,
+        product_name: product.name,
+        quantity: 1,
+        unit_price: product.selling_price,
+      }]
+    })
+    setRevSearchQuery("")
+    setRevSearchResults([])
+  }
+
+  const handleReviseSettled = async () => {
+    if (!revisionOrder) return
+    if (revisedItems.length === 0) {
+      toast.error("Order must have at least one item")
+      return
+    }
+    setRevising(true)
+    try {
+      await clientApi.patch(`/api/v1/orders/${revisionOrder.id}/status`, {
+        status: "completed",
+        revised_items: revisedItems.map(i => ({
+          product_id: i.product_id,
+          product_name: i.product_name,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+        })),
+        discount: revDiscount,
+        apply_gst: revApplyGst,
+        settlement_type: "settled",
+      })
+      await loadOrders()
+      setRevisionOpen(false)
+      toast.success(`Order revised. Adjustment: ₹${Math.abs(revPriceDiff).toFixed(2)}`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to revise order")
+    } finally {
+      setRevising(false)
+    }
+  }
+
+  const [leftoverAmount, setLeftoverAmount] = useState(0)
+
+  const handleReviseLeftover = async () => {
+    if (!revisionOrder) return
+    if (revisedItems.length === 0) {
+      toast.error("Order must have at least one item")
+      return
+    }
+    setRevising(true)
+    try {
+      await clientApi.patch(`/api/v1/orders/${revisionOrder.id}/status`, {
+        status: "completed",
+        revised_items: revisedItems.map(i => ({
+          product_id: i.product_id,
+          product_name: i.product_name,
+          quantity: i.quantity,
+          unit_price: i.unit_price,
+        })),
+        discount: revDiscount,
+        apply_gst: revApplyGst,
+        settlement_type: "leftover",
+        leftover_amount: leftoverAmount,
+      })
+      await loadOrders()
+      setRevisionOpen(false)
+      toast.success(`Order revised. Due: ₹${Math.max(0, revPriceDiff - leftoverAmount).toFixed(2)}`)
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to revise order")
+    } finally {
+      setRevising(false)
+    }
+  }
+
   const currentOrders = tab === "b2c" ? b2cOrders : orders
   const filtered = getSortedFiltered(currentOrders)
-  const activeRegularCount = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled").length
 
   const renderSortIcon = (field: SortField) => {
     if (sortField !== field) return null
     if (sortDir === "asc") return <ChevronUp className="size-3 ml-0.5 inline" />
     if (sortDir === "desc") return <ChevronDown className="size-3 ml-0.5 inline" />
+    return null
+  }
+
+  const getRevisionLabel = (order: Order) => {
+    if (order.revision_status) return order.revision_status
+    if (order.revision_number && order.revision_number > 0) return `Rev ${order.revision_number}`
     return null
   }
 
@@ -349,7 +509,7 @@ export default function OrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Manage and track all orders</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage, track, and revise completed orders</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -362,295 +522,398 @@ export default function OrdersPage() {
             <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
             Refresh
           </Button>
-          <Badge variant="outline" className="text-sm font-normal rounded-lg px-3 py-1">
-            {tab === "b2c" ? `${b2cOrders.length} pending` : `${activeRegularCount} active`}
-          </Badge>
         </div>
       </div>
 
-      {/* Tabs + Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex items-center gap-2 p-1 bg-muted rounded-xl">
-          <button
-            onClick={() => setTab("regular")}
-            className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-              tab === "regular" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <ShoppingCart className="size-4 inline mr-1.5" />
-            Regular Orders
-          </button>
-          <button
-            onClick={() => setTab("b2c")}
-            className={cn(
-              "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-              tab === "b2c" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Store className="size-4 inline mr-1.5" />
-            B2C Orders
-            {b2cOrders.length > 0 && (
-              <Badge className="ml-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
-                {b2cOrders.length}
-              </Badge>
-            )}
-          </button>
-        </div>
+      {/* Tabs */}
+      <Tabs value={tab} onValueChange={(v) => setTab(v as OrderTab)} className="w-full">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <TabsList className="bg-muted p-1 rounded-xl">
+            <TabsTrigger value="changed" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <History className="size-4 mr-1.5" />
+              Changed Orders
+            </TabsTrigger>
+            <TabsTrigger value="b2c" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+              <Store className="size-4 mr-1.5" />
+              B2C Orders
+              {b2cOrders.length > 0 && (
+                <Badge className="ml-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0">
+                  {b2cOrders.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <Input
-              placeholder="Search orders..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 rounded-lg bg-muted/50 border-0"
-            />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                placeholder="Search orders..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9 rounded-lg bg-muted/50 border-0"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "all")}>
+              <SelectTrigger className="w-[130px] h-9 rounded-lg">
+                <Filter className="size-3.5 mr-1" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                {Object.entries(ORDER_STATUS_CONFIG).map(([key, config]) => (
+                  <SelectItem key={key} value={key}>{config.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v || "all")}>
-            <SelectTrigger className="w-[130px] h-9 rounded-lg">
-              <Filter className="size-3.5 mr-1" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              {Object.entries(ORDER_STATUS_CONFIG).map(([key, config]) => (
-                <SelectItem key={key} value={key}>{config.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
-      </div>
 
-      {/* Table */}
-      <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
-                <TableHead className="w-[40px]"></TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("order_number")}>
-                  <div className="flex items-center gap-1">Order #{renderSortIcon("order_number")}</div>
-                </TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
-                  <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
-                </TableHead>
-                <TableHead className="text-muted-foreground font-medium">Items</TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
-                  <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
-                </TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("status")}>
-                  <div className="flex items-center gap-1">Status{renderSortIcon("status")}</div>
-                </TableHead>
-                <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
-                  <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
-                </TableHead>
-                {tab === "b2c" && <TableHead className="text-muted-foreground font-medium">Action</TableHead>}
-                <TableHead className="w-[40px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => <OrderRowSkeleton key={i} />)
-              ) : filtered.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={tab === "b2c" ? 9 : 8} className="text-center py-16">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="flex items-center justify-center size-12 rounded-xl bg-muted mb-2">
-                        <Package className="size-6 text-muted-foreground" />
-                      </div>
-                      <p className="text-sm font-medium text-foreground">No orders found</p>
-                      <p className="text-sm text-muted-foreground">
-                        {tab === "b2c" ? "No pending B2C orders from customers." : "No active orders right now."}
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filtered.map((order) => (
-                  <Fragment key={order.id}>
-                    <TableRow
-                      className="cursor-pointer transition-colors hover:bg-muted/30"
-                      onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
-                    >
-                      <TableCell>
-                        <Button variant="ghost" size="icon-xs" className="size-6">
-                          {expandedId === order.id ? (
-                            <ChevronDown className="size-3.5 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="size-3.5 text-muted-foreground" />
-                          )}
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-mono text-sm font-medium">{order.order_number}</span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {order.customer_name || <span className="italic text-muted-foreground/60">Walk-in</span>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="font-mono text-xs">
-                          {order.items?.length || 0}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium tabular-nums">
-                        ₹{order.total.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <span className={cn("size-1.5 rounded-full", STATUS_DOT_COLORS[order.status] || "bg-muted")} />
-                          <Badge
-                            variant="outline"
-                            className={cn("text-xs font-normal px-2 py-0", ORDER_STATUS_CONFIG[order.status]?.color || "")}
-                          >
-                            {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
-                          </Badge>
+        <TabsContent value="changed" className="mt-4">
+          {/* Changed Orders Table */}
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[40px]"></TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("order_number")}>
+                      <div className="flex items-center gap-1">Order #{renderSortIcon("order_number")}</div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
+                      <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
+                    </TableHead>
+                    <TableHead className="text-muted-foreground font-medium">Items</TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
+                      <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("status")}>
+                      <div className="flex items-center gap-1">Status{renderSortIcon("status")}</div>
+                    </TableHead>
+                    <TableHead className="text-muted-foreground font-medium">Revision</TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
+                      <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
+                    </TableHead>
+                    <TableHead className="w-[80px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => <OrderRowSkeleton key={i} />)
+                  ) : filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-16">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="flex items-center justify-center size-12 rounded-xl bg-muted mb-2">
+                            <Package className="size-6 text-muted-foreground" />
+                          </div>
+                          <p className="text-sm font-medium text-foreground">No changed orders found</p>
+                          <p className="text-sm text-muted-foreground">
+                            Completed orders that can be revised will appear here.
+                          </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(order.created_at).toLocaleDateString("en-IN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </TableCell>
-                      {tab === "b2c" && (
-                        <TableCell>
-                          {order.status === "pending" || order.status === "B2C-pending" ? (
-                            <div className="flex gap-1.5">
-                              <Button
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleApproveB2C(order)
-                                }}
-                                disabled={updating}
-                                className="h-8 px-3 rounded-lg gap-1 text-xs bg-green-600 hover:bg-green-700 text-white"
-                              >
-                                <CheckCircle className="size-3.5" />
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleRejectB2C(order)
-                                }}
-                                disabled={updating}
-                                className="h-8 px-3 rounded-lg gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                              >
-                                <XCircle className="size-3.5" />
-                                Reject
-                              </Button>
-                            </div>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color || "")}
-                            >
-                              {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
+                    </TableRow>
+                  ) : (
+                    filtered.map((order) => (
+                      <Fragment key={order.id}>
+                        <TableRow
+                          className="cursor-pointer transition-colors hover:bg-muted/30"
+                          onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                        >
+                          <TableCell>
+                            <Button variant="ghost" size="icon-xs" className="size-6">
+                              {expandedId === order.id ? (
+                                <ChevronDown className="size-3.5 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="size-3.5 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono text-sm font-medium">{order.order_number}</span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {order.customer_name || <span className="italic text-muted-foreground/60">Walk-in</span>}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {order.items?.length || 0}
                             </Badge>
-                          )}
-                        </TableCell>
-                      )}
-                      <TableCell>
-                          <DropdownMenu>
-                          <DropdownMenuTrigger className="flex items-center justify-center size-7 rounded-md hover:bg-muted outline-none cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="size-3.5 text-muted-foreground" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem
-                              onSelect={() => router.push(`/orders?id=${order.id}`)}
-                            >
-                              <Eye className="size-3.5 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onSelect={() => router.push(`/billing?order=${order.id}`)}
-                            >
-                              <FileText className="size-3.5 mr-2" />
-                              View Invoice
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {tab === "regular" && order.status !== "completed" && order.status !== "cancelled" && (
-                              <>
-                                <DropdownMenuItem
-                                  onSelect={() => handleStatusOpenDialog(order, "completed")}
-                                >
-                                  <CheckCircle className="size-3.5 mr-2 text-green-500" />
-                                  Mark Completed
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onSelect={() => handleStatusOpenDialog(order, "cancelled")}
-                                  className="text-destructive"
-                                >
-                                  <XCircle className="size-3.5 mr-2" />
-                                  Cancel Order
-                                </DropdownMenuItem>
-                              </>
+                          </TableCell>
+                          <TableCell className="font-medium tabular-nums">
+                            ₹{order.total.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <span className={cn("size-1.5 rounded-full", STATUS_DOT_COLORS[order.status] || "bg-muted")} />
+                              <Badge
+                                variant="outline"
+                                className={cn("text-xs font-normal px-2 py-0", ORDER_STATUS_CONFIG[order.status]?.color || "")}
+                              >
+                                {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getRevisionLabel(order) ? (
+                              <Badge variant="secondary" className="text-xs font-mono">
+                                {getRevisionLabel(order)}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
                             )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(order.created_at).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="flex items-center justify-center size-7 rounded-md hover:bg-muted outline-none" onClick={(e) => e.stopPropagation()}>
+                                <MoreHorizontal className="size-3.5 text-muted-foreground" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-40">
+                                <DropdownMenuItem onSelect={() => handleOpenRevision(order)}>
+                                  <Pencil className="size-3.5 mr-2" />Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onSelect={() => handleStatusOpenDialog(order, "rejected")}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <XCircle className="size-3.5 mr-2" />Reject
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                        {expandedId === order.id && order.items && order.items.length > 0 && (
+                          <TableRow key={`${order.id}-items`}>
+                            <TableCell colSpan={9} className="bg-muted/20 p-0">
+                              <div className="px-12 py-4 space-y-3">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                  Order Items ({order.items.length})
+                                </p>
+                                <div className="space-y-1.5">
+                                  {order.items.map((item) => (
+                                    <div key={item.id} className="flex items-center justify-between text-sm py-1.5 px-3 rounded-lg bg-background border">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <span className="font-medium truncate">{item.product_name}</span>
+                                        <span className="text-muted-foreground font-mono text-xs">{item.product_sku}</span>
+                                      </div>
+                                      <div className="flex items-center gap-4 shrink-0">
+                                        <span className="text-muted-foreground">x{item.quantity}</span>
+                                        <span className="text-muted-foreground">
+                                          ₹{Number((item as { unit_price?: number }).unit_price || 0).toFixed(2)}
+                                        </span>
+                                        <span className="font-medium w-20 text-right tabular-nums">
+                                          ₹{Number((item as { total?: number }).total || 0).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                {order.revision_number && order.revision_number > 0 && (
+                                  <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+                                    <span>Previous: ₹{order.previous_total?.toFixed(2)}</span>
+                                    {order.adjustment_total !== null && order.adjustment_total !== undefined && (
+                                      <span className={order.adjustment_total >= 0 ? "text-green-600" : "text-red-600"}>
+                                        Adjustment: {order.adjustment_total >= 0 ? "+" : ""}₹{order.adjustment_total.toFixed(2)}
+                                      </span>
+                                    )}
+                                    {order.revision_status && (
+                                      <span className="font-medium">{order.revision_status}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Fragment>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="b2c" className="mt-4">
+          {/* B2C Orders Table (existing) */}
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="w-[40px]"></TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("order_number")}>
+                      <div className="flex items-center gap-1">Order #{renderSortIcon("order_number")}</div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
+                      <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
+                    </TableHead>
+                    <TableHead className="text-muted-foreground font-medium">Items</TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
+                      <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("status")}>
+                      <div className="flex items-center gap-1">Status{renderSortIcon("status")}</div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
+                      <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
+                    </TableHead>
+                    <TableHead className="text-muted-foreground font-medium">Action</TableHead>
+                    <TableHead className="w-[40px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => <OrderRowSkeleton key={i} />)
+                  ) : filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-16">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="flex items-center justify-center size-12 rounded-xl bg-muted mb-2">
+                            <Package className="size-6 text-muted-foreground" />
+                          </div>
+                          <p className="text-sm font-medium text-foreground">No pending B2C orders</p>
+                          <p className="text-sm text-muted-foreground">
+                            Customer orders from the B2C shop will appear here.
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
-                    {expandedId === order.id && order.items && order.items.length > 0 && (
-                      <TableRow key={`${order.id}-items`}>
-                        <TableCell colSpan={tab === "b2c" ? 9 : 8} className="bg-muted/20 p-0">
-                          <div className="px-12 py-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                Order Items ({order.items.length})
-                              </p>
-                              {tab === "regular" && order.status !== "completed" && order.status !== "cancelled" && (
+                  ) : (
+                    filtered.map((order) => (
+                      <Fragment key={order.id}>
+                        <TableRow
+                          className="cursor-pointer transition-colors hover:bg-muted/30"
+                          onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                        >
+                          <TableCell>
+                            <Button variant="ghost" size="icon-xs" className="size-6">
+                              {expandedId === order.id ? (
+                                <ChevronDown className="size-3.5 text-muted-foreground" />
+                              ) : (
+                                <ChevronRight className="size-3.5 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono text-sm font-medium">{order.order_number}</span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {order.customer_name || <span className="italic text-muted-foreground/60">Walk-in</span>}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {order.items?.length || 0}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-medium tabular-nums">
+                            ₹{order.total.toFixed(2)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5">
+                              <span className={cn("size-1.5 rounded-full", STATUS_DOT_COLORS[order.status] || "bg-muted")} />
+                              <Badge
+                                variant="outline"
+                                className={cn("text-xs font-normal px-2 py-0", ORDER_STATUS_CONFIG[order.status]?.color || "")}
+                              >
+                                {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {new Date(order.created_at).toLocaleDateString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            {order.status === "pending" || order.status === "B2C-pending" ? (
+                              <div className="flex gap-1.5">
                                 <Button
                                   size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleStatusOpenDialog(order, "completed")
-                                  }}
-                                  className="h-8 px-3 rounded-lg gap-1 text-xs"
+                                  onClick={(e) => { e.stopPropagation(); handleApproveB2C(order) }}
+                                  disabled={updating}
+                                  className="h-8 px-3 rounded-lg gap-1 text-xs bg-green-600 hover:bg-green-700 text-white"
                                 >
                                   <CheckCircle className="size-3.5" />
-                                  Complete Order
+                                  Approve
                                 </Button>
-                              )}
-                            </div>
-                            <div className="space-y-1.5">
-                              {order.items.map((item) => (
-                                <div key={item.id} className="flex items-center justify-between text-sm py-1.5 px-3 rounded-lg bg-background border">
-                                  <div className="flex items-center gap-3 min-w-0">
-                                    <span className="font-medium truncate">{item.product_name}</span>
-                                    <span className="text-muted-foreground font-mono text-xs">{item.product_sku}</span>
-                                  </div>
-                                  <div className="flex items-center gap-4 shrink-0">
-                                    <span className="text-muted-foreground">x{item.quantity}</span>
-                                    <span className="text-muted-foreground">
-                                      ₹{Number((item as { unit_price?: number }).unit_price || 0).toFixed(2)}
-                                    </span>
-                                    <span className="font-medium w-20 text-right tabular-nums">
-                                      ₹{Number((item as { total_price?: number }).total_price || 0).toFixed(2)}
-                                    </span>
-                                  </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={(e) => { e.stopPropagation(); handleRejectB2C(order) }}
+                                  disabled={updating}
+                                  className="h-8 px-3 rounded-lg gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                                >
+                                  <XCircle className="size-3.5" />
+                                  Reject
+                                </Button>
+                              </div>
+                            ) : (
+                              <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[order.status]?.color || "")}>
+                                {ORDER_STATUS_CONFIG[order.status]?.label || order.status}
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="flex items-center justify-center size-7 rounded-md hover:bg-muted outline-none cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                                <MoreHorizontal className="size-3.5 text-muted-foreground" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem onSelect={() => router.push(`/orders?id=${order.id}`)}>
+                                  <Eye className="size-3.5 mr-2" />View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push(`/billing?order=${order.id}`)}>
+                                  <FileText className="size-3.5 mr-2" />View Invoice
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                        {expandedId === order.id && order.items && order.items.length > 0 && (
+                          <TableRow key={`${order.id}-items`}>
+                            <TableCell colSpan={9} className="bg-muted/20 p-0">
+                              <div className="px-12 py-4 space-y-3">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Order Items ({order.items.length})</p>
+                                <div className="space-y-1.5">
+                                  {order.items.map((item) => (
+                                    <div key={item.id} className="flex items-center justify-between text-sm py-1.5 px-3 rounded-lg bg-background border">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <span className="font-medium truncate">{item.product_name}</span>
+                                        <span className="text-muted-foreground font-mono text-xs">{item.product_sku}</span>
+                                      </div>
+                                      <div className="flex items-center gap-4 shrink-0">
+                                        <span className="text-muted-foreground">x{item.quantity}</span>
+                                        <span className="text-muted-foreground">₹{Number((item as { unit_price?: number }).unit_price || 0).toFixed(2)}</span>
+                                        <span className="font-medium w-20 text-right tabular-nums">₹{Number((item as { total?: number }).total || 0).toFixed(2)}</span>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                            <div className="flex items-center justify-between pt-2 border-t text-sm">
-                              <span className="font-medium">Total</span>
-                              <span className="font-semibold tabular-nums">₹{order.total.toFixed(2)}</span>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </Fragment>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Fragment>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Status Change Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -671,19 +934,13 @@ export default function OrdersPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[selectedOrder?.status || "pending"]?.color || "")}
-                >
+                <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[selectedOrder?.status || "pending"]?.color || "")}>
                   {ORDER_STATUS_CONFIG[selectedOrder?.status || "pending"]?.label}
                 </Badge>
                 {pendingStatus && pendingStatus !== selectedOrder?.status && (
                   <>
                     <span className="text-muted-foreground text-sm">→</span>
-                    <Badge
-                      variant="outline"
-                      className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[pendingStatus]?.color || "")}
-                    >
+                    <Badge variant="outline" className={cn("text-xs font-normal", ORDER_STATUS_CONFIG[pendingStatus]?.color || "")}>
                       {ORDER_STATUS_CONFIG[pendingStatus]?.label}
                     </Badge>
                   </>
@@ -703,7 +960,7 @@ export default function OrdersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* B2C Confirm Modal — Full Editing */}
+      {/* B2C Confirm Modal */}
       <Dialog open={b2cConfirmOpen} onOpenChange={(open) => { if (!b2cConfirming) setB2cConfirmOpen(open) }}>
         <DialogContent className="sm:max-w-2xl">
           {b2cConfirmed ? (
@@ -715,24 +972,18 @@ export default function OrdersPage() {
                   </div>
                   <div>
                     <DialogTitle className="text-xl">Order Completed</DialogTitle>
-                    <DialogDescription>
-                      B2C order has been approved and completed successfully.
-                    </DialogDescription>
+                    <DialogDescription>B2C order has been approved and completed successfully.</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
               <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center">
                 <Receipt className="size-8 mx-auto mb-2 text-green-600 dark:text-green-400" />
                 <p className="font-semibold text-green-800 dark:text-green-300">{b2cConfirmOrder?.order_number}</p>
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                  Receipt generated & inventory deducted
-                </p>
+                <p className="text-sm text-green-600 dark:text-green-400 mt-1">Receipt generated & inventory deducted</p>
               </div>
               <DialogFooter>
                 <Button onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null); setB2cConfirmed(false) }}
-                  className="rounded-lg bg-green-600 hover:bg-green-700 text-white">
-                  Done
-                </Button>
+                  className="rounded-lg bg-green-600 hover:bg-green-700 text-white">Done</Button>
               </DialogFooter>
             </>
           ) : b2cConfirming ? (
@@ -750,35 +1001,22 @@ export default function OrdersPage() {
             <>
               <DialogHeader>
                 <DialogTitle>Edit & Confirm B2C Order</DialogTitle>
-                <DialogDescription>
-                  Adjust items, add products, discount, or toggle GST before approving.
-                </DialogDescription>
+                <DialogDescription>Adjust items, add products, discount, or toggle GST before approving.</DialogDescription>
               </DialogHeader>
-
-              {/* Order Info Summary */}
               <div className="bg-muted rounded-xl p-3 flex flex-wrap gap-x-6 gap-y-1 text-sm border">
                 <div className="flex gap-1.5"><span className="text-muted-foreground">Order</span><span className="font-mono font-medium">{b2cConfirmOrder?.order_number}</span></div>
                 <div className="flex gap-1.5"><span className="text-muted-foreground">Customer</span><span className="font-medium">{b2cConfirmOrder?.customer_name || "Walk-in"}</span></div>
                 <div className="flex gap-1.5"><span className="text-muted-foreground">Payment</span><span className="font-medium capitalize">{b2cConfirmOrder?.payment_method === "credit" ? "Khata" : b2cConfirmOrder?.payment_method || "Online"}</span></div>
               </div>
-
-              {/* Add Product Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                <Input
-                  placeholder="Search products to add..."
-                  value={editProductSearch}
-                  onChange={e => setEditProductSearch(e.target.value)}
-                  className="pl-9 h-8 text-sm rounded-lg bg-muted/50 border-0"
-                />
+                <Input placeholder="Search products to add..." value={editProductSearch} onChange={e => setEditProductSearch(e.target.value)}
+                  className="pl-9 h-8 text-sm rounded-lg bg-muted/50 border-0" />
                 {editProductSearch && editFilteredProducts.length > 0 && (
                   <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border rounded-xl shadow-lg max-h-40 overflow-y-auto">
                     {editFilteredProducts.slice(0, 10).map(p => (
-                      <button
-                        key={p.id}
-                        onClick={() => handleEditAddProduct(p)}
-                        className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left"
-                      >
+                      <button key={p.id} onClick={() => handleEditAddProduct(p)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left">
                         <div className="min-w-0 flex-1">
                           <p className="font-medium truncate">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{p.sku} · Stock: {p.stock_quantity}</p>
@@ -789,13 +1027,9 @@ export default function OrdersPage() {
                   </div>
                 )}
               </div>
-
-              {/* Editable Items */}
               <div className="max-h-[30vh] overflow-y-auto space-y-1.5">
                 {editableItems.length === 0 ? (
-                  <div className="text-center py-6 text-sm text-muted-foreground">
-                    No items. Search and add products above.
-                  </div>
+                  <div className="text-center py-6 text-sm text-muted-foreground">No items. Search and add products above.</div>
                 ) : (
                   editableItems.map(item => (
                     <div key={item.product_id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-card">
@@ -804,85 +1038,191 @@ export default function OrdersPage() {
                         <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleEditQty(item.product_id, -1)}>
-                          <Minus className="size-3" />
-                        </Button>
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleEditQty(item.product_id, -1)}><Minus className="size-3" /></Button>
                         <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
-                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleEditQty(item.product_id, 1)}>
-                          <Plus className="size-3" />
-                        </Button>
+                        <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleEditQty(item.product_id, 1)}><Plus className="size-3" /></Button>
                       </div>
                       <p className="text-sm font-medium w-20 text-right tabular-nums">₹{(item.quantity * item.unit_price).toFixed(2)}</p>
-                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:text-destructive rounded-[4px]" onClick={() => handleEditRemove(item.product_id)}>
-                        <Trash2 className="size-3" />
-                      </Button>
+                      <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:text-destructive rounded-[4px]" onClick={() => handleEditRemove(item.product_id)}><Trash2 className="size-3" /></Button>
                     </div>
                   ))
                 )}
               </div>
-
-              {/* Discount + GST */}
               <div className="flex items-center gap-3 border-t pt-3">
                 <div className="flex-1">
                   <p className="text-xs font-medium text-muted-foreground mb-1">Discount (₹)</p>
-                  <Input
-                    type="number" min="0" step="0.01"
-                    value={editDiscount}
-                    onChange={e => setEditDiscount(parseFloat(e.target.value) || 0)}
-                    className="h-8 text-sm rounded-[4px] border-border"
-                  />
+                  <Input type="number" min="0" step="0.01" value={editDiscount} onChange={e => setEditDiscount(parseFloat(e.target.value) || 0)} className="h-8 text-sm rounded-[4px] border-border" />
                 </div>
                 <div className="flex items-center gap-2 pt-4">
                   <span className="text-xs text-muted-foreground">GST</span>
-                  <button
-                    type="button"
-                    onClick={() => setEditApplyGst(!editApplyGst)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editApplyGst ? "bg-primary" : "bg-muted-foreground/30"}`}
-                  >
+                  <button type="button" onClick={() => setEditApplyGst(!editApplyGst)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${editApplyGst ? "bg-primary" : "bg-muted-foreground/30"}`}>
                     <span className={`inline-block size-3.5 rounded-full bg-white transition-transform ${editApplyGst ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
                   </button>
                 </div>
               </div>
-
-              {/* Recalculated Totals */}
-              {(() => {
-                const { subtotal, gst, total, disc } = editRecalc()
-                return (
-                  <div className="space-y-1 text-sm border-t pt-3">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="tabular-nums">₹{subtotal.toFixed(2)}</span>
-                    </div>
-                    {disc > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Discount</span>
-                        <span className="tabular-nums text-destructive">-₹{disc.toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">GST</span>
-                      <span className="tabular-nums">₹{gst.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between font-semibold text-base border-t pt-1">
-                      <span>Total</span>
-                      <span className="tabular-nums">₹{total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                )
-              })()}
-
+              {(() => { const { subtotal, gst, total, disc } = editRecalc(); return (
+                <div className="space-y-1 text-sm border-t pt-3">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">₹{subtotal.toFixed(2)}</span></div>
+                  {disc > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="tabular-nums text-destructive">-₹{disc.toFixed(2)}</span></div>}
+                  <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span className="tabular-nums">₹{gst.toFixed(2)}</span></div>
+                  <div className="flex justify-between font-semibold text-base border-t pt-1"><span>Total</span><span className="tabular-nums">₹{total.toFixed(2)}</span></div>
+                </div>
+              )})()}
               <DialogFooter className="mt-2">
-                <Button variant="outline" onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null) }} disabled={b2cConfirming} className="rounded-lg">
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => { setB2cConfirmOpen(false); setB2cConfirmOrder(null) }} disabled={b2cConfirming} className="rounded-lg">Cancel</Button>
                 <Button onClick={handleB2CConfirmSubmit} disabled={b2cConfirming || editableItems.length === 0}
                   className="rounded-lg gap-1.5 bg-green-600 hover:bg-green-700 text-white">
-                  <CheckCircle className="size-4" />
-                  {b2cConfirming ? "Processing..." : "Confirm & Complete"}
+                  <CheckCircle className="size-4" />{b2cConfirming ? "Processing..." : "Confirm & Complete"}
                 </Button>
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* --- Revision Modal --- */}
+      <Dialog open={revisionOpen} onOpenChange={(open) => { if (!revising) setRevisionOpen(open) }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Order — {revisionOrder?.order_number}</DialogTitle>
+            <DialogDescription>
+              Modify items, quantities, discount, or GST. Inventory will be adjusted by the difference.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Original vs New Summary */}
+          <div className="bg-muted rounded-xl p-3 space-y-1 text-sm border">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Original Total</span>
+              <span className="tabular-nums">₹{revOriginalTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span>New Total</span>
+              <span className="tabular-nums">₹{revCalc.total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between border-t pt-1">
+              <span className="font-semibold">Difference</span>
+              <span className={cn("tabular-nums font-semibold", revPriceDiff >= 0 ? "text-green-600" : "text-red-600")}>
+                {revPriceDiff >= 0 ? "+" : ""}₹{revPriceDiff.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {/* Product search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+            <Input placeholder="Search products to add..." value={revSearchQuery} onChange={e => setRevSearchQuery(e.target.value)}
+              className="pl-9 h-8 text-sm rounded-lg bg-muted/50 border-0" />
+            {revSearchQuery && revFilteredProducts.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-card border rounded-xl shadow-lg max-h-40 overflow-y-auto">
+                {revFilteredProducts.slice(0, 10).map(p => (
+                  <button key={p.id} onClick={() => handleRevAddProduct(p)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-muted text-left">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">{p.sku} · Stock: {p.stock_quantity}</p>
+                    </div>
+                    <span className="text-sm font-medium shrink-0 ml-2 tabular-nums">₹{p.selling_price.toFixed(2)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Editable items */}
+          <div className="max-h-[30vh] overflow-y-auto space-y-1.5">
+            {revisedItems.length === 0 ? (
+              <div className="text-center py-6 text-sm text-muted-foreground">No items. Search and add products above.</div>
+            ) : (
+              revisedItems.map(item => (
+                <div key={item.product_id} className="flex items-center justify-between gap-2 p-2 rounded-lg border bg-card">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.product_name}</p>
+                    <p className="text-xs text-muted-foreground">₹{item.unit_price.toFixed(2)} each</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleRevQty(item.product_id, -1)}><Minus className="size-3" /></Button>
+                    <span className="w-8 text-center text-sm font-medium tabular-nums">{item.quantity}</span>
+                    <Button variant="ghost" size="icon-xs" className="size-6 text-muted-foreground hover:text-foreground rounded-[4px]" onClick={() => handleRevQty(item.product_id, 1)}><Plus className="size-3" /></Button>
+                  </div>
+                  <p className="text-sm font-medium w-20 text-right tabular-nums">₹{(item.quantity * item.unit_price).toFixed(2)}</p>
+                  <Button variant="ghost" size="icon-xs" className="size-6 text-destructive hover:text-destructive rounded-[4px]" onClick={() => handleRevRemove(item.product_id)}><Trash2 className="size-3" /></Button>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Discount + GST */}
+          <div className="flex items-center gap-3 border-t pt-3">
+            <div className="flex-1">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Discount (₹)</p>
+              <Input type="number" min="0" step="0.01" value={revDiscount} onChange={e => setRevDiscount(parseFloat(e.target.value) || 0)} className="h-8 text-sm rounded-[4px] border-border" />
+            </div>
+            <div className="flex items-center gap-2 pt-4">
+              <span className="text-xs text-muted-foreground">GST</span>
+              <button type="button" onClick={() => setRevApplyGst(!revApplyGst)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${revApplyGst ? "bg-primary" : "bg-muted-foreground/30"}`}>
+                <span className={`inline-block size-3.5 rounded-full bg-white transition-transform ${revApplyGst ? "translate-x-[18px]" : "translate-x-[2px]"}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Totals */}
+          <div className="space-y-1 text-sm border-t pt-3">
+            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="tabular-nums">₹{revCalc.subtotal.toFixed(2)}</span></div>
+            {revCalc.disc > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="tabular-nums text-destructive">-₹{revCalc.disc.toFixed(2)}</span></div>}
+            <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span className="tabular-nums">₹{revCalc.gst.toFixed(2)}</span></div>
+            <div className="flex justify-between font-semibold text-base border-t pt-1"><span>Total</span><span className="tabular-nums">₹{revCalc.total.toFixed(2)}</span></div>
+          </div>
+
+          {revPriceDiff > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-3 text-sm">
+              <p className="font-medium text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                <AlertTriangle className="size-4" />
+                Price increased by ₹{revPriceDiff.toFixed(2)}
+              </p>
+              <p className="text-amber-600 dark:text-amber-400 text-xs mt-0.5">
+                An adjustment invoice for ₹{revPriceDiff.toFixed(2)} will be generated.
+              </p>
+            </div>
+          )}
+          {revPriceDiff < 0 && (
+            <div className="rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800 p-3 text-sm">
+              <p className="font-medium text-green-800 dark:text-green-300">
+                Price decreased by ₹{Math.abs(revPriceDiff).toFixed(2)}. Inventory will be restored.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="mt-2 gap-2">
+            <Button variant="outline" onClick={() => { setRevisionOpen(false); setRevisionOrder(null) }} disabled={revising} className="rounded-lg">
+              Cancel
+            </Button>
+            {revPriceDiff > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground">Leftover:</span>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={leftoverAmount}
+                    onChange={e => setLeftoverAmount(parseFloat(e.target.value) || 0)}
+                    className="h-8 w-24 text-sm rounded-[4px] border-border"
+                  />
+                </div>
+                <Button onClick={handleReviseLeftover} disabled={revising || revisedItems.length === 0}
+                  className="rounded-lg gap-1.5 bg-orange-600 hover:bg-orange-700 text-white">
+                  <BadgePercent className="size-4" />
+                  {revising ? "Processing..." : "Leftover"}
+                </Button>
+              </div>
+            )}
+            <Button onClick={handleReviseSettled} disabled={revising || revisedItems.length === 0}
+              className="rounded-lg gap-1.5 bg-green-600 hover:bg-green-700 text-white">
+              <CheckCircle className="size-4" />
+              {revising ? "Processing..." : "Settled"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

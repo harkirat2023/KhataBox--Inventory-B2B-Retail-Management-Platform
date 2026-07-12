@@ -32,6 +32,13 @@ class OrderItemResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class OrderItemRevision(BaseModel):
+    product_id: int
+    product_name: str
+    quantity: int
+    unit_price: float
+
+
 class OrderResponse(BaseModel):
     id: int
     order_number: str
@@ -49,12 +56,22 @@ class OrderResponse(BaseModel):
     updated_at: datetime
     items: list[OrderItemResponse]
     credit_alert: dict | None = None
+    revision_number: int = 0
+    previous_total: float = 0
+    adjustment_total: float | None = None
+    revision_status: str | None = None
 
     model_config = {"from_attributes": True}
 
 
 class OrderStatusUpdate(BaseModel):
     status: str
+    revised_items: list[OrderItemRevision] | None = None
+    discount: float | None = None
+    apply_gst: bool | None = None
+    settlement_type: str | None = None  # "settled" or "leftover"
+    leftover_amount: float | None = None
+    notes: str | None = None
 
 
 class BulkOrderCreate(BaseModel):

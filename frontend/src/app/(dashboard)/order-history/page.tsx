@@ -612,6 +612,23 @@ export default function OrderHistoryPage() {
                     <TableCell colSpan={7} className="bg-muted/50 p-0">
                       <div className="px-10 py-3 space-y-3">
                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Items</p>
+                        {!isBilling && (order as Order).revision_number && (order as Order).revision_number! > 0 && (
+                          <div className="border-t pt-3 mt-3">
+                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Revision History</p>
+                            <div className="flex items-center gap-4 text-sm flex-wrap">
+                              <span className="font-mono text-muted-foreground">Rev {(order as Order).revision_number}</span>
+                              <span className="text-muted-foreground">Previous: ₹{(order as Order).previous_total?.toFixed(2)}</span>
+                              {(order as Order).adjustment_total !== null && (order as Order).adjustment_total !== undefined && (
+                                <span className={(order as Order).adjustment_total! >= 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                                  Adjustment: {(order as Order).adjustment_total! >= 0 ? "+" : ""}₹{(order as Order).adjustment_total!.toFixed(2)}
+                                </span>
+                              )}
+                              {(order as Order).revision_status && (
+                                <span className="font-medium">{(order as Order).revision_status}</span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         {items.map((item: { id: number; product_name: string; product_sku: string; quantity: number; unit_price?: number; total?: number; total_price?: number }, idx: number) => {
                           const isUnpacked = item.product_sku === "UNPACKED" || item.product_name.startsWith("Unpacked")
                           return (

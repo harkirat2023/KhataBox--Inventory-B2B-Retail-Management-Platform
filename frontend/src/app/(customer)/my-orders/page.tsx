@@ -3,13 +3,15 @@
 import { redirect, useSearchParams } from "next/navigation"
 import { useEffect, useState, Suspense } from "react"
 import Link from "next/link"
-import { Package, Clock, CheckCircle2, XCircle, ChevronRight, ShoppingBag, type LucideIcon } from "lucide-react"
+import { Package, Clock, CheckCircle2, XCircle, ChevronRight, ShoppingBag, Download, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRole } from "@/components/auth/role-guard"
-import { clientApi } from "@/lib/client-api"
+import { clientApi, authHeaders } from "@/lib/client-api"
 import { useCustomerStore } from "@/store/customer-store"
 import { toast } from "sonner"
 import { BottomNav } from "@/components/layout/bottom-nav"
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
 
 interface OrderItem {
   id: number; product_id: number; product_name: string; quantity: number; unit_price: number; total_price: number
@@ -108,6 +110,27 @@ function OrdersContent() {
     return () => {}
   }, [role])
 
+  const handleDownloadInvoice = async (orderId: number, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    try {
+      const resp = await fetch(`${API_URL}/api/v1/invoices/generate/${orderId}`, {
+        method: "POST",
+        headers: authHeaders(),
+      })
+      if (!resp.ok) throw new Error("Failed to generate invoice")
+      const blob = await resp.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `invoice-${orderId}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to download invoice")
+    }
+  }
+
   if (!isLoaded || loading || !isSignedIn || role !== "customer") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -198,6 +221,15 @@ function OrdersContent() {
                       )}
                       {order.store_name && (
                         <p className="text-[10px] text-muted-foreground mt-1">{order.store_name}</p>
+                      )}
+                      {order.status === "completed" && (
+                        <button
+                          onClick={(e) => handleDownloadInvoice(order.id, e)}
+                          className="mt-2 inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium"
+                        >
+                          <Download className="size-3" />
+                          Download Invoice
+                        </button>
                       )}
                     </div>
                   </div>

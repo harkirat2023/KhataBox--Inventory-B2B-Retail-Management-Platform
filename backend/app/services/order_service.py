@@ -63,6 +63,10 @@ def _order_to_response(order, customers_by_id, products_by_id, default_customer_
         "notes": order.notes,
         "created_at": order.created_at,
         "updated_at": order.updated_at,
+        "revision_number": order.revision_number,
+        "previous_total": order.previous_total,
+        "adjustment_total": order.adjustment_total,
+        "revision_status": order.revision_status,
         "items": [
             {
                 "id": it.id,
@@ -591,83 +595,226 @@ async def update_order_status(db, order_id, payload, shopkeeper_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid status: {payload.status}")
 
     try:
-        if prev_status == new_status:
+        # --- REVISION FLOW (revised_items provided) ---
+        if payload.revised_items is not None and len(payload.revised_items) > 0:
+            if prev_status != OrderStatus.COMPLETED:
+                raise HTTPException(status_code=400, detail="Only completed orders can be revised")
+
+            new_discount = payload.discount if payload.discount is not None else order.discount
+            apply_gst = payload.apply_gst if payload.apply_gst is not None else True
+
+            new_subtotal = sum(i.unit_price * i.quantity for i in payload.revised_items)
+            new_gst = round(new_subtotal * 0.18, 2) if apply_gst else 0
+            new_total = max(0, new_subtotal + new_gst - new_discount)
+
+            previous_total = order.total
+            price_diff = round(new_total - previous_total, 2)
+
+            # Inventory: adjust by difference per product
+            old_items_map = {it.product_id: it for it in (order.items or [])}
+            for rev_item in payload.revised_items:
+                product_result = await db.execute(
+                    select(Product).where(Product.id == rev_item.product_id, Product.owner_id == shopkeeper_id)
+                )
+                product = product_result.scalar_one_or_none()
+                if not product:
+                    raise HTTPException(status_code=404, detail=f"Product '{rev_item.product_name}' not found")
+
+                old_qty = old_items_map.get(rev_item.product_id, OrderItem(quantity=0)).quantity
+                diff_qty = rev_item.quantity - old_qty
+
+                if diff_qty > 0:
+                    if product.stock_quantity < diff_qty:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Insufficient stock for {rev_item.product_name}: have {product.stock_quantity}, need {diff_qty} more",
+                        )
+                    product.stock_quantity -= diff_qty
+                    db.add(InventoryMovement(
+                        product_id=rev_item.product_id, shopkeeper_id=shopkeeper_id,
+                        movement_type=MovementType.CONSUME_OUT, quantity=-diff_qty,
+                        reference=f"Order #{order.order_number} Rev-{order.revision_number + 1}",
+                    ))
+                elif diff_qty < 0:
+                    restore_qty = -diff_qty
+                    product.stock_quantity += restore_qty
+                    db.add(InventoryMovement(
+                        product_id=rev_item.product_id, shopkeeper_id=shopkeeper_id,
+                        movement_type=MovementType.RETURN, quantity=restore_qty,
+                        reference=f"Order #{order.order_number} Rev-{order.revision_number + 1}",
+                    ))
+                await db.flush()
+                await check_low_stock(rev_item.product_id, shopkeeper_id, db)
+
+            # Update existing OrderItems with new quantities
+            existing_items = {it.product_id: it for it in (order.items or [])}
+            for rev_item in payload.revised_items:
+                if rev_item.product_id in existing_items:
+                    oi = existing_items[rev_item.product_id]
+                    oi.quantity = rev_item.quantity
+                    oi.unit_price = rev_item.unit_price
+                    oi.total_price = rev_item.quantity * rev_item.unit_price
+                else:
+                    new_oi = OrderItem(
+                        order_id=order.id, product_id=rev_item.product_id,
+                        product_name=rev_item.product_name, quantity=rev_item.quantity,
+                        unit_price=rev_item.unit_price,
+                        total_price=rev_item.quantity * rev_item.unit_price,
+                    )
+                    db.add(new_oi)
+
+            # Remove items that are no longer in the revised list
+            rev_product_ids = {i.product_id for i in payload.revised_items}
+            for oi in list(order.items or []):
+                if oi.product_id not in rev_product_ids:
+                    await db.delete(oi)
+
+            # Update order totals and revision metadata
+            order.subtotal = new_subtotal
+            order.discount = new_discount
+            order.gst = new_gst
+            order.total = new_total
+            order.previous_total = previous_total
+            order.adjustment_total = price_diff
+            order.revision_number += 1
+            order.status = OrderStatus.COMPLETED
+
+            if payload.settlement_type == "leftover":
+                leftover_due = max(0, price_diff - (payload.leftover_amount or 0))
+                order.revision_status = f"Due ₹{leftover_due:.0f}" if leftover_due > 0 else "Settled"
+            else:
+                order.revision_status = "Updated"
+
+            if payload.notes:
+                order.notes = payload.notes
+
+            await db.flush()
+
+            # Generate adjustment receipt
+            store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
+            store = store_result.scalar_one_or_none()
+            if store and price_diff != 0:
+                adj_sign = "UP" if price_diff > 0 else "DOWN"
+                adj_amt = abs(price_diff)
+                receipt = Receipt(
+                    receipt_number=f"RCPT-{order.id:08d}-ADJ-{order.revision_number}",
+                    order_id=order.id, shopkeeper_id=shopkeeper_id,
+                    customer_id=order.customer_id, store_id=store.id,
+                    payment_method=order.payment_method,
+                    subtotal=0, discount=0, taxes=0, total_amount=adj_amt,
+                )
+                db.add(receipt)
+                await db.flush()
+                for rev_item in payload.revised_items:
+                    db.add(ReceiptItem(
+                        receipt_id=receipt.id,
+                        product_id=rev_item.product_id,
+                        product_name=rev_item.product_name,
+                        quantity=rev_item.quantity,
+                        unit_price=rev_item.unit_price,
+                        line_total=rev_item.quantity * rev_item.unit_price,
+                        taxes=0, discount=0,
+                    ))
+
             await db.commit()
             await db.refresh(order, ["items"])
+
+        # --- REGULAR STATUS TRANSITION ---
         else:
-            if new_status == OrderStatus.COMPLETED and prev_status != OrderStatus.COMPLETED:
-                for it in (order.items or []):
-                    product_result = await db.execute(
-                        select(Product).where(Product.id == it.product_id, Product.owner_id == shopkeeper_id)
-                    )
-                    product = product_result.scalar_one_or_none()
-                    if not product:
-                        raise HTTPException(
-                            status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Product not found: {it.product_id}",
-                        )
-                    if product.stock_quantity < it.quantity:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Insufficient stock for {it.product_name}: have {product.stock_quantity}, need {it.quantity}",
-                        )
-                    product.stock_quantity -= it.quantity
-
-                    movement = InventoryMovement(
-                        product_id=it.product_id,
-                        shopkeeper_id=shopkeeper_id,
-                        movement_type=MovementType.CONSUME_OUT,
-                        quantity=-it.quantity,
-                        reference=f"Order #{order.order_number}",
-                    )
-                    db.add(movement)
-                    await db.flush()
-                    await check_low_stock(it.product_id, shopkeeper_id, db)
-
-                receipt_result = await db.execute(select(Receipt).where(Receipt.order_id == order.id))
-                existing_receipt = receipt_result.scalar_one_or_none()
-                if not existing_receipt:
-                    store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
-                    store = store_result.scalar_one_or_none()
-                    if not store:
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found for shopkeeper")
-
-                    receipt = Receipt(
-                        receipt_number=f"RCPT-{order.id:08d}",
-                        order_id=order.id,
-                        shopkeeper_id=shopkeeper_id,
-                        customer_id=order.customer_id,
-                        store_id=store.id,
-                        payment_method=order.payment_method,
-                        subtotal=order.subtotal,
-                        discount=order.discount,
-                        taxes=order.gst,
-                        total_amount=order.total,
-                    )
-                    db.add(receipt)
-                    await db.flush()
-
+            if prev_status == new_status:
+                await db.commit()
+                await db.refresh(order, ["items"])
+            else:
+                if new_status == OrderStatus.COMPLETED and prev_status != OrderStatus.COMPLETED:
                     for it in (order.items or []):
-                        db.add(
-                            ReceiptItem(
-                                receipt_id=receipt.id,
-                                order_item_id=it.id,
-                                product_id=it.product_id,
-                                product_name=it.product_name,
-                                quantity=it.quantity,
-                                unit_price=it.unit_price,
-                                line_total=it.total_price,
-                                taxes=order.gst,
-                                discount=order.discount,
-                            )
+                        product_result = await db.execute(
+                            select(Product).where(Product.id == it.product_id, Product.owner_id == shopkeeper_id)
                         )
+                        product = product_result.scalar_one_or_none()
+                        if not product:
+                            raise HTTPException(
+                                status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Product not found: {it.product_id}",
+                            )
+                        if product.stock_quantity < it.quantity:
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Insufficient stock for {it.product_name}: have {product.stock_quantity}, need {it.quantity}",
+                            )
+                        product.stock_quantity -= it.quantity
 
-            elif new_status == OrderStatus.CANCELLED and prev_status != OrderStatus.CANCELLED:
-                pass
+                        movement = InventoryMovement(
+                            product_id=it.product_id,
+                            shopkeeper_id=shopkeeper_id,
+                            movement_type=MovementType.CONSUME_OUT,
+                            quantity=-it.quantity,
+                            reference=f"Order #{order.order_number}",
+                        )
+                        db.add(movement)
+                        await db.flush()
+                        await check_low_stock(it.product_id, shopkeeper_id, db)
 
-            order.status = new_status
-            await db.commit()
-            await db.refresh(order, ["items"])
+                    receipt_result = await db.execute(select(Receipt).where(Receipt.order_id == order.id))
+                    existing_receipt = receipt_result.scalar_one_or_none()
+                    if not existing_receipt:
+                        store_result = await db.execute(select(Store).where(Store.owner_id == shopkeeper_id).limit(1))
+                        store = store_result.scalar_one_or_none()
+                        if not store:
+                            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Store not found for shopkeeper")
+
+                        receipt = Receipt(
+                            receipt_number=f"RCPT-{order.id:08d}",
+                            order_id=order.id,
+                            shopkeeper_id=shopkeeper_id,
+                            customer_id=order.customer_id,
+                            store_id=store.id,
+                            payment_method=order.payment_method,
+                            subtotal=order.subtotal,
+                            discount=order.discount,
+                            taxes=order.gst,
+                            total_amount=order.total,
+                        )
+                        db.add(receipt)
+                        await db.flush()
+
+                        for it in (order.items or []):
+                            db.add(
+                                ReceiptItem(
+                                    receipt_id=receipt.id,
+                                    order_item_id=it.id,
+                                    product_id=it.product_id,
+                                    product_name=it.product_name,
+                                    quantity=it.quantity,
+                                    unit_price=it.unit_price,
+                                    line_total=it.total_price,
+                                    taxes=order.gst,
+                                    discount=order.discount,
+                                )
+                            )
+
+                elif new_status in (OrderStatus.CANCELLED, OrderStatus.REJECTED) and prev_status not in (OrderStatus.CANCELLED, OrderStatus.REJECTED):
+                    if new_status == OrderStatus.REJECTED:
+                        for it in (order.items or []):
+                            product_result = await db.execute(
+                                select(Product).where(Product.id == it.product_id, Product.owner_id == shopkeeper_id)
+                            )
+                            product = product_result.scalar_one_or_none()
+                            if product:
+                                product.stock_quantity += it.quantity
+                                db.add(InventoryMovement(
+                                    product_id=it.product_id, shopkeeper_id=shopkeeper_id,
+                                    movement_type=MovementType.RETURN, quantity=it.quantity,
+                                    reference=f"Order #{order.order_number} rejected",
+                                ))
+                        if order.customer_id:
+                            cust_result = await db.execute(select(Customer).where(Customer.id == order.customer_id))
+                            customer = cust_result.scalar_one_or_none()
+                            if customer:
+                                customer.credit_used = max(0, (customer.credit_used or 0) - order.total)
+
+                order.status = new_status
+                await db.commit()
+                await db.refresh(order, ["items"])
 
     except HTTPException:
         await db.rollback()

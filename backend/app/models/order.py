@@ -14,6 +14,7 @@ class OrderStatus(str, enum.Enum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+    REJECTED = "rejected"
 
 
 class PaymentMethod(str, enum.Enum):
@@ -42,6 +43,11 @@ class Order(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
     )
+
+    revision_number: Mapped[int] = mapped_column(Integer, default=0)
+    previous_total: Mapped[float] = mapped_column(Float, default=0)
+    adjustment_total: Mapped[float | None] = mapped_column(Float, nullable=True)
+    revision_status: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     items: Mapped[list["OrderItem"]] = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
 

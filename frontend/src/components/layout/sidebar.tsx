@@ -28,6 +28,8 @@ import {
   ChevronDown,
   History,
   Pencil,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import {
   Sidebar,
@@ -40,6 +42,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import {
   Select,
@@ -48,6 +51,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { useRole } from "@/components/auth/role-guard"
 import { useStoreContext } from "@/lib/store-context"
@@ -134,17 +139,19 @@ const customerNavGroups = [
 function NavItem({
   item,
   active,
+  collapsed,
 }: {
   item: { label: string; href: string; icon: React.ElementType }
   active: boolean
+  collapsed: boolean
 }) {
   const Icon = item.icon
-  return (
+  const button = (
     <motion.div
-      whileHover={{ translateX: 2 }}
+      whileHover={{ translateX: collapsed ? 0 : 2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
-      <SidebarMenuButton isActive={active} tooltip={item.label} asChild href={item.href}>
+      <SidebarMenuButton isActive={active} tooltip={collapsed ? item.label : undefined} asChild href={item.href}>
         <div className={cn(
           "flex items-center justify-center size-4.5 shrink-0 rounded-md transition-colors",
           active ? "text-amber-brand" : "text-muted-foreground group-hover/menu-button:text-foreground"
@@ -152,12 +159,28 @@ function NavItem({
           <Icon className="size-4" />
         </div>
         <span className={cn(
-          "transition-colors",
+          "transition-colors sidebar-text-label",
+          collapsed && "hidden",
           active ? "text-amber-brand font-semibold" : "text-muted-foreground group-hover/menu-button:text-foreground"
         )}>{item.label}</span>
       </SidebarMenuButton>
     </motion.div>
   )
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger className="w-full">
+          {button}
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={8}>
+          {item.label}
+        </TooltipContent>
+      </Tooltip>
+    )
+  }
+
+  return button
 }
 
 export function AppSidebar() {
@@ -168,6 +191,8 @@ export function AppSidebar() {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [renamingStore, setRenamingStore] = useState<{ id: number; name: string } | null>(null)
   const navGroups = role === "customer" ? customerNavGroups : staffNavGroups
+  const { open, isMobile, toggleSidebar, setOpenMobile } = useSidebar()
+  const collapsed = !isMobile && !open
 
   useEffect(() => {
     if (role && ["admin", "shopkeeper"].includes(role)) {
@@ -187,24 +212,32 @@ export function AppSidebar() {
     }))
     .filter((group) => group.items.length > 0)
 
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false)
+    }
+  }
+
   return (
     <Sidebar className="max-h-dvh overflow-y-auto border-r border-sidebar-border">
-      <SidebarHeader className="p-4 pb-2">
+      <SidebarHeader className={cn("p-4 pb-2", collapsed && "px-2 py-3")}>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild href="/dashboard" className="h-12">
-              <div className="flex items-center justify-center size-9 rounded-xl bg-amber-brand/10 shrink-0">
-                <Boxes className="size-5 text-amber-brand" />
+            <SidebarMenuButton size="lg" asChild href="/dashboard" onClick={handleNavClick} className={cn("h-12", collapsed && "justify-center")}>
+              <div className={cn("flex items-center gap-3", collapsed && "flex-col gap-1")}>
+                <div className="flex items-center justify-center size-9 rounded-xl bg-amber-brand/10 shrink-0">
+                  <Boxes className="size-5 text-amber-brand" />
+                </div>
+                <span className={cn("font-semibold text-lg tracking-tight text-foreground sidebar-text-label", collapsed && "hidden")}>KhataBox</span>
               </div>
-              <span className="font-semibold text-lg tracking-tight text-foreground ml-1">KhataBox</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {role && ["admin", "shopkeeper"].includes(role) && (
+        {role && ["admin", "shopkeeper"].includes(role) && !collapsed && (
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Store</span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider sidebar-text-label">Store</span>
               {activeStore.id && (
                 <button
                   onClick={() => {
@@ -243,17 +276,23 @@ export function AppSidebar() {
         )}
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-1">
+      <SidebarContent className={cn("px-3 py-1", collapsed && "px-1")}>
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest">
-              {group.label}
-            </SidebarGroupLabel>
+            {!collapsed && (
+              <SidebarGroupLabel className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest sidebar-text-label">
+                {group.label}
+              </SidebarGroupLabel>
+            )}
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => {
                   const active = pathname === item.href || pathname.startsWith(item.href + "/")
-                  return <NavItem key={item.href} item={item} active={active} />
+                  return (
+                    <div key={item.href} onClick={handleNavClick}>
+                      <NavItem item={item} active={active} collapsed={collapsed} />
+                    </div>
+                  )
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -261,10 +300,27 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-4 pt-2 border-t border-sidebar-border">
-        <div className="px-2">
-          <p className="text-[11px] text-muted-foreground/50 text-center font-mono">KhataBox v1.0</p>
-        </div>
+      <SidebarFooter className={cn("p-4 pt-2 border-t border-sidebar-border", collapsed && "px-0 py-3")}>
+        {!isMobile && (
+          <div className={cn("flex", collapsed ? "justify-center" : "justify-between items-center")}>
+            <span className={cn("text-[11px] text-muted-foreground/50 text-center font-mono sidebar-text-label", collapsed && "hidden")}>KhataBox v1.0</span>
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn("rounded-lg text-muted-foreground hover:text-foreground", collapsed && "size-9")}
+                  onClick={toggleSidebar}
+                >
+                  {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" sideOffset={8}>
+                {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        )}
       </SidebarFooter>
 
       {renamingStore && (

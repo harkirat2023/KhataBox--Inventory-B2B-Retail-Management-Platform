@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16.25rem"
+const SIDEBAR_WIDTH_ICON = "4.5rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -88,7 +89,7 @@ const SidebarProvider = React.forwardRef<
       <div
         ref={ref}
         data-slot="sidebar-provider"
-        style={{ "--sidebar-width": SIDEBAR_WIDTH, ...style } as React.CSSProperties}
+        style={{ "--sidebar-width": SIDEBAR_WIDTH, "--sidebar-width-icon": SIDEBAR_WIDTH_ICON, ...style } as React.CSSProperties}
         className={cn("group/sidebar-wrapper flex min-h-screen w-full bg-[#fafafa] dark:bg-[#09090b] has-[[data-variant=inset]]:bg-[#fafafa] dark:has-[[data-variant=inset]]:bg-[#09090b]", className)}
         {...props}
       >
@@ -128,9 +129,10 @@ const Sidebar = React.forwardRef<
       data-slot="sidebar"
       data-side={side}
       data-variant={variant}
+      data-state={open ? "expanded" : "collapsed"}
       className={cn(
-        "hidden md:block text-sidebar-foreground transition-all duration-300 ease-out shrink-0",
-        open ? "w-(--sidebar-width) opacity-100" : "w-0 opacity-0 overflow-hidden",
+        "hidden lg:block text-sidebar-foreground transition-all duration-300 ease-out shrink-0",
+        open ? "w-(--sidebar-width)" : "w-(--sidebar-width-icon)",
         className
       )}
       {...props}
@@ -139,7 +141,8 @@ const Sidebar = React.forwardRef<
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
-          "flex h-full w-(--sidebar-width) flex-col bg-sidebar",
+          "flex h-full w-(--sidebar-width) flex-col bg-sidebar transition-all duration-300",
+          !open && "items-center",
           variant === "floating" && "rounded-xl border border-sidebar-border p-2 shadow-sm",
           variant === "inset" && "rounded-xl border border-sidebar-border bg-sidebar p-2 shadow-sm"
         )}
@@ -153,7 +156,7 @@ Sidebar.displayName = "Sidebar"
 
 const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>(
   ({ className, onClick, ...props }, ref) => {
-    const { toggleSidebar } = useSidebar()
+    const { toggleSidebar, open, isMobile } = useSidebar()
 
     return (
       <Button
@@ -168,7 +171,7 @@ const SidebarTrigger = React.forwardRef<HTMLButtonElement, React.ComponentProps<
         }}
         {...props}
       >
-        <PanelLeftIcon className="rtl:rotate-180" />
+        <PanelLeftIcon className={cn("size-5 transition-transform duration-300", !isMobile && !open && "rotate-180")} />
         <span className="sr-only">Toggle Sidebar</span>
       </Button>
     )

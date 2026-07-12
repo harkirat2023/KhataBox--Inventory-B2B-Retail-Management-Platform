@@ -99,15 +99,20 @@ export function TopNav() {
     router.push(`/billing?product_id=${product.id}`)
   }
 
-  return (
-    <header className="sticky top-0 z-40 flex items-center h-[64px] border-b border-border bg-white dark:bg-[#121214] backdrop-blur-xl px-4 lg:px-6 gap-3">
-      <SidebarTrigger className="hidden lg:flex -ml-1 text-muted-foreground hover:text-foreground rounded-lg transition-colors" />
+  const handleSignOut = () => {
+    clearAuthToken()
+    router.push("/login")
+  }
 
-      <Link href={homeLink} className="flex items-center gap-2.5 lg:hidden">
+  return (
+    <header className="sticky top-0 z-40 flex items-center h-[64px] border-b border-border bg-white dark:bg-[#121214] backdrop-blur-xl px-4 lg:px-6 gap-2 lg:gap-3">
+      <SidebarTrigger className="text-muted-foreground hover:text-foreground rounded-lg transition-colors shrink-0" />
+
+      <Link href={homeLink} className="flex items-center gap-2.5 shrink-0">
         <div className="flex items-center justify-center size-8 rounded-lg bg-primary/10">
           <Boxes className="size-5 text-primary" />
         </div>
-        <span className="font-semibold text-lg tracking-tight text-foreground">KhataBox</span>
+        <span className="font-semibold text-lg tracking-tight text-foreground hidden sm:block">KhataBox</span>
       </Link>
 
       <div ref={searchRef} className="hidden sm:flex relative flex-1 max-w-md">
@@ -166,7 +171,7 @@ export function TopNav() {
             <Avatar className="size-8 rounded-lg">
               <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">{initials}</AvatarFallback>
             </Avatar>
-            <span className="hidden md:block text-sm font-medium max-w-[120px] truncate text-foreground">{user?.name}</span>
+            <span className="hidden lg:block text-sm font-medium max-w-[120px] truncate text-foreground">{user?.name}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 border-border bg-card rounded-xl p-1.5">
             <DropdownMenuLabel className="px-2 py-1.5">
@@ -185,7 +190,7 @@ export function TopNav() {
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator className="bg-border/60 mx-1" />
-            <DropdownMenuItem onSelect={() => { clearAuthToken(); window.location.href = "https://khataboxapp.vercel.app" }}
+            <DropdownMenuItem onSelect={handleSignOut}
               className="rounded-lg text-destructive focus:text-destructive focus:bg-destructive/10">
               <LogOut className="size-4 mr-2" />Sign Out
             </DropdownMenuItem>

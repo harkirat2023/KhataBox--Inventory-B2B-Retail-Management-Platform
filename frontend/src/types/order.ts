@@ -26,6 +26,10 @@ export interface Order {
   notes: string | null
   created_at: string
   updated_at: string
+  revision_number?: number
+  previous_total?: number
+  adjustment_total?: number | null
+  revision_status?: string | null
   credit_alert?: {
     customer_name: string
     credit_used: number
