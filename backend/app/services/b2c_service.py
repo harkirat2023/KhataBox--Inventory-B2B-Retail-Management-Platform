@@ -426,7 +426,7 @@ async def complete_order(
             await check_low_stock(pid, shopkeeper_id, db)
 
         from datetime import datetime
-        ts = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        ts = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
         store_result = await db.execute(select(Store).where(Store.id == order.store_id))
         store = store_result.scalar_one_or_none()
         if store and order_items:
