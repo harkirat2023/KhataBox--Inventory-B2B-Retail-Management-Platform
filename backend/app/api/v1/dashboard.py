@@ -171,6 +171,6 @@ async def get_dashboard_stats(
     }
 
     if await cache_available():
-        await cache_set(cache_key, data, ttl=300)
+        await cache_set(cache_key, data, ttl=30)
 
     return data

@@ -167,7 +167,7 @@ export default function MovementsPage() {
           ))}
         </div>
       ) : (
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

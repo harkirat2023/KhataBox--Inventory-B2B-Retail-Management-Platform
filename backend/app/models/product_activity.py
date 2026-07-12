@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Enum, Float, Integer, String, Text
+from sqlalchemy import DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -26,7 +26,7 @@ class ProductActivity(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     product_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     shopkeeper_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    activity_type: Mapped[ActivityType] = mapped_column(Enum(ActivityType, values_callable=lambda x: [e.value for e in x]), nullable=False)
+    activity_type: Mapped[str] = mapped_column(String(50), nullable=False)
     previous_value: Mapped[float | None] = mapped_column(Float, nullable=True)
     new_value: Mapped[float | None] = mapped_column(Float, nullable=True)
     quantity: Mapped[int | None] = mapped_column(Integer, nullable=True)

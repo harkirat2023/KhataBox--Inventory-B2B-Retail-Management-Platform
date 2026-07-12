@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import {
   TrendingUp, TrendingDown, Minus, DollarSign, Package, AlertTriangle,
   BarChart3, ShoppingBag, ArrowUpDown, Target, Truck, Search
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { clientApi } from "@/lib/client-api"
+import { toast } from "sonner"
 import type {
   PriceAnalysisOverview, ProcurementItem, ProfitabilityItem,
 } from "@/types/price-analysis"
@@ -38,6 +39,7 @@ export default function PriceAnalysisPage() {
   const [search, setSearch] = useState("")
   const [sortBy, setSortBy] = useState("margin_desc")
   const [tab, setTab] = useState("procurement")
+  const [savingId, setSavingId] = useState<number | null>(null)
 
   useEffect(() => {
     clientApi.get<PriceAnalysisOverview>("/api/v1/price-analysis/overview")
@@ -45,6 +47,43 @@ export default function PriceAnalysisPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  const applyLocalUpdate = useCallback((id: number, field: "cost_price" | "selling_price", value: number) => {
+    setData(prev => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        procurement_analysis: prev.procurement_analysis.map(item =>
+          item.product_id === id ? { ...item, [field]: value } : item
+        ),
+        profitability: prev.profitability.map(item => {
+          if (item.product_id !== id) return item
+          const updated = { ...item, [field]: value }
+          updated.gross_profit = updated.selling_price - updated.landed_cost
+          updated.gross_margin_pct = updated.selling_price > 0 ? Math.round((updated.gross_profit / updated.selling_price) * 100) : 0
+          return updated
+        }),
+      }
+    })
+  }, [])
+
+  const handleSavePrice = useCallback(async (id: number, field: "cost_price" | "selling_price", newValue: string) => {
+    const parsed = parseFloat(newValue)
+    if (isNaN(parsed) || parsed < 0) {
+      toast.error("Invalid price value")
+      return
+    }
+    setSavingId(id)
+    try {
+      await clientApi.put(`/api/v1/products/${id}`, { [field]: parsed })
+      applyLocalUpdate(id, field, parsed)
+      toast.success(`${field === "cost_price" ? "Cost price" : "Selling price"} updated`)
+    } catch {
+      toast.error("Failed to update price")
+    } finally {
+      setSavingId(null)
+    }
+  }, [applyLocalUpdate])
 
   const filteredProcurement = useMemo(() => {
     if (!data) return []
@@ -161,7 +200,7 @@ export default function PriceAnalysisPage() {
         </TabsList>
 
         <div className="flex items-center gap-3 mt-4 flex-wrap">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 max-w-sm min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search products..."
@@ -185,7 +224,7 @@ export default function PriceAnalysisPage() {
 
         <TabsContent value="procurement" className="mt-4">
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -208,10 +247,22 @@ export default function PriceAnalysisPage() {
                   ) : (
                     filteredProcurement.map((item: ProcurementItem) => (
                       <TableRow key={item.product_id}>
-                        <TableCell className="font-medium text-foreground">{item.product_name}</TableCell>
+                        <TableCell className="font-medium text-foreground min-w-[140px]">{item.product_name}</TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">{item.sku}</TableCell>
-                        <TableCell className="text-right font-mono text-sm">₹{item.cost_price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-mono">₹{item.selling_price.toFixed(2)}</TableCell>
+                        <EditablePriceCell
+                          value={item.cost_price}
+                          productId={item.product_id}
+                          field="cost_price"
+                          onSave={handleSavePrice}
+                          saving={savingId === item.product_id}
+                        />
+                        <EditablePriceCell
+                          value={item.selling_price}
+                          productId={item.product_id}
+                          field="selling_price"
+                          onSave={handleSavePrice}
+                          saving={savingId === item.product_id}
+                        />
                         <TableCell className="text-right font-mono text-muted-foreground">
                           {item.market_price ? `₹${item.market_price.toFixed(2)}` : "—"}
                         </TableCell>
@@ -235,7 +286,7 @@ export default function PriceAnalysisPage() {
 
         <TabsContent value="profitability" className="mt-4">
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -259,10 +310,22 @@ export default function PriceAnalysisPage() {
                   ) : (
                     filteredProfitability.map((item: ProfitabilityItem) => (
                       <TableRow key={item.product_id}>
-                        <TableCell className="font-medium text-foreground">{item.product_name}</TableCell>
+                        <TableCell className="font-medium text-foreground min-w-[140px]">{item.product_name}</TableCell>
                         <TableCell className="font-mono text-sm text-muted-foreground">{item.sku}</TableCell>
-                        <TableCell className="text-right font-mono text-sm">₹{item.cost_price.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-mono">₹{item.selling_price.toFixed(2)}</TableCell>
+                        <EditablePriceCell
+                          value={item.cost_price}
+                          productId={item.product_id}
+                          field="cost_price"
+                          onSave={handleSavePrice}
+                          saving={savingId === item.product_id}
+                        />
+                        <EditablePriceCell
+                          value={item.selling_price}
+                          productId={item.product_id}
+                          field="selling_price"
+                          onSave={handleSavePrice}
+                          saving={savingId === item.product_id}
+                        />
                         <TableCell className="text-right font-mono text-sm text-muted-foreground">₹{item.landed_cost.toFixed(2)}</TableCell>
                         <TableCell className="text-right font-mono text-sm text-green-600 dark:text-green-400">
                           ₹{item.gross_profit.toFixed(2)}
@@ -321,7 +384,7 @@ export default function PriceAnalysisPage() {
         <TabsContent value="alerts" className="mt-4">
           {data && data.low_stock_alerts.length > 0 ? (
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -361,5 +424,65 @@ export default function PriceAnalysisPage() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+function EditablePriceCell({
+  value, productId, field, onSave, saving,
+}: {
+  value: number
+  productId: number
+  field: "cost_price" | "selling_price"
+  onSave: (id: number, field: "cost_price" | "selling_price", newValue: string) => void
+  saving: boolean
+}) {
+  const [editing, setEditing] = useState(false)
+  const [editValue, setEditValue] = useState(String(value))
+
+  const handleSave = useCallback(() => {
+    setEditing(false)
+    if (editValue !== String(value)) {
+      onSave(productId, field, editValue)
+    }
+  }, [editValue, value, onSave, productId, field])
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSave()
+    if (e.key === "Escape") {
+      setEditValue(String(value))
+      setEditing(false)
+    }
+  }, [handleSave, value])
+
+  if (editing) {
+    return (
+      <TableCell className="text-right">
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          value={editValue}
+          onChange={e => setEditValue(e.target.value)}
+          onBlur={handleSave}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          className="w-24 h-8 text-right text-sm font-mono"
+        />
+      </TableCell>
+    )
+  }
+
+  return (
+    <TableCell
+      className="text-right font-mono cursor-pointer hover:bg-accent/50 transition-colors rounded"
+      onClick={() => { setEditValue(String(value)); setEditing(true) }}
+      title={`Click to edit ${field === "cost_price" ? "cost price" : "selling price"}`}
+    >
+      {saving ? (
+        <span className="text-muted-foreground text-xs">saving...</span>
+      ) : (
+        <span>₹{value.toFixed(2)}</span>
+      )}
+    </TableCell>
   )
 }

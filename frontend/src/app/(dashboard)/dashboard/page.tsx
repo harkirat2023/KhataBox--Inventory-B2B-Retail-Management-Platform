@@ -354,7 +354,7 @@ export default function DashboardPage() {
                 <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
                   <div className={cn("flex items-center justify-center size-9 rounded-xl", iconStyle)}>
-                    <Icon className="size-4.5" />
+                    <Icon className="size-4" />
                   </div>
                 </CardHeader>
                 <CardContent className="px-6 pb-6 pt-0">
@@ -414,7 +414,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent transition-all duration-200 border border-transparent hover:border-border">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex items-center justify-center size-9 rounded-xl bg-muted shrink-0">
-                            <ShoppingCart className="size-4.5 text-muted-foreground" />
+                            <ShoppingCart className="size-4 text-muted-foreground" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{order.order_number}</p>
@@ -460,7 +460,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between p-3 rounded-xl hover:bg-accent transition-all duration-200 border border-transparent hover:border-border">
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex items-center justify-center size-9 rounded-xl bg-destructive/10 shrink-0">
-                            <Package className="size-4.5 text-destructive" />
+                            <Package className="size-4 text-destructive" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-foreground truncate">{product.name}</p>

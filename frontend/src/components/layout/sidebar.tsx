@@ -153,7 +153,7 @@ function NavItem({
     >
       <SidebarMenuButton isActive={active} tooltip={collapsed ? item.label : undefined} asChild href={item.href}>
         <div className={cn(
-          "flex items-center justify-center size-4.5 shrink-0 rounded-md transition-colors",
+          "flex items-center justify-center size-4 shrink-0 rounded-md transition-colors",
           active ? "text-amber-brand" : "text-muted-foreground group-hover/menu-button:text-foreground"
         )}>
           <Icon className="size-4" />

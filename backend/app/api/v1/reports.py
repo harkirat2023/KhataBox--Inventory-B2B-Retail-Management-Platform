@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from openpyxl import Workbook
@@ -38,8 +38,8 @@ async def top_customers(
             func.count(Order.id).label("order_count"),
         )
         .select_from(Customer)
-        .outerjoin(Order, Order.customer_id == Customer.id)
-        .where(Customer.owner_id == current_user.id, Order.status != OrderStatus.CANCELLED)
+        .outerjoin(Order, and_(Order.customer_id == Customer.id, Order.status != OrderStatus.CANCELLED))
+        .where(Customer.owner_id == current_user.id)
         .group_by(Customer.id)
         .order_by(func.coalesce(func.sum(Order.total), 0).desc())
         .limit(limit)
@@ -109,8 +109,8 @@ async def customer_lifetime_value(
             func.max(Order.created_at).label("last_order_date"),
         )
         .select_from(Customer)
-        .outerjoin(Order, Order.customer_id == Customer.id)
-        .where(Customer.owner_id == current_user.id, Order.status != OrderStatus.CANCELLED)
+        .outerjoin(Order, and_(Order.customer_id == Customer.id, Order.status != OrderStatus.CANCELLED))
+        .where(Customer.owner_id == current_user.id)
         .group_by(Customer.id)
         .having(func.count(Order.id) >= min_orders)
         .order_by(func.coalesce(func.sum(Order.total), 0).desc())

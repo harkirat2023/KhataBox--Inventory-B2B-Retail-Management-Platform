@@ -124,17 +124,23 @@ async def create_product(payload: ProductCreate, current_user: User = Depends(re
     db.add(product)
     await db.flush()
     await check_low_stock(product.id, current_user.id, db)
-    await log_activity(
-        db=db, product_id=product.id, shopkeeper_id=current_user.id,
-        activity_type=ActivityType.PRODUCT_CREATED,
-        reference=f"Created by {current_user.email}",
-    )
-    await create_notification(
-        db=db, user_id=current_user.id, type=NotificationType.PRODUCT_CREATED,
-        title="Product Created",
-        message=f"{product.name} ({product.sku}) — ₹{product.selling_price}",
-        reference_id=product.id,
-    )
+    try:
+        await log_activity(
+            db=db, product_id=product.id, shopkeeper_id=current_user.id,
+            activity_type=ActivityType.PRODUCT_CREATED,
+            reference=f"Created by {current_user.email}",
+        )
+    except Exception as e:
+        print(f"[products] log_activity skipped: {e}")
+    try:
+        await create_notification(
+            db=db, user_id=current_user.id, type=NotificationType.PRODUCT_CREATED,
+            title="Product Created",
+            message=f"{product.name} ({product.sku}) — ₹{product.selling_price}",
+            reference_id=product.id,
+        )
+    except Exception as e:
+        print(f"[products] create_notification skipped: {e}")
     await db.commit()
     await db.refresh(product)
     await invalidate_cache("dashboard:*")
