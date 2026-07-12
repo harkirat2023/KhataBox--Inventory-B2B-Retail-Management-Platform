@@ -9,7 +9,7 @@ class ProductCreate(BaseModel):
     category: str | None = None
     brand: str | None = None
     description: str | None = None
-    cost_price: float
+    cost_price: float = 0
     selling_price: float
     market_price: float | None = None
     vendor_price: float | None = None

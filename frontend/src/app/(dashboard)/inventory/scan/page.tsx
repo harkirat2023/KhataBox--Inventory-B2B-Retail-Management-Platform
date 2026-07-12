@@ -154,19 +154,6 @@ export default function InventoryScanPage() {
       const created = await clientApi.post<Product>("/api/v1/products/", data)
       toast.success(`Product created: ${created.name}`)
       setShowAddDialog(false)
-      // Auto-add to inventory (stock update)
-      if (data.stock_quantity > 0) {
-        try {
-          await clientApi.post("/api/v1/inventory/stock-update", {
-            product_id: created.id,
-            action: "add",
-            quantity: data.stock_quantity,
-          })
-        } catch (e) {
-          console.error("stock update failed", e)
-        }
-      }
-      // Immediately look up and show the product
       setPrefillName("")
       setPrefillBrand("")
       setPrefillCategory("")
@@ -190,7 +177,7 @@ export default function InventoryScanPage() {
   const searchLocalThenOpenFoodFacts = async (barcode: string) => {
     setBarcodeLoading(true)
     try {
-      // 1. Search local database first by SKU or name
+      // 1. Search local database first — match by SKU or barcode-like EAN
       const localProducts = await clientApi.get<Product[]>(`/api/v1/products/?search=${encodeURIComponent(barcode)}&page_size=5`)
       if (localProducts && localProducts.length > 0) {
         const found = localProducts[0]
@@ -203,7 +190,7 @@ export default function InventoryScanPage() {
           store_name: found.store_name || null,
           category: found.category || "",
         })
-        setScannedUuid(found.product_uuid)
+        setScannerPaused(false)
         await resumeScanner()
         toast.success(`Found: ${found.name}`)
         return

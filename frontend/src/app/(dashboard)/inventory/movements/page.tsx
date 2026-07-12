@@ -64,7 +64,7 @@ export default function MovementsPage() {
       const params = new URLSearchParams()
       if (storeFilter && storeFilter !== "all") params.set("store_id", storeFilter)
       const qs = params.toString()
-      const data = await clientApi.get<InventoryMovement[]>(`  /api/v1/inventory/movements${qs ? `?${qs}` : ""}`)
+      const data = await clientApi.get<InventoryMovement[]>(`/api/v1/inventory/movements${qs ? `?${qs}` : ""}`)
       setMovements(data)
     } catch (err) {
       console.error("Failed to load movements", err)

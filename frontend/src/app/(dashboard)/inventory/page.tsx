@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Plus, Search, Pencil, Trash2, Upload, QrCode, ScanLine, Loader2, Package } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +32,7 @@ import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
 export default function InventoryPage() {
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [stores, setStores] = useState<Store[]>([])
   const [search, setSearch] = useState("")
@@ -43,6 +44,7 @@ export default function InventoryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importing, setImporting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [savingThreshold, setSavingThreshold] = useState<number | null>(null)
 
   const loadProducts = useCallback(async () => {
     setLoading(true)
@@ -51,7 +53,7 @@ export default function InventoryPage() {
       const data = await clientApi.get<Product[]>(`/api/v1/products/${params}`)
       setProducts(data)
     } catch (err) {
-      console.error("Failed to load products", err)
+      toast.error("Failed to load products")
     } finally {
       setLoading(false)
     }
@@ -68,6 +70,7 @@ export default function InventoryPage() {
     if (searchParams.get("add") === "true") {
       setEditingProduct(null)
       setDialogOpen(true)
+      window.history.replaceState(null, "", window.location.pathname)
     }
   }, [searchParams])
 
@@ -130,10 +133,12 @@ export default function InventoryPage() {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
         const rowNum = i + 2
-        if (row.length !== headers.length) { failed++; toast.error(`Row ${rowNum}: column count mismatch`); continue }
+        if (row.length !== headers.length) { failed++; continue }
         const entry = Object.fromEntries(headers.map((h, j) => [h, row[j]]))
+        const name = entry.name || entry.Name || entry["Product Name"] || ""
+        if (!name) { failed++; continue }
         const payload: ProductFormData = {
-          name: entry.name || entry.Name || entry["Product Name"] || "",
+          name,
           sku: entry.sku || entry.SKU || "",
           category: entry.category || entry.Category || null,
           brand: entry.brand || entry.Brand || "",
@@ -144,9 +149,7 @@ export default function InventoryPage() {
           reorder_threshold: parseInt(entry.reorder_threshold || entry["Reorder Threshold"] || entry.reorderThreshold || "10", 10) || 10,
           store_id: storeFilter && storeFilter !== "all" ? parseInt(storeFilter) : null,
         }
-        if (!payload.name) { failed++; toast.error(`Row ${rowNum}: name is required`); continue }
-        if (!payload.cost_price || payload.cost_price <= 0) { failed++; toast.error(`Row ${rowNum}: cost price is required and must be > 0`); continue }
-        if (!payload.selling_price || payload.selling_price <= 0) { failed++; toast.error(`Row ${rowNum}: selling price is required and must be > 0`); continue }
+        if (!payload.selling_price || payload.selling_price <= 0) { failed++; continue }
         if (!payload.sku) payload.sku = payload.name.toLowerCase().replace(/[^a-z0-9]/g, "-").slice(0, 50) + "-" + Date.now().toString(36) + i.toString(36)
         try {
           await clientApi.post("/api/v1/products/", payload)
@@ -156,8 +159,8 @@ export default function InventoryPage() {
       if (success > 0) toast.success(`Imported ${success} product${success > 1 ? "s" : ""} successfully`)
       if (failed > 0) toast.error(`${failed} row${failed > 1 ? "s" : ""} failed`)
       await loadProducts()
-    } catch (err) {
-      toast.error("Failed to read CSV file")
+    } catch {
+      toast.error("Failed to read file")
     } finally {
       setImporting(false)
       if (fileInputRef.current) fileInputRef.current.value = ""
@@ -196,6 +199,25 @@ export default function InventoryPage() {
     }
   }
 
+  const handleThresholdChange = async (productId: number, newThreshold: number) => {
+    if (newThreshold < 0) return
+    setSavingThreshold(productId)
+    try {
+      await clientApi.put(`/api/v1/products/${productId}`, { reorder_threshold: newThreshold })
+      await loadProducts()
+    } catch {
+      toast.error("Failed to update threshold")
+    } finally {
+      setSavingThreshold(null)
+    }
+  }
+
+  const stockStatus = (p: Product) => {
+    if (p.stock_quantity === 0) return { label: "Out of Stock", variant: "destructive" as const }
+    if (p.stock_quantity <= p.reorder_threshold) return { label: "Low Stock", variant: "outline" as const }
+    return { label: "In Stock", variant: "secondary" as const }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -205,8 +227,11 @@ export default function InventoryPage() {
           <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
             <Upload className="size-4 mr-2" /> {importing ? "Importing..." : "Import"}
           </Button>
+          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => router.push("/inventory/scan")}>
+            <ScanLine className="size-4 mr-2" /> Scan
+          </Button>
           <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setScanDialogOpen(true)}>
-            <ScanLine className="size-4 mr-2" /> Scan QR
+            <QrCode className="size-4 mr-2" /> Scan QR
           </Button>
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
             <Plus className="size-4 mr-2" /> Add Product
@@ -264,9 +289,9 @@ export default function InventoryPage() {
             <TableRow>
               <TableHead>Product</TableHead>
               <TableHead>SKU</TableHead>
-              <TableHead>Category</TableHead>
               <TableHead>Store</TableHead>
               <TableHead>Stock</TableHead>
+              <TableHead>Threshold</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[120px]">Actions</TableHead>
@@ -297,59 +322,87 @@ export default function InventoryPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{product.store_name || "—"}</TableCell>
-                <TableCell>
-                  <span className={product.stock_quantity <= product.reorder_threshold ? "text-destructive font-medium" : ""}>
-                    {product.stock_quantity}
-                  </span>
-                </TableCell>
-                <TableCell>₹{product.selling_price.toFixed(2)}</TableCell>
-                <TableCell>
-                  {product.stock_quantity === 0 ? (
-                    <Badge variant="destructive">Out of Stock</Badge>
-                  ) : product.stock_quantity <= product.reorder_threshold ? (
-                    <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Low Stock</Badge>
-                  ) : (
-                    <Badge variant="secondary">In Stock</Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
-                      onClick={() => { setQrProduct(product) }}
-                      title="QR Identity"
-                    >
-                      <QrCode className="size-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
-                      onClick={() => { setEditingProduct(product); setDialogOpen(true) }}
-                    >
-                      <Pencil className="size-3.5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
+              filtered.map((product) => {
+                const status = stockStatus(product)
+                return (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{product.sku}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{product.store_name || "—"}</TableCell>
+                  <TableCell>
+                    <span className={product.stock_quantity <= product.reorder_threshold ? "text-destructive font-medium" : ""}>
+                      {product.stock_quantity}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 max-w-[100px]">
+                      <Input
+                        type="number"
+                        min="0"
+                        className="h-8 w-16 text-xs rounded-lg"
+                        defaultValue={product.reorder_threshold}
+                        onBlur={(e) => {
+                          const val = parseInt(e.target.value)
+                          if (!isNaN(val) && val >= 0 && val !== product.reorder_threshold) {
+                            handleThresholdChange(product.id, val)
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            const input = e.currentTarget
+                            const val = parseInt(input.value)
+                            if (!isNaN(val) && val >= 0 && val !== product.reorder_threshold) {
+                              handleThresholdChange(product.id, val)
+                            }
+                            input.blur()
+                          }
+                        }}
+                      />
+                      {savingThreshold === product.id && <Loader2 className="size-3 animate-spin text-muted-foreground" />}
+                    </div>
+                  </TableCell>
+                  <TableCell>₹{product.selling_price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {status.variant === "destructive" ? (
+                      <Badge variant="destructive">{status.label}</Badge>
+                    ) : status.variant === "outline" ? (
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">{status.label}</Badge>
+                    ) : (
+                      <Badge variant="secondary">{status.label}</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
+                        onClick={() => { setQrProduct(product) }}
+                        title="QR Identity"
+                      >
+                        <QrCode className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground/80"
+                        onClick={() => { setEditingProduct(product); setDialogOpen(true) }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-lg text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => handleDelete(product.id)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )})
+            )}
           </TableBody>
         </Table>
       </div>

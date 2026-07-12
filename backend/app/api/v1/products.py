@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_role
 from app.models.notification import NotificationType
 from app.models.price_history import PriceHistory
+from app.models.inventory import InventoryMovement, MovementType
 from app.models.product import Product
 from app.models.product_activity import ActivityType
 from app.models.store import Store
@@ -169,6 +170,10 @@ async def update_product(product_id: int, payload: ProductUpdate, current_user: 
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found")
     updated = payload.model_dump(exclude_unset=True)
+
+    # Track stock change before overwriting
+    old_stock = product.stock_quantity
+
     # Track price changes before applying
     for field in ("cost_price", "selling_price"):
         if field in updated and updated[field] != getattr(product, field):
@@ -189,6 +194,14 @@ async def update_product(product_id: int, payload: ProductUpdate, current_user: 
         setattr(product, key, value)
     await db.flush()
     if "stock_quantity" in updated:
+        diff = product.stock_quantity - old_stock
+        db.add(InventoryMovement(
+            product_id=product.id, shopkeeper_id=current_user.id,
+            store_id=product.store_id,
+            movement_type=MovementType.ADJUSTMENT,
+            quantity=diff,
+            reference=f"Manual stock edit: {old_stock} → {product.stock_quantity}",
+        ))
         await log_activity(
             db=db, product_id=product.id, shopkeeper_id=current_user.id,
             activity_type=ActivityType.STOCK_UPDATE,
