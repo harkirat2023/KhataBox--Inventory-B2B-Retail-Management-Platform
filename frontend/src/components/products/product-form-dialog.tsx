@@ -21,6 +21,7 @@ import {
 import { Product, ProductFormData } from "@/types/product"
 import { Store } from "@/types/store"
 import { clientApi } from "@/lib/client-api"
+import { toast } from "sonner"
 
 interface Props {
   open: boolean
@@ -104,14 +105,14 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product, prefi
     try {
       const data = { ...form }
 
-      // Required fields (Shopkeeper Inventory)
-      if (!data.name?.trim()) return
-      if (!data.cost_price || data.cost_price <= 0) return
-      if (!data.selling_price || data.selling_price <= 0) return
-      if (!Number.isInteger(data.stock_quantity) || data.stock_quantity < 0) return
-
-      // Store is mandatory: disallow shared/no-store products.
-      if (!data.store_id) return
+      if (!data.name?.trim()) { toast.error("Product name is required"); return }
+      if (data.cost_price < 0) { toast.error("Cost price cannot be negative"); return }
+      if (data.cost_price > 0 && data.selling_price > 0 && data.cost_price > data.selling_price) {
+        toast.warning("Cost price is higher than selling price")
+      }
+      if (!data.selling_price || data.selling_price <= 0) { toast.error("Selling price is required"); return }
+      if (!Number.isInteger(data.stock_quantity) || data.stock_quantity < 0) { toast.error("Stock must be a non-negative integer"); return }
+      if (!data.store_id) { toast.error("Store is required"); return }
 
       if (!data.reorder_threshold || data.reorder_threshold <= 0) {
         data.reorder_threshold = 10
@@ -155,19 +156,19 @@ export function ProductFormDialog({ open, onOpenChange, onSubmit, product, prefi
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Cost Price</label>
-              <Input type="number" step="0.01" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: parseFloat(e.target.value) })} required />
+              <Input type="number" step="0.01" value={form.cost_price} onChange={(e) => setForm({ ...form, cost_price: e.target.value === "" ? 0 : parseFloat(e.target.value) || 0 })} />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Selling Price</label>
-              <Input type="number" step="0.01" value={form.selling_price} onChange={(e) => setForm({ ...form, selling_price: parseFloat(e.target.value) })} required />
+              <Input type="number" step="0.01" value={form.selling_price} onChange={(e) => setForm({ ...form, selling_price: e.target.value === "" ? 0 : parseFloat(e.target.value) || 0 })} required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Stock Quantity</label>
-              <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: parseInt(e.target.value) })} required />
+              <Input type="number" value={form.stock_quantity} onChange={(e) => setForm({ ...form, stock_quantity: e.target.value === "" ? 0 : parseInt(e.target.value) || 0 })} required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Reorder Threshold</label>
-              <Input type="number" value={form.reorder_threshold} onChange={(e) => setForm({ ...form, reorder_threshold: parseInt(e.target.value) })} />
+              <Input type="number" value={form.reorder_threshold} onChange={(e) => setForm({ ...form, reorder_threshold: e.target.value === "" ? 10 : parseInt(e.target.value) || 10 })} />
             </div>
             <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium">Store *</label>

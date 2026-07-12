@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import React, { useEffect, useRef, useState, useCallback } from "react"
 import { Camera, CameraOff, Search, Package, QrCode, Barcode, Plus, Minus, Equal, Loader2, X, ShoppingCart, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -319,7 +319,7 @@ export default function InventoryScanPage() {
     toast.success("Local inventory cleared")
   }
 
-  const actionConfig: Record<ActionType, { icon: any; label: string }> = {
+  const actionConfig: Record<ActionType, { icon: React.ElementType; label: string }> = {
     add: { icon: Plus, label: "Add Stock" },
     remove: { icon: Minus, label: "Remove Stock" },
     adjust: { icon: Equal, label: "Set Stock" },
