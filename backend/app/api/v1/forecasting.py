@@ -218,7 +218,7 @@ async def get_sales_history(
 
         monthly_rows = await db.execute(
             select(
-                func.date_trunc(text("month"), Order.created_at).label("month"),
+                func.date_trunc(text("'month'"), Order.created_at).label("month"),
                 func.coalesce(func.sum(OrderItem.quantity), 0).label("qty"),
             )
             .join(Order, OrderItem.order_id == Order.id)
@@ -228,8 +228,8 @@ async def get_sales_history(
                 Order.status == OrderStatus.COMPLETED,
                 Order.created_at >= twelve_months_ago,
             )
-            .group_by(func.date_trunc(text("month"), Order.created_at))
-            .order_by(func.date_trunc(text("month"), Order.created_at))
+            .group_by(func.date_trunc(text("'month'"), Order.created_at))
+            .order_by(func.date_trunc(text("'month'"), Order.created_at))
         )
         monthly = monthly_rows.all()
         monthly_values = [float(m.qty) for m in monthly]

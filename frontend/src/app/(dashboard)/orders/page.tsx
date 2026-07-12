@@ -672,23 +672,18 @@ export default function OrdersPage() {
                             })}
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger className="flex items-center justify-center size-7 rounded-md hover:bg-muted outline-none" onClick={(e) => e.stopPropagation()}>
-                                <MoreHorizontal className="size-3.5 text-muted-foreground" />
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40">
-                                <DropdownMenuItem onSelect={() => handleOpenRevision(order)}>
-                                  <Pencil className="size-3.5 mr-2" />Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onSelect={() => handleStatusOpenDialog(order, "rejected")}
-                                  className="text-destructive focus:text-destructive"
-                                >
-                                  <XCircle className="size-3.5 mr-2" />Reject
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleOpenRevision(order)
+                              }}
+                              className="h-8 px-2.5 rounded-lg gap-1 text-xs"
+                            >
+                              <Pencil className="size-3.5" />
+                              Edit
+                            </Button>
                           </TableCell>
                         </TableRow>
                         {expandedId === order.id && order.items && order.items.length > 0 && (

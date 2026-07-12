@@ -1,8 +1,8 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -29,6 +29,17 @@ async def get_dashboard_stats(
         if cached:
             return cached
 
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    month_start = today_start.replace(day=1)
+    year_start = month_start.replace(month=1)
+    twelve_months_ago = now - timedelta(days=365)
+
+    base_where = [
+        Order.shopkeeper_id == current_user.id,
+        Order.status == OrderStatus.COMPLETED,
+    ]
+
     async def count_products():
         q = select(func.count(Product.id)).where(Product.owner_id == current_user.id, Product.is_active == True)
         if store_id:
@@ -44,8 +55,7 @@ async def get_dashboard_stats(
         return round(r.scalar() or 0, 2)
 
     async def today_sales():
-        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        q = select(func.count(Order.id), func.coalesce(func.sum(Order.total), 0)).where(Order.shopkeeper_id == current_user.id, Order.created_at >= today_start)
+        q = select(func.count(Order.id), func.coalesce(func.sum(Order.total), 0)).where(*base_where, Order.created_at >= today_start)
         r = await db.execute(q)
         c, a = r.one()
         return c, round(a or 0, 2)
@@ -62,7 +72,49 @@ async def get_dashboard_stats(
         r = await db.execute(q)
         return r.scalar() or 0
 
-    results = await asyncio.gather(count_products(), inventory_value(), today_sales(), pending_count(), low_stock_count())
+    async def out_of_stock_count():
+        q = select(func.count(Product.id)).where(Product.owner_id == current_user.id, Product.is_active == True, Product.stock_quantity == 0)
+        if store_id:
+            q = q.where(Product.store_id == store_id)
+        r = await db.execute(q)
+        return r.scalar() or 0
+
+    async def this_month_sales():
+        q = select(func.count(Order.id), func.coalesce(func.sum(Order.total), 0)).where(*base_where, Order.created_at >= month_start)
+        r = await db.execute(q)
+        c, a = r.one()
+        return c, round(a or 0, 2)
+
+    async def this_year_sales():
+        q = select(func.count(Order.id), func.coalesce(func.sum(Order.total), 0)).where(*base_where, Order.created_at >= year_start)
+        r = await db.execute(q)
+        c, a = r.one()
+        return c, round(a or 0, 2)
+
+    async def sales_chart():
+        rows = await db.execute(
+            select(
+                func.date_trunc(text("'month'"), Order.created_at).label("month"),
+                func.coalesce(func.sum(Order.total), 0).label("revenue"),
+                func.count(Order.id).label("orders"),
+            )
+            .where(*base_where, Order.created_at >= twelve_months_ago)
+            .group_by(func.date_trunc(text("'month'"), Order.created_at))
+            .order_by(func.date_trunc(text("'month'"), Order.created_at))
+        )
+        return [
+            {"month": str(r.month.strftime("%Y-%m")), "revenue": round(float(r.revenue), 2), "orders": int(r.orders)}
+            for r in rows
+        ]
+
+    results = await asyncio.gather(
+        count_products(), inventory_value(), today_sales(), pending_count(),
+        low_stock_count(), out_of_stock_count(), this_month_sales(),
+        this_year_sales(), sales_chart(),
+    )
+
+    month_counts, month_revenue = results[6]
+    year_counts, year_revenue = results[7]
 
     data = {
         "total_products": results[0],
@@ -71,6 +123,14 @@ async def get_dashboard_stats(
         "today_sales_amount": results[2][1],
         "pending_orders_count": results[3],
         "low_stock_count": results[4],
+        "out_of_stock_count": results[5],
+        "total_revenue_today": results[2][1],
+        "total_revenue_this_month": month_revenue,
+        "total_revenue_this_year": year_revenue,
+        "total_orders_today": results[2][0],
+        "total_orders_this_month": month_counts,
+        "total_orders_this_year": year_counts,
+        "sales_chart": results[8],
     }
 
     if await cache_available():
