@@ -158,6 +158,7 @@ export default function DashboardPage() {
       return clientApi.get<DashboardStats>(`/api/v1/dashboard/stats${params}`)
     },
     refetchInterval: 30_000,
+    placeholderData: (previousData) => previousData,
   })
 
   const { data: ordersData } = useQuery({
@@ -269,8 +270,8 @@ export default function DashboardPage() {
         )}
       </motion.div>
 
-      {/* Onboarding — first-time setup */}
-      {!statsLoading && stats && stats.total_products === 0 && (
+      {/* Onboarding — first-time setup: visible until store has products */}
+      {stats && stats.total_products === 0 && (
         <motion.div variants={itemVariants} className="rounded-2xl border border-primary/30 bg-primary/5 p-5 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-foreground">Welcome! Your inventory is empty</p>
