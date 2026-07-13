@@ -35,13 +35,13 @@ function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount)
 }
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; icon: LucideIcon }> = {
-  pending: { label: "B2C-Pending", color: "text-amber-600", bg: "bg-amber-50", icon: Clock },
-  confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
-  completed: { label: "Completed", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
-  received: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
-  cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
-  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
+const statusConfig: Record<string, { label: string; color: string; bg: string; badge: string; icon: LucideIcon }> = {
+  pending: { label: "B2C-Pending", color: "text-amber-600", bg: "bg-amber-50", badge: "bg-amber-600 text-white dark:bg-amber-500 dark:text-white", icon: Clock },
+  confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50", badge: "bg-blue-600 text-white dark:bg-blue-500 dark:text-white", icon: Clock },
+  completed: { label: "Completed", color: "text-green-600", bg: "bg-green-50", badge: "bg-green-600 text-white dark:bg-green-500 dark:text-white", icon: CheckCircle2 },
+  received: { label: "Received", color: "text-green-600", bg: "bg-green-50", badge: "bg-green-600 text-white dark:bg-green-500 dark:text-white", icon: CheckCircle2 },
+  cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", badge: "bg-red-600 text-white dark:bg-red-500 dark:text-white", icon: XCircle },
+  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50", badge: "bg-red-600 text-white dark:bg-red-500 dark:text-white", icon: XCircle },
 }
 
 function OrdersContent() {
@@ -211,7 +211,7 @@ function OrdersContent() {
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{formatDate(order.created_at)}</p>
                       <div className="flex items-center justify-between mt-2">
-                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${s.bg} ${s.color}`}>{s.label}</span>
+                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${s.badge}`}>{s.label}</span>
                         <span className="font-bold text-sm text-foreground">{formatCurrency(order.total)}</span>
                       </div>
                       {order.items && order.items.length > 0 && (

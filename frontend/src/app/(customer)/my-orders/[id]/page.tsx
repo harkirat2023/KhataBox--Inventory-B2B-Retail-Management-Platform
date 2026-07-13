@@ -65,16 +65,16 @@ const statusSteps = [
   { key: "completed", label: "Received", description: "Order fulfilled and completed" },
 ]
 
-const statusConfig: Record<string, { label: string; color: string; bg: string; icon: LucideIcon }> = {
-  pending: { label: "Pending", color: "text-orange-600", bg: "bg-orange-50", icon: Clock },
-  confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
-  online: { label: "Online", color: "text-blue-600", bg: "bg-blue-50", icon: Clock },
-  counter: { label: "In-Store", color: "text-purple-600", bg: "bg-purple-50", icon: Package },
-  ready: { label: "Ready", color: "text-purple-600", bg: "bg-purple-50", icon: Package },
-  completed: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
-  received: { label: "Received", color: "text-green-600", bg: "bg-green-50", icon: CheckCircle2 },
-  cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
-  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50", icon: XCircle },
+const statusConfig: Record<string, { label: string; color: string; bg: string; badge: string; icon: LucideIcon }> = {
+  pending: { label: "Pending", color: "text-orange-600", bg: "bg-orange-50", badge: "bg-orange-600 text-white dark:bg-orange-500 dark:text-white", icon: Clock },
+  confirmed: { label: "Confirmed", color: "text-blue-600", bg: "bg-blue-50", badge: "bg-blue-600 text-white dark:bg-blue-500 dark:text-white", icon: Clock },
+  online: { label: "Online", color: "text-blue-600", bg: "bg-blue-50", badge: "bg-blue-600 text-white dark:bg-blue-500 dark:text-white", icon: Clock },
+  counter: { label: "In-Store", color: "text-purple-600", bg: "bg-purple-50", badge: "bg-purple-600 text-white dark:bg-purple-500 dark:text-white", icon: Package },
+  ready: { label: "Ready", color: "text-purple-600", bg: "bg-purple-50", badge: "bg-purple-600 text-white dark:bg-purple-500 dark:text-white", icon: Package },
+  completed: { label: "Received", color: "text-green-600", bg: "bg-green-50", badge: "bg-green-600 text-white dark:bg-green-500 dark:text-white", icon: CheckCircle2 },
+  received: { label: "Received", color: "text-green-600", bg: "bg-green-50", badge: "bg-green-600 text-white dark:bg-green-500 dark:text-white", icon: CheckCircle2 },
+  cancelled: { label: "Cancelled", color: "text-red-600", bg: "bg-red-50", badge: "bg-red-600 text-white dark:bg-red-500 dark:text-white", icon: XCircle },
+  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50", badge: "bg-red-600 text-white dark:bg-red-500 dark:text-white", icon: XCircle },
 }
 
 const paymentLabels: Record<string, { icon: LucideIcon; label: string }> = {
@@ -198,7 +198,7 @@ function OrderDetailContent() {
               <p className="text-xs text-muted-foreground">Order Number</p>
               <p className="text-lg font-mono font-bold mt-0.5">{order.order_number}</p>
             </div>
-            <div className={`px-3 py-1.5 rounded-full ${statusCfg.bg} ${statusCfg.color} text-xs font-semibold flex items-center gap-1`}>
+            <div className={`px-3 py-1.5 rounded-full ${statusCfg.badge} text-xs font-semibold flex items-center gap-1`}>
               <StatusIcon className="size-3.5" />
               {statusCfg.label}
             </div>

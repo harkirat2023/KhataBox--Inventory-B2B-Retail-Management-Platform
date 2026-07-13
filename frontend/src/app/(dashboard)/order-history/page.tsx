@@ -538,13 +538,13 @@ export default function OrderHistoryPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted">
-              <TableHead className="w-[40px] text-muted-foreground font-medium"></TableHead>
-              <TableHead className="text-muted-foreground font-medium">Order #</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Customer</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Items</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Total</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Status</TableHead>
-              <TableHead className="text-muted-foreground font-medium">Date</TableHead>
+              <TableHead className="w-[40px]"></TableHead>
+              <TableHead>Order #</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

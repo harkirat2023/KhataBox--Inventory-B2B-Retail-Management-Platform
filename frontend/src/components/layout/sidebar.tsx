@@ -153,15 +153,15 @@ function NavItem({
     >
       <SidebarMenuButton isActive={active} tooltip={collapsed ? item.label : undefined} asChild href={item.href}>
         <div className={cn(
-          "flex items-center justify-center size-4 shrink-0 rounded-md transition-colors",
-          active ? "text-amber-brand" : "text-muted-foreground group-hover/menu-button:text-foreground"
+          "flex items-center justify-center size-4 shrink-0 rounded-md transition-all duration-200",
+          active ? "text-amber-brand" : "text-muted-foreground/70 group-hover/menu-button:text-foreground"
         )}>
           <Icon className="size-4" />
         </div>
         <span className={cn(
-          "transition-colors sidebar-text-label",
+          "transition-all duration-200 sidebar-text-label tracking-tight",
           collapsed && "hidden",
-          active ? "text-amber-brand font-semibold" : "text-muted-foreground group-hover/menu-button:text-foreground"
+          active ? "text-amber-brand font-bold" : "text-muted-foreground/80 group-hover/menu-button:text-foreground dark:text-zinc-400 dark:group-hover/menu-button:text-zinc-200"
         )}>{item.label}</span>
       </SidebarMenuButton>
     </motion.div>
@@ -228,7 +228,7 @@ export function AppSidebar() {
                 <div className="flex items-center justify-center size-9 rounded-xl bg-amber-brand/10 shrink-0">
                   <Boxes className="size-5 text-amber-brand" />
                 </div>
-                <span className={cn("font-semibold text-lg tracking-tight text-foreground sidebar-text-label", collapsed && "hidden")}>KhataBox</span>
+                <span className={cn("font-bold text-lg tracking-tight text-foreground dark:text-white sidebar-text-label", collapsed && "hidden")}>KhataBox</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -237,7 +237,7 @@ export function AppSidebar() {
         {role && ["admin", "shopkeeper"].includes(role) && !collapsed && (
           <div className="mt-2 space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider sidebar-text-label">Store</span>
+              <span className="text-[11px] font-bold text-muted-foreground/80 dark:text-zinc-400 uppercase tracking-wider sidebar-text-label">Store</span>
               {activeStore.id && (
                 <button
                   onClick={() => {
@@ -280,7 +280,7 @@ export function AppSidebar() {
         {filteredGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
-              <SidebarGroupLabel className="px-2 py-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-widest sidebar-text-label">
+              <SidebarGroupLabel className="px-2 py-1.5 text-[11px] font-bold text-muted-foreground/80 dark:text-zinc-400 uppercase tracking-widest sidebar-text-label">
                 {group.label}
               </SidebarGroupLabel>
             )}
@@ -303,7 +303,7 @@ export function AppSidebar() {
       <SidebarFooter className={cn("p-4 pt-2 border-t border-sidebar-border", collapsed && "px-0 py-3")}>
         {!isMobile && (
           <div className={cn("flex", collapsed ? "justify-center" : "justify-between items-center")}>
-            <span className={cn("text-[11px] text-muted-foreground/50 text-center font-mono sidebar-text-label", collapsed && "hidden")}>KhataBox v1.0</span>
+            <span className={cn("text-[11px] text-muted-foreground/60 dark:text-zinc-500 text-center font-mono sidebar-text-label", collapsed && "hidden")}>KhataBox v1.0</span>
             <Tooltip>
               <TooltipTrigger>
                 <Button

@@ -165,14 +165,14 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm ">
           View and analyze your business performance.
         </p>
       </div>
 
       <div className="flex items-center gap-2">
         {activeStore?.id && (
-          <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full w-fit">
+          <div className="flex items-center gap-1 text-xs  bg-muted px-3 py-1.5 rounded-full w-fit">
             <Store className="size-3" />
             {activeStore.name}
           </div>
@@ -206,10 +206,10 @@ export default function ReportsPage() {
 
       <Tabs defaultValue="sales">
         <TabsList className="rounded-xl bg-muted p-1">
-          <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Sales</TabsTrigger>
-          <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Inventory</TabsTrigger>
-          <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Products</TabsTrigger>
-          <TabsTrigger value="customers" onClick={loadCustomerReports} className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Customers</TabsTrigger>
+          <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground ">Sales</TabsTrigger>
+          <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground ">Inventory</TabsTrigger>
+          <TabsTrigger value="products" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground ">Products</TabsTrigger>
+          <TabsTrigger value="customers" onClick={loadCustomerReports} className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground ">Customers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="sales" className="space-y-6 pt-4">
@@ -235,7 +235,7 @@ export default function ReportsPage() {
                     <Card key={item.label} className="bg-card rounded-2xl border border-border shadow-sm p-5">
                       <CardHeader className="flex flex-row items-center justify-between p-0 pb-3">
                         <CardTitle className="text-sm font-medium text-foreground/80">{item.label}</CardTitle>
-                        <Icon className="size-4 text-muted-foreground" />
+                        <Icon className="size-4 " />
                       </CardHeader>
                       <CardContent className="p-0">
                         <div className="text-2xl font-bold text-foreground">{item.value}</div>
@@ -252,7 +252,7 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent className="p-0">
                   {salesChartData.length === 0 ? (
-                    <div className="text-center py-16 text-sm text-muted-foreground">No revenue data available yet</div>
+                    <div className="text-center py-16 text-sm ">No revenue data available yet</div>
                   ) : (
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height={300} minWidth={300}>
@@ -260,11 +260,11 @@ export default function ReportsPage() {
                           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                           <XAxis
                             dataKey="month"
-                            className="text-xs text-muted-foreground"
+                            className="text-xs "
                             tick={{ fontSize: 12 }}
                           />
                           <YAxis
-                            className="text-xs text-muted-foreground"
+                            className="text-xs "
                             tick={{ fontSize: 12 }}
                           />
                           <Tooltip
@@ -294,7 +294,7 @@ export default function ReportsPage() {
               {loading ? (
                 <Skeleton className="h-[300px]" />
               ) : inventoryChartData.length === 0 ? (
-                <div className="text-center py-16 text-sm text-muted-foreground">No inventory data available</div>
+                <div className="text-center py-16 text-sm ">No inventory data available</div>
               ) : (
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height={300} minWidth={300}>
@@ -338,17 +338,17 @@ export default function ReportsPage() {
               {loading ? (
                 <Skeleton className="h-[300px]" />
               ) : productsChartData.length === 0 ? (
-                <div className="text-center py-16 text-sm text-muted-foreground">No product data available</div>
+                <div className="text-center py-16 text-sm ">No product data available</div>
               ) : (
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height={300} minWidth={300}>
                     <BarChart data={productsChartData} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis type="number" className="text-xs text-muted-foreground" tick={{ fontSize: 12 }} />
+                      <XAxis type="number" className="text-xs " tick={{ fontSize: 12 }} />
                       <YAxis
                         dataKey="category"
                         type="category"
-                        className="text-xs text-muted-foreground"
+                        className="text-xs "
                         tick={{ fontSize: 12 }}
                       />
                       <Tooltip
@@ -394,19 +394,19 @@ export default function ReportsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-muted-foreground">Company</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Orders</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Total</TableHead>
+                      <TableHead className="">Company</TableHead>
+                      <TableHead className="text-right ">Orders</TableHead>
+                      <TableHead className="text-right ">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {topCustomers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data available</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center  py-8">No data available</TableCell></TableRow>
                     ) : (
                       topCustomers.map((c) => (
                         <TableRow key={c.id}>
                           <TableCell className="text-sm text-foreground/80">{c.company_name}</TableCell>
-                          <TableCell className="text-right text-sm text-muted-foreground">{c.order_count}</TableCell>
+                          <TableCell className="text-right text-sm ">{c.order_count}</TableCell>
                           <TableCell className="text-right font-medium text-foreground">₹{(c.total_spent).toFixed(2)}</TableCell>
                         </TableRow>
                       ))
@@ -424,19 +424,19 @@ export default function ReportsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-muted-foreground">Company</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Orders</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Total</TableHead>
+                      <TableHead className="">Company</TableHead>
+                      <TableHead className="text-right ">Orders</TableHead>
+                      <TableHead className="text-right ">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {repeatCustomers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data available</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center  py-8">No data available</TableCell></TableRow>
                     ) : (
                       repeatCustomers.map((c) => (
                         <TableRow key={c.id}>
                           <TableCell className="text-sm text-foreground/80">{c.company_name}</TableCell>
-                          <TableCell className="text-right text-sm text-muted-foreground">{c.order_count}</TableCell>
+                          <TableCell className="text-right text-sm ">{c.order_count}</TableCell>
                           <TableCell className="text-right font-medium text-foreground">₹{(c.total_spent).toFixed(2)}</TableCell>
                         </TableRow>
                       ))
@@ -454,20 +454,20 @@ export default function ReportsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-muted-foreground">Company</TableHead>
-                      <TableHead className="text-right text-muted-foreground">CLV</TableHead>
-                      <TableHead className="text-right text-muted-foreground">Avg Order</TableHead>
+                      <TableHead className="">Company</TableHead>
+                      <TableHead className="text-right ">CLV</TableHead>
+                      <TableHead className="text-right ">Avg Order</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {clvCustomers.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-8">No data available</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="text-center  py-8">No data available</TableCell></TableRow>
                     ) : (
                       clvCustomers.slice(0, 10).map((c) => (
                         <TableRow key={c.id}>
                           <TableCell className="text-sm text-foreground/80">{c.company_name}</TableCell>
                           <TableCell className="text-right font-medium text-foreground">₹{(c.lifetime_value).toFixed(2)}</TableCell>
-                          <TableCell className="text-right text-sm text-muted-foreground">₹{c.avg_order_value.toFixed(2)}</TableCell>
+                          <TableCell className="text-right text-sm ">₹{c.avg_order_value.toFixed(2)}</TableCell>
                         </TableRow>
                       ))
                     )}

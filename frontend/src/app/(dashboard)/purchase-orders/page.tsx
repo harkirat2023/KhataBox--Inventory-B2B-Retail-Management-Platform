@@ -66,10 +66,10 @@ const statusConfig: Record<POStatus, { label: string }> = {
 }
 
 const statusStyles: Record<POStatus, string> = {
-  draft: "bg-muted text-foreground/80 border-border",
-  sent: "bg-blue-50 text-blue-700 border-blue-200",
-  received: "bg-green-50 text-green-700 border-green-200",
-  cancelled: "bg-red-50 text-red-700 border-red-200",
+  draft: "bg-slate-600 text-white dark:bg-slate-500 dark:text-white",
+  sent: "bg-blue-600 text-white dark:bg-blue-500 dark:text-white",
+  received: "bg-green-600 text-white dark:bg-green-500 dark:text-white",
+  cancelled: "bg-red-600 text-white dark:bg-red-500 dark:text-white",
 }
 
 const statusOptions: POStatus[] = ["draft", "sent", "received", "cancelled"]

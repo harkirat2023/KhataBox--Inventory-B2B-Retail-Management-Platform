@@ -180,13 +180,13 @@ export default function PriceAnalysisPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-muted-foreground">Product</TableHead>
-                  <TableHead className="text-muted-foreground">SKU</TableHead>
-                  <TableHead className="text-muted-foreground">Supplier</TableHead>
-                  <TableHead className="text-right text-muted-foreground">Cost Price</TableHead>
-                  <TableHead className="text-right text-muted-foreground">Selling Price</TableHead>
-                  <TableHead className="text-right text-muted-foreground">Margin</TableHead>
-                  <TableHead className="text-right text-muted-foreground">Savings</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead className="text-right">Cost Price</TableHead>
+                  <TableHead className="text-right">Selling Price</TableHead>
+                  <TableHead className="text-right">Margin</TableHead>
+                  <TableHead className="text-right">Savings</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

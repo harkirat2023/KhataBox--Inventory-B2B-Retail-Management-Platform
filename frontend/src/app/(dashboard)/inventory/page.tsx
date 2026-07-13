@@ -364,11 +364,11 @@ export default function InventoryPage() {
                   <TableCell>₹{product.selling_price.toFixed(2)}</TableCell>
                   <TableCell>
                     {status.variant === "destructive" ? (
-                      <Badge variant="destructive">{status.label}</Badge>
+                      <Badge className="bg-red-600 text-white dark:bg-red-500 dark:text-white">{status.label}</Badge>
                     ) : status.variant === "outline" ? (
-                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">{status.label}</Badge>
+                      <Badge className="bg-amber-600 text-white dark:bg-amber-500 dark:text-white">{status.label}</Badge>
                     ) : (
-                      <Badge variant="secondary">{status.label}</Badge>
+                      <Badge className="bg-green-600 text-white dark:bg-green-500 dark:text-white">{status.label}</Badge>
                     )}
                   </TableCell>
                   <TableCell>

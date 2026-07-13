@@ -40,12 +40,12 @@ interface InventoryMovement {
 }
 
 const typeConfig: Record<string, { label: string; class: string }> = {
-  sale: { label: "Sale", class: "bg-red-100 text-red-800 border-red-300" },
-  purchase: { label: "Purchase", class: "bg-green-100 text-green-800 border-green-300" },
-  adjustment: { label: "Adjustment", class: "bg-amber-100 text-amber-800 border-amber-300" },
-  return: { label: "Return", class: "bg-blue-100 text-blue-800 border-blue-300" },
-  transfer_in: { label: "Transfer In", class: "bg-purple-100 text-purple-800 border-purple-300" },
-  transfer_out: { label: "Transfer Out", class: "bg-orange-100 text-orange-800 border-orange-300" },
+  sale: { label: "Sale", class: "bg-red-600 text-white dark:bg-red-500 dark:text-white" },
+  purchase: { label: "Purchase", class: "bg-green-600 text-white dark:bg-green-500 dark:text-white" },
+  adjustment: { label: "Adjustment", class: "bg-amber-600 text-white dark:bg-amber-500 dark:text-white" },
+  return: { label: "Return", class: "bg-blue-600 text-white dark:bg-blue-500 dark:text-white" },
+  transfer_in: { label: "Transfer In", class: "bg-purple-600 text-white dark:bg-purple-500 dark:text-white" },
+  transfer_out: { label: "Transfer Out", class: "bg-orange-600 text-white dark:bg-orange-500 dark:text-white" },
 }
 
 export default function MovementsPage() {

@@ -599,14 +599,14 @@ export default function OrdersPage() {
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
                       <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
                     </TableHead>
-                    <TableHead className="text-muted-foreground font-medium">Items</TableHead>
+                    <TableHead>Items</TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
                       <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("status")}>
                       <div className="flex items-center gap-1">Status{renderSortIcon("status")}</div>
                     </TableHead>
-                    <TableHead className="text-muted-foreground font-medium">Revision</TableHead>
+                    <TableHead>Revision</TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
                       <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
                     </TableHead>
@@ -768,7 +768,7 @@ export default function OrdersPage() {
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
                       <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
                     </TableHead>
-                    <TableHead className="text-muted-foreground font-medium">Items</TableHead>
+                    <TableHead>Items</TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
                       <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
                     </TableHead>
@@ -778,7 +778,7 @@ export default function OrdersPage() {
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
                       <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
                     </TableHead>
-                    <TableHead className="text-muted-foreground font-medium">Action</TableHead>
+                    <TableHead>Action</TableHead>
                     <TableHead className="w-[40px]"></TableHead>
                   </TableRow>
                 </TableHeader>

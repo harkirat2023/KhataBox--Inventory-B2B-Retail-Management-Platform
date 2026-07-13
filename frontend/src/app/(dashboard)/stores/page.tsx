@@ -147,7 +147,7 @@ export default function StoresPage() {
                     <TableCell className="font-medium">{s.name}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{s.address || "—"}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`${s.is_active ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-500 border-gray-200"}`}>
+                      <Badge className={`${s.is_active ? "bg-green-600 text-white dark:bg-green-500 dark:text-white" : "bg-slate-600 text-white dark:bg-slate-500 dark:text-white"}`}>
                         {s.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>

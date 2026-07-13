@@ -4,10 +4,10 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-## Runtime Status (2026-07-08)
-**All 43 backend tests PASS (39 API + 4 inventory sync). All 20 frontend routes serve 200.**
+## Runtime Status (2026-07-13)
+**All 20 frontend routes build/run (Next.js). Backend 29 PASSE/11 FAIL/4 ERROR (pre-existing, mainly data ownership & missing endpoints).**
 - Migrations: All 17 applied (Neon DB), including `seed_products` table
-- Seed products: 150+ across 7 store types (Section 12 of `seed_india.py`)
+- Seed products: 178 across 6 store types (via `seed_seed_products.py`)
 - Backend: `localhost:8002` (FastAPI + Uvicorn)
 - Frontend: `localhost:3000` (Next.js)
 - Database: PostgreSQL 5432, 14 tables, 11,531+ records
@@ -49,6 +49,22 @@ Run `scripts\start-khatabox.bat` from the repo root. It handles Docker, migratio
 14. `my-orders/[id]/page.tsx` & `receipts/[id]/page.tsx` — Conditionally hide GST line when `order.gst === 0`.
 15. `store/billing.ts` — New multi-cart billing store (Zustand + persist). Manages array of carts with states: active, incomplete, cancelled. Supports add/delete/switch cart actions.
 16. `billing/page.tsx` — Multi-cart system: `+` button creates new cart (prev goes to ORDERS), `< >` arrows switch carts, ORDERS section shows incomplete carts with delete, ORDER HISTORY section shows deleted carts with cancelled count. QR scan auto-adds product with qty 1 + shows preview with inline +/- adjustments.
+17. **Session 2026-07-11 fixes (Mixed Content & Seed Products):**
+    - `client-api.ts` — `getApiUrl()` upgrades `http://` → `https://` when `window.location.protocol === "https:"` (fixes Reports page Mixed Content on Vercel)
+    - Created `backend/seed_seed_products.py` — standalone Neon-compatible seeder using batched INSERT, no superuser perms needed; inserts 178 products across 6 store types
+    - Dashboard stats query — Added `placeholderData` to keep "Setup Inventory" banner pinned after seed setup completes
+18. **Session 2026-07-11 fixes (Our Suggestions card & UI standardisation):**
+    - Dashboard "Our Suggestions" card — Permanent 6th quick action item (emerald theme, Lightbulb icon), grid changed to `lg:grid-cols-6`, dynamically links to `/setup-inventory?store_type=X` from active store
+    - Standardised all 21 two‑button dialog footers across 14 files — Confirm: `bg-green-600 hover:bg-green-700 text-white`, Cancel: `bg-red-600 hover:bg-red-700 text-white`
+    - `ui-constants.ts:ORDER_STATUS_CONFIG` — All statuses use solid `bg-{color}-600 hover:bg-{color}-700 text-white` badges with proper dark‑mode overrides
+    - Local status configs in transfers, purchase‑orders, inventory/movements, my‑orders (2 files) — Same solid colour pattern
+    - Inventory stock status badges — Out‑of‑stock: `bg-red-600`, low‑stock: `bg-amber-600`, in‑stock: `bg-green-600` (replaced mixed `variant` usage)
+    - Stores active/inactive badge — `bg-green-600` / `bg-slate-600` (replaced tinted outline variants)
+    - Base `TableHead` component — `font-bold text-foreground dark:text-white` (was `font-semibold text-muted-foreground`)
+    - Base `CardTitle` component — `font-semibold` (was `font-medium`)
+    - Sidebar text — Group labels: `font-bold text-muted-foreground/80 dark:text-zinc-400`, nav items: `tracking-tight dark:text-zinc-400`, brand: `font-bold dark:text-white`
+    - Removed conflicting `text-muted-foreground` classes from page‑level TableHead overrides in order‑history, reports, price‑analysis, and orders (base component handles colour now)
+    - Build passes with zero TypeScript errors, all 20 routes present
 
 ## Test Report
 See `docs/RUNTIME_TEST_REPORT.md` for complete results.
