@@ -49,6 +49,17 @@ class ProductUpdate(BaseModel):
     store_id: int | None = None
 
 
+class BulkProductUpdateItem(BaseModel):
+    id: int
+    stock_quantity: int | None = None
+    reorder_threshold: int | None = None
+    selling_price: float | None = None
+
+
+class BulkProductUpdateRequest(BaseModel):
+    updates: list[BulkProductUpdateItem]
+
+
 class ProductResponse(BaseModel):
     id: int
     product_uuid: str

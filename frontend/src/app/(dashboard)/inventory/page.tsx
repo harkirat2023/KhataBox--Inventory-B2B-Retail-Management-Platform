@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Plus, Search, Pencil, Trash2, Upload, QrCode, ScanLine, Loader2, Package } from "lucide-react"
+import { Plus, Search, Pencil, Trash2, Upload, QrCode, ScanLine, Package, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +31,8 @@ import { clientApi } from "@/lib/client-api"
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
 
+type DirtyField = Partial<Pick<Product, "reorder_threshold" | "stock_quantity" | "selling_price">>
+
 export default function InventoryPage() {
   const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
@@ -44,7 +46,12 @@ export default function InventoryPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importing, setImporting] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [savingThreshold, setSavingThreshold] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const dirtyChangesRef = useRef<Record<number, DirtyField>>({})
+  const [dirtyVersion, setDirtyVersion] = useState(0)
+
+  const unsavedCount = Object.keys(dirtyChangesRef.current).length
 
   const loadProducts = useCallback(async () => {
     setLoading(true)
@@ -52,7 +59,7 @@ export default function InventoryPage() {
       const params = storeFilter && storeFilter !== "all" ? `?store_id=${storeFilter}` : ""
       const data = await clientApi.get<Product[]>(`/api/v1/products/${params}`)
       setProducts(data)
-    } catch (err) {
+    } catch {
       toast.error("Failed to load products")
     } finally {
       setLoading(false)
@@ -64,6 +71,58 @@ export default function InventoryPage() {
       setStores(await clientApi.get<Store[]>("/api/v1/stores/"))
     } catch {}
   }, [])
+
+  const saveAll = useCallback(async (silent = false) => {
+    const changes = dirtyChangesRef.current
+    const ids = Object.keys(changes)
+    if (ids.length === 0) return
+    if (!silent) setSaving(true)
+    const updates = ids.map((idStr) => ({
+      id: Number(idStr),
+      ...changes[Number(idStr)],
+    }))
+    try {
+      await clientApi.put<{ updated: number }>("/api/v1/products/bulk-update", { updates })
+      dirtyChangesRef.current = {}
+      setDirtyVersion((v) => v + 1)
+      if (!silent) toast.success(`Saved ${updates.length} change${updates.length > 1 ? "s" : ""}`)
+      await loadProducts()
+    } catch {
+      if (!silent) toast.error("Failed to save changes")
+    } finally {
+      if (!silent) setSaving(false)
+    }
+  }, [loadProducts])
+
+  const trackChange = useCallback((productId: number, field: keyof DirtyField, value: number) => {
+    dirtyChangesRef.current = {
+      ...dirtyChangesRef.current,
+      [productId]: {
+        ...dirtyChangesRef.current[productId],
+        [field]: value,
+      },
+    }
+    setDirtyVersion((v) => v + 1)
+  }, [])
+
+  useEffect(() => {
+    const onLeave = () => {
+      if (Object.keys(dirtyChangesRef.current).length > 0) {
+        saveAll(true)
+      }
+    }
+    window.addEventListener("beforeunload", onLeave)
+    return () => {
+      window.removeEventListener("beforeunload", onLeave)
+      onLeave()
+    }
+  }, [saveAll])
+
+  useEffect(() => {
+    const onFocus = () => { loadProducts() }
+    window.addEventListener("focus", onFocus)
+    return () => window.removeEventListener("focus", onFocus)
+  }, [loadProducts])
 
   const searchParams = useSearchParams()
   useEffect(() => {
@@ -82,6 +141,12 @@ export default function InventoryPage() {
       setStoreFilter(String(stores[0].id))
     }
   }, [stores, storeFilter])
+
+  const getEffectiveProduct = (p: Product): Product => {
+    const dirty = dirtyChangesRef.current[p.id]
+    if (!dirty) return p
+    return { ...p, ...dirty }
+  }
 
   const filtered = products.filter(
     (p) =>
@@ -132,7 +197,6 @@ export default function InventoryPage() {
       let success = 0, failed = 0
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
-        const rowNum = i + 2
         if (row.length !== headers.length) { failed++; continue }
         const entry = Object.fromEntries(headers.map((h, j) => [h, row[j]]))
         const name = entry.name || entry.Name || entry["Product Name"] || ""
@@ -199,19 +263,6 @@ export default function InventoryPage() {
     }
   }
 
-  const handleThresholdChange = async (productId: number, newThreshold: number) => {
-    if (newThreshold < 0) return
-    setSavingThreshold(productId)
-    try {
-      await clientApi.put(`/api/v1/products/${productId}`, { reorder_threshold: newThreshold })
-      await loadProducts()
-    } catch {
-      toast.error("Failed to update threshold")
-    } finally {
-      setSavingThreshold(null)
-    }
-  }
-
   const stockStatus = (p: Product) => {
     if (p.stock_quantity === 0) return { label: "Out of Stock", variant: "destructive" as const }
     if (p.stock_quantity <= p.reorder_threshold) return { label: "Low Stock", variant: "outline" as const }
@@ -223,6 +274,16 @@ export default function InventoryPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground">Inventory</h1>
         <div className="flex items-center gap-2 flex-wrap">
+          {unsavedCount > 0 && (
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+              onClick={() => saveAll()}
+              disabled={saving}
+            >
+              <Save className="size-4 mr-2" />
+              {saving ? "Saving..." : `Save All (${unsavedCount})`}
+            </Button>
+          )}
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportCsv} />
           <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
             <Upload className="size-4 mr-2" /> {importing ? "Importing..." : "Import"}
@@ -315,7 +376,7 @@ export default function InventoryPage() {
                     <Package className="size-12 text-muted-foreground/30 mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-1">No products found</h3>
                     <p className="text-sm text-muted-foreground mb-6 max-w-xs">Add your first product to get started with inventory tracking.</p>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
                       <Plus className="size-4 mr-2" /> Add Product
                     </Button>
                   </div>
@@ -323,16 +384,30 @@ export default function InventoryPage() {
               </TableRow>
             ) : (
               filtered.map((product) => {
-                const status = stockStatus(product)
+                const effective = getEffectiveProduct(product)
+                const status = stockStatus(effective)
+                const isDirty = !!dirtyChangesRef.current[product.id]
                 return (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{product.store_name || "—"}</TableCell>
+                <TableRow key={product.id} className={isDirty ? "bg-amber-50/50 dark:bg-amber-950/10" : ""}>
+                  <TableCell className="font-medium">{effective.name}</TableCell>
+                  <TableCell className="font-mono text-sm">{effective.sku}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{effective.store_name || "—"}</TableCell>
                   <TableCell>
-                    <span className={product.stock_quantity <= product.reorder_threshold ? "text-destructive font-medium" : ""}>
-                      {product.stock_quantity}
-                    </span>
+                    <Input
+                      type="number"
+                      min="0"
+                      className="h-8 w-20 text-xs rounded-lg"
+                      value={effective.stock_quantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value)
+                        if (!isNaN(val) && val >= 0) {
+                          setProducts((prev) =>
+                            prev.map((p) => p.id === product.id ? { ...p, stock_quantity: val } : p)
+                          )
+                          trackChange(product.id, "stock_quantity", val)
+                        }
+                      }}
+                    />
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 max-w-[100px]">
@@ -340,28 +415,37 @@ export default function InventoryPage() {
                         type="number"
                         min="0"
                         className="h-8 w-16 text-xs rounded-lg"
-                        defaultValue={product.reorder_threshold}
-                        onBlur={(e) => {
+                        value={effective.reorder_threshold}
+                        onChange={(e) => {
                           const val = parseInt(e.target.value)
-                          if (!isNaN(val) && val >= 0 && val !== product.reorder_threshold) {
-                            handleThresholdChange(product.id, val)
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            const input = e.currentTarget
-                            const val = parseInt(input.value)
-                            if (!isNaN(val) && val >= 0 && val !== product.reorder_threshold) {
-                              handleThresholdChange(product.id, val)
-                            }
-                            input.blur()
+                          if (!isNaN(val) && val >= 0) {
+                            setProducts((prev) =>
+                              prev.map((p) => p.id === product.id ? { ...p, reorder_threshold: val } : p)
+                            )
+                            trackChange(product.id, "reorder_threshold", val)
                           }
                         }}
                       />
-                      {savingThreshold === product.id && <Loader2 className="size-3 animate-spin text-muted-foreground" />}
                     </div>
                   </TableCell>
-                  <TableCell>₹{product.selling_price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="h-8 w-24 text-xs rounded-lg"
+                      value={effective.selling_price}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value)
+                        if (!isNaN(val) && val >= 0) {
+                          setProducts((prev) =>
+                            prev.map((p) => p.id === product.id ? { ...p, selling_price: val } : p)
+                          )
+                          trackChange(product.id, "selling_price", val)
+                        }
+                      }}
+                    />
+                  </TableCell>
                   <TableCell>
                     {status.variant === "destructive" ? (
                       <Badge className="bg-red-600 text-white dark:bg-red-500 dark:text-white">{status.label}</Badge>

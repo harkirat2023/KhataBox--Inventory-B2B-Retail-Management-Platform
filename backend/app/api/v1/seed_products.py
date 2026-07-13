@@ -78,6 +78,17 @@ async def bulk_add_seed_products(
     # Build a qty map
     qty_map = {item.seed_product_id: item.quantity for item in payload.items}
 
+    # Fetch all existing products for this user keyed by name
+    existing_result = await db.execute(
+        select(Product).where(
+            Product.owner_id == current_user.id,
+            Product.is_active == True,
+        )
+    )
+    existing_by_name: dict[str, Product] = {}
+    for p in existing_result.scalars().all():
+        existing_by_name[p.name.lower()] = p
+
     sku_index = 1
     existing_sku_result = await db.execute(
         select(Product).where(Product.owner_id == current_user.id).order_by(Product.id.desc()).limit(1)
@@ -91,6 +102,7 @@ async def bulk_add_seed_products(
             sku_index = 1
 
     created_products = []
+    updated_count = 0
     for item in payload.items:
         sp = seed_map.get(item.seed_product_id)
         if not sp:
@@ -98,6 +110,21 @@ async def bulk_add_seed_products(
             continue
 
         qty = qty_map.get(item.seed_product_id, 1)
+
+        # Check if product with same name already exists for this user
+        existing = existing_by_name.get(sp.name.lower())
+        if existing:
+            existing.stock_quantity += qty
+            await db.flush()
+            created_products.append({
+                "id": existing.id,
+                "name": existing.name,
+                "sku": existing.sku,
+                "updated": True,
+            })
+            updated_count += 1
+            continue
+
         sku = f"{sp.sku_prefix}-{sku_index:04d}"
         sku_index += 1
 

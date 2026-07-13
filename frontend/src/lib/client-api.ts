@@ -1,11 +1,18 @@
 function getApiUrl(): string {
   const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8002"
-  if (typeof window !== "undefined" && window.location.protocol === "https:" && url.startsWith("http://")) {
-    return url.replace("http://", "https://")
+  // Force HTTPS when the page itself is served over HTTPS
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    return url.replace(/^http:/i, "https:")
   }
   return url
 }
-const API_URL = getApiUrl()
+let API_URL = getApiUrl()
+
+// Re-evaluate on page load to catch env vars set at runtime (e.g. Vercel rebuilds)
+if (typeof window !== "undefined") {
+  const upgraded = getApiUrl()
+  if (upgraded !== API_URL) API_URL = upgraded
+}
 
 function getCookie(name: string): string | undefined {
   if (typeof document === "undefined") return undefined
