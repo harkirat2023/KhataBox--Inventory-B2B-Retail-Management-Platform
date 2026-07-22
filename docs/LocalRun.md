@@ -1,4 +1,4 @@
-# KhataBox — Run Locally (Full Steps)
+# KhataBox â€” Run Locally (Full Steps)
 
 This project has **two parts**:
 - **Frontend**: Next.js (runs on **http://localhost:3000**)
@@ -109,6 +109,11 @@ npm install
 npm run dev
 ```
 
+> **Note:** Use the `--webpack` flag if you encounter Turbopack errors due to spaces in the project path:
+> ```bat
+> npx next dev --webpack
+> ```
+
 Frontend will be available at:
 - http://localhost:3000
 
@@ -150,7 +155,6 @@ docker compose -f docker-compose.yml down
 - Then re-run seeding:
   - `python seed_india.py`
 
-### Frontend can’t reach API
+### Frontend can't reach API
 - Confirm backend is running at **http://localhost:8002**.
-- Verify environment variable `NEXT_PUBLIC_API_URL` (if set); otherwise frontend defaults to `http://localhost:8000` in `src/lib/api.ts`. (If you need it, set it to `http://localhost:8002`.)
-
+- Verify environment variable `NEXT_PUBLIC_API_URL` (if set); otherwise frontend defaults to `http://localhost:8002` in `src/lib/api.ts`.

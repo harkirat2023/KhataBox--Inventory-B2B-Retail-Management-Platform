@@ -50,10 +50,13 @@ export default function InventoryPage() {
 
   const dirtyChangesRef = useRef<Record<number, DirtyField>>({})
   const [dirtyVersion, setDirtyVersion] = useState(0)
+  const loadingRef = useRef(false)
 
   const unsavedCount = Object.keys(dirtyChangesRef.current).length
 
   const loadProducts = useCallback(async () => {
+    if (loadingRef.current) return
+    loadingRef.current = true
     setLoading(true)
     try {
       const params = storeFilter && storeFilter !== "all" ? `?store_id=${storeFilter}` : ""
@@ -63,6 +66,7 @@ export default function InventoryPage() {
       toast.error("Failed to load products")
     } finally {
       setLoading(false)
+      loadingRef.current = false
     }
   }, [storeFilter])
 
@@ -86,13 +90,12 @@ export default function InventoryPage() {
       dirtyChangesRef.current = {}
       setDirtyVersion((v) => v + 1)
       if (!silent) toast.success(`Saved ${updates.length} change${updates.length > 1 ? "s" : ""}`)
-      await loadProducts()
     } catch {
       if (!silent) toast.error("Failed to save changes")
     } finally {
       if (!silent) setSaving(false)
     }
-  }, [loadProducts])
+  }, [])
 
   const trackChange = useCallback((productId: number, field: keyof DirtyField, value: number) => {
     dirtyChangesRef.current = {
@@ -118,8 +121,15 @@ export default function InventoryPage() {
     }
   }, [saveAll])
 
+  const lastLoadRef = useRef(0)
   useEffect(() => {
-    const onFocus = () => { loadProducts() }
+    const onFocus = () => {
+      const elapsed = Date.now() - lastLoadRef.current
+      if (elapsed > 30000) {
+        lastLoadRef.current = Date.now()
+        loadProducts()
+      }
+    }
     window.addEventListener("focus", onFocus)
     return () => window.removeEventListener("focus", onFocus)
   }, [loadProducts])
@@ -133,7 +143,7 @@ export default function InventoryPage() {
     }
   }, [searchParams])
 
-  useEffect(() => { loadProducts() }, [loadProducts])
+  useEffect(() => { lastLoadRef.current = Date.now(); loadProducts() }, [loadProducts])
   useEffect(() => { loadStores() }, [loadStores])
 
   useEffect(() => {
@@ -270,58 +280,58 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Inventory</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Inventory</h1>
         <div className="flex items-center gap-2 flex-wrap">
           {unsavedCount > 0 && (
             <Button
-              className="bg-green-600 hover:bg-green-700 text-white rounded-xl h-11 px-5 transition-all duration-200"
+              className="bg-green-600 hover:bg-green-700 text-white rounded-xl h-10 sm:h-11 px-4 sm:px-5 transition-all duration-200"
               onClick={() => saveAll()}
               disabled={saving}
             >
-              <Save className="size-4 mr-2" />
-              {saving ? "Saving..." : `Save All (${unsavedCount})`}
+              <Save className="size-4 mr-1.5" />
+              {saving ? "Saving..." : `Save (${unsavedCount})`}
             </Button>
           )}
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImportCsv} />
-          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
-            <Upload className="size-4 mr-2" /> {importing ? "Importing..." : "Import"}
+          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-10 sm:h-11 px-3 sm:px-5 transition-all duration-200" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+            <Upload className="size-4 sm:mr-2" /> <span className="hidden sm:inline">{importing ? "Importing..." : "Import"}</span>
           </Button>
-          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => router.push("/inventory/scan")}>
-            <ScanLine className="size-4 mr-2" /> Scan
+          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-10 sm:h-11 px-3 sm:px-5 transition-all duration-200" onClick={() => router.push("/inventory/scan")}>
+            <ScanLine className="size-4" /> <span className="hidden sm:inline ml-2">Scan</span>
           </Button>
-          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setScanDialogOpen(true)}>
-            <QrCode className="size-4 mr-2" /> Scan QR
+          <Button className="bg-card border border-border text-foreground/80 hover:bg-muted rounded-xl h-10 sm:h-11 px-3 sm:px-5 transition-all duration-200" onClick={() => setScanDialogOpen(true)}>
+            <QrCode className="size-4" /> <span className="hidden sm:inline ml-2">QR</span>
           </Button>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
-            <Plus className="size-4 mr-2" /> Add Product
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 sm:h-11 px-4 sm:px-5 transition-all duration-200" onClick={() => { setEditingProduct(null); setDialogOpen(true) }}>
+            <Plus className="size-4 sm:mr-2" /> <span className="hidden sm:inline">Add Product</span>
           </Button>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <div className="relative flex-1 max-w-full sm:max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search by name, SKU, or category..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 rounded-xl bg-muted border-0 h-11"
+            className="pl-10 rounded-xl bg-muted border-0 h-11 w-full"
             inputMode="search"
           />
         </div>
         {stores.length <= 1 ? (
           stores.length === 1 ? (
             <Input
-              className="w-[180px] rounded-xl bg-muted border-0 h-11"
+              className="w-full sm:w-[180px] rounded-xl bg-muted border-0 h-11"
               value={stores[0]?.name ?? ""}
               disabled
               inputMode="text"
             />
           ) : (
             <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-              <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
+              <SelectTrigger className="w-full sm:w-[180px] rounded-xl border-border h-11">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -331,7 +341,7 @@ export default function InventoryPage() {
           )
         ) : (
           <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-            <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
+            <SelectTrigger className="w-full sm:w-[180px] rounded-xl border-border h-11">
               <SelectValue placeholder="All Stores" />
             </SelectTrigger>
             <SelectContent>
@@ -349,20 +359,18 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Product</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead>Store</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Threshold</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[120px]">Actions</TableHead>
+              <TableHead className="max-sm:hidden">Stock</TableHead>
+              <TableHead className="max-sm:hidden">Threshold</TableHead>
+              <TableHead className="max-sm:hidden">Price</TableHead>
+              <TableHead className="max-sm:hidden">Status</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 8 }).map((_, j) => (
+                  {Array.from({ length: 6 }).map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-4 w-full" />
                     </TableCell>
@@ -371,7 +379,7 @@ export default function InventoryPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-16">
+                <TableCell colSpan={6} className="text-center py-16">
                   <div className="flex flex-col items-center justify-center">
                     <Package className="size-12 text-muted-foreground/30 mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-1">No products found</h3>
@@ -389,10 +397,15 @@ export default function InventoryPage() {
                 const isDirty = !!dirtyChangesRef.current[product.id]
                 return (
                 <TableRow key={product.id} className={isDirty ? "bg-amber-50/50 dark:bg-amber-950/10" : ""}>
-                  <TableCell className="font-medium">{effective.name}</TableCell>
-                  <TableCell className="font-mono text-sm">{effective.sku}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{effective.store_name || "—"}</TableCell>
                   <TableCell>
+                    <div className="font-medium">{effective.name}</div>
+                    <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>Stock: {effective.stock_quantity}</span>
+                      <span>Price: ₹{effective.selling_price.toFixed(2)}</span>
+                      <span>Threshold: {effective.reorder_threshold}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-sm:hidden">
                     <Input
                       type="number"
                       min="0"
@@ -409,7 +422,7 @@ export default function InventoryPage() {
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-sm:hidden">
                     <div className="flex items-center gap-1 max-w-[100px]">
                       <Input
                         type="number"
@@ -428,7 +441,7 @@ export default function InventoryPage() {
                       />
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-sm:hidden">
                     <Input
                       type="number"
                       min="0"
@@ -446,7 +459,7 @@ export default function InventoryPage() {
                       }}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-sm:hidden">
                     {status.variant === "destructive" ? (
                       <Badge className="bg-red-600 text-white dark:bg-red-500 dark:text-white">{status.label}</Badge>
                     ) : status.variant === "outline" ? (

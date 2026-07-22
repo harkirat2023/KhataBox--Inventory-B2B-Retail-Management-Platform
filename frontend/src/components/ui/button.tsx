@@ -7,16 +7,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-amber-brand text-primary-foreground border-amber-brand/20 hover:bg-amber-brand/90 shadow-sm",
+        default: "bg-primary text-primary-foreground border-primary/20 hover:bg-primary/90 shadow-sm",
         outline:
-          "border-zinc-200 dark:border-zinc-700/60 bg-transparent dark:bg-zinc-900/60 text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600/60 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-800",
+          "border-border bg-transparent text-foreground hover:bg-accent hover:border-border/80 aria-expanded:bg-accent",
         secondary:
-          "bg-zinc-100 dark:bg-zinc-800 text-foreground border-zinc-200 dark:border-zinc-700/60 hover:bg-zinc-200 dark:hover:bg-zinc-700 aria-expanded:bg-zinc-200 dark:aria-expanded:bg-zinc-700",
+          "bg-secondary text-secondary-foreground border-border/60 hover:bg-secondary/80 aria-expanded:bg-secondary/80",
         ghost:
-          "border-transparent text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800/60 aria-expanded:bg-zinc-100 dark:aria-expanded:bg-zinc-800/60",
+          "border-transparent text-muted-foreground hover:text-foreground hover:bg-accent aria-expanded:bg-accent",
         destructive:
-          "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
-        link: "text-amber-brand underline-offset-4 hover:underline border-transparent",
+          "bg-red-600 text-white border-red-600/20 hover:bg-red-700 dark:bg-red-600 dark:text-white dark:hover:bg-red-700 focus-visible:border-red-400 focus-visible:ring-red-400/20",
+        success:
+          "bg-green-600 text-white border-green-600/20 hover:bg-green-700 dark:bg-green-600 dark:text-white dark:hover:bg-green-700 focus-visible:border-green-400 focus-visible:ring-green-400/20",
+        link: "text-primary underline-offset-4 hover:underline border-transparent",
       },
       size: {
         default: "h-9 gap-1.5 px-3 rounded-xl has-data-[icon=inline-end]:pr-2.5 has-data-[icon=inline-start]:pl-2.5",

@@ -326,7 +326,7 @@ function RegisterForm() {
                   </div>
                   <div className="space-y-4">
                     <div><label className="block text-sm font-medium text-foreground/80 mb-1">Address</label><Input placeholder="Street address" value={form.address} onChange={(e) => handleChange("address", e.target.value)} className="h-11 rounded-xl" /></div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div><label className="block text-sm font-medium text-foreground/80 mb-1">City</label><Input placeholder="City" value={form.city} onChange={(e) => handleChange("city", e.target.value)} className="h-11 rounded-xl" /></div>
                       <div><label className="block text-sm font-medium text-foreground/80 mb-1">State</label><Input placeholder="State" value={form.state} onChange={(e) => handleChange("state", e.target.value)} className="h-11 rounded-xl" /></div>
                     </div>
@@ -351,7 +351,7 @@ function RegisterForm() {
                         </select>
                       </div>
                       <div><label className="block text-sm font-medium text-foreground/80 mb-1">Address *</label><Input placeholder="Street address" value={form.address} onChange={(e) => handleChange("address", e.target.value)} required className="h-11 rounded-xl" /></div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div><label className="block text-sm font-medium text-foreground/80 mb-1">City *</label><Input placeholder="City" value={form.city} onChange={(e) => handleChange("city", e.target.value)} required className="h-11 rounded-xl" /></div>
                         <div>
                           <label className="block text-sm font-medium text-foreground/80 mb-1">State *</label>

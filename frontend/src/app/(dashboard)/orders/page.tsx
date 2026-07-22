@@ -1100,7 +1100,7 @@ export default function OrdersPage() {
           </DialogHeader>
 
           {/* Order Header */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm bg-muted/50 rounded-[8px] p-4 border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm bg-muted/50 rounded-[8px] p-4 border">
             <div className="text-muted-foreground">Status</div>
             <div><Badge variant="outline" className="text-xs font-normal bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-400">Updated</Badge></div>
             <div className="text-muted-foreground">Date</div>

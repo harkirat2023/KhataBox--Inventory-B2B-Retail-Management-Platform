@@ -240,7 +240,7 @@ export default function OrderHistoryPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 pb-8 bg-background min-h-screen">
+      <div className="space-y-6 pb-8 bg-background">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Order History</h1>
@@ -397,7 +397,7 @@ export default function OrderHistoryPage() {
   }
 
   return (
-    <div className="space-y-6 pb-8 bg-background min-h-screen">
+    <div className="space-y-6 pb-8 bg-background">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Order History</h1>
@@ -654,7 +654,7 @@ export default function OrderHistoryPage() {
                                   <Button
                                     variant="ghost"
                                     size="xs"
-                                    className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg"
+                                    className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-accent rounded-lg"
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       setNewProductName(item.product_name)
@@ -724,7 +724,7 @@ export default function OrderHistoryPage() {
               <label className="text-sm font-medium text-foreground/80">SKU</label>
               <Input value={newProductSku} onChange={(e) => setNewProductSku(e.target.value)} className="rounded-xl border-border h-11" inputMode="text" placeholder="Auto-generated if empty" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground/80">Cost Price (₹)</label>
                 <Input type="number" min="0" step="0.01" value={newProductCostPrice || ""} onChange={(e) => setNewProductCostPrice(parseFloat(e.target.value) || 0)} className="rounded-xl border-border h-11" inputMode="decimal" />
@@ -734,7 +734,7 @@ export default function OrderHistoryPage() {
                 <Input type="number" min="0" step="0.01" value={newProductSellingPrice || ""} onChange={(e) => setNewProductSellingPrice(parseFloat(e.target.value) || 0)} className="rounded-xl border-border h-11" inputMode="decimal" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground/80">Quantity</label>
                 <Input type="number" min="0" step="1" value={newProductQuantity || ""} onChange={(e) => setNewProductQuantity(parseInt(e.target.value) || 0)} className="rounded-xl border-border h-11" inputMode="numeric" />

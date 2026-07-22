@@ -111,8 +111,7 @@ export default function PurchaseOrdersPage() {
   )
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Purchase Orders</h1>
           <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
@@ -226,7 +225,6 @@ export default function PurchaseOrdersPage() {
         onOpenChange={setDialogOpen}
         onSuccess={loadOrders}
       />
-      </div>
     </div>
   )
 }
@@ -351,7 +349,7 @@ function CreatePODialog({
                 <p className="text-sm text-muted-foreground py-2">No items added yet.</p>
               )}
               {lineItems.map((item, idx) => (
-                <div key={idx} className="flex items-end gap-2">
+                <div key={idx} className="flex items-end gap-2 flex-wrap">
                   <div className="flex-1">
                     <label className="text-xs text-muted-foreground mb-1 block">Product</label>
                     <Select
@@ -391,7 +389,7 @@ function CreatePODialog({
                       className="rounded-xl border-border h-11"
                     />
                   </div>
-                  <Button type="button" variant="ghost" size="icon" className="size-9 mb-0.5 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl" onClick={() => removeLineItem(idx)}>
+                   <Button type="button" variant="ghost" size="icon" className="size-9 mb-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl" onClick={() => removeLineItem(idx)}>
                     &times;
                   </Button>
                 </div>

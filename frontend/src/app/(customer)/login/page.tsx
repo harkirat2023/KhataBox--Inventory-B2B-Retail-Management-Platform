@@ -171,7 +171,7 @@ function LoginForm() {
                 <p className="text-sm text-muted-foreground mt-0.5">Check <strong className="text-foreground">{email}</strong> for a 6-digit code</p>
               </div>
               {error && <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-2.5 mb-4">{error}</div>}
-              <div className="flex items-center justify-center gap-2 mb-6">
+              <div className="flex items-center justify-center gap-2 flex-wrap mb-6">
                 {otp.map((d, i) => (
                   <Input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1}
                     value={d} onChange={(e) => handleOtpChange(i, e.target.value)}

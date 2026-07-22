@@ -71,8 +71,7 @@ export default function SuppliersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Suppliers</h1>
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingSupplier(null); setDialogOpen(true) }}>
@@ -163,7 +162,7 @@ export default function SuppliersPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-red-500 hover:bg-destructive/10 hover:text-destructive rounded-xl"
+                       className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl"
                       onClick={() => setDeleteConfirmId(supplier.id)}
                     >
                       <Trash2 className="size-3.5" />
@@ -196,7 +195,6 @@ export default function SuppliersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   )
 }
@@ -240,7 +238,7 @@ function SupplierFormDialog({
           <DialogDescription>{supplier ? "Update supplier details" : "Add a new supplier"}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
             <div className="col-span-2">
               <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Company Name</label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="rounded-xl border-border h-11" inputMode="text" />

@@ -306,9 +306,9 @@ export default function BillingPage() {
         <p className="text-sm text-muted-foreground mt-1">Create bills and manage orders</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Scan & Unpacked buttons */}
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
+        {/* Section 1: Scan/Unpacked buttons + Scanner + Last Scanned — always on top */}
+        <div className="space-y-6 order-1 lg:col-span-2 lg:row-start-1">
           <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant={scannerActive ? "default" : "outline"}
@@ -325,6 +325,17 @@ export default function BillingPage() {
             >
               <Package className="size-4 mr-2" />
               Unpacked Product
+            </Button>
+            <Button
+              variant="outline"
+              className="lg:hidden rounded-[6px] h-11 px-5"
+              onClick={() => {
+                const input = document.querySelector<HTMLInputElement>('[data-billing-search]')
+                if (input) { input.focus(); input.scrollIntoView({ behavior: 'smooth', block: 'center' }) }
+              }}
+            >
+              <Search className="size-4 mr-2" />
+              Search Product
             </Button>
           </div>
           {scannerActive && (
@@ -395,120 +406,84 @@ export default function BillingPage() {
               </CardContent>
             </Card>
           )}
-
-          {/* Search Products Section */}
-          <Card className="rounded-[8px] border border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>Search Products</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, SKU, or category..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  inputMode="search"
-                  className="rounded-[6px] bg-muted border-0 h-11 pl-10"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Scan / enter SKU or name..."
-                    value={scanInput}
-                    onChange={(e) => setScanInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleScan()}
-                    inputMode="search"
-                    className="rounded-[6px] bg-muted border-0 h-11 pl-10"
-                  />
-                </div>
-                <Button onClick={handleScan} className="bg-card border border-border text-foreground hover:bg-muted rounded-[6px] h-11 px-5">Lookup</Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="bg-card rounded-[8px] border border-border shadow-sm overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-16">
-                      <div className="flex flex-col items-center gap-2">
-                        <Search className="size-10 text-muted-foreground" />
-                        <p className="text-sm font-medium text-foreground">No products found</p>
-                        <p className="text-sm text-muted-foreground">Try a different search term or scan a QR code</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-                {filtered.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">{product.sku}</TableCell>
-                    <TableCell>
-                      <span className={product.stock_quantity <= product.reorder_threshold ? "text-red-600 font-medium" : ""}>
-                        {product.stock_quantity}
-                      </span>
-                    </TableCell>
-                    <TableCell>₹{product.selling_price.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]"
-                        onClick={() => {
-                          const maxStock = stockMap.get(product.id) ?? Infinity
-                          const currentQty = getCartQty(product.id)
-                          if (currentQty + 1 > maxStock) {
-                            toast.error(`Only ${maxStock - currentQty} more of "${product.name}" available in stock`)
-                            return
-                          }
-                          addItemToActiveCart({
-                            product_id: product.id,
-                            name: product.name,
-                            sku: product.sku,
-                            unit_price: product.selling_price,
-                          })
-                        }}
-                      >
-                        <Plus className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Cart — moved to top */}
+        {/* Section 2: Khata Customer — mobile: 2nd, desktop: right column top */}
+        <div className="space-y-6 order-2 lg:col-start-3 lg:row-start-1">
+          <Card className="rounded-[8px] border-0 shadow-sm relative overflow-hidden">
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
+            <CardContent className="space-y-3 pl-5 pt-5">
+              <CardTitle className="text-base flex items-center gap-2">
+                <span className="size-2 rounded-full bg-gradient-to-b from-blue-500 to-purple-500 inline-block" />
+                Khata Customer
+              </CardTitle>
+              <Select
+                value={selectedCustomerId ? String(selectedCustomerId) : ""}
+                onValueChange={(val) => {
+                  const newCustomerId = val ? parseInt(val) : null
+                  if (newCustomerId !== selectedCustomerId && items.length > 0 && selectedCustomerId !== null) {
+                    setPendingCustomerId(newCustomerId)
+                    setCustomerChangeModalOpen(true)
+                  } else {
+                    setSelectedCustomerId(newCustomerId)
+                  }
+                }}
+              >
+                <SelectTrigger className="rounded-[6px] border-border h-11">
+                  <SelectValue>
+                    {selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.company_name || customers.find(c => c.id === selectedCustomerId)?.contact_person || `Customer #${selectedCustomerId}`) : "Walk-in (no khata)"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Walk-in (no khata)</SelectItem>
+                  {customers.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>
+                      {c.company_name || c.contact_person || c.email || `Customer #${c.id}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedCustomer && (
+                <div className="text-xs space-y-1 bg-muted border border-border p-3 rounded-[6px]">
+                  <p>Limit: <span className="font-medium">₹{selectedCustomer.credit_limit.toFixed(2)}</span></p>
+                  <p>Used: <span className="font-medium">₹{selectedCustomer.credit_used.toFixed(2)}</span></p>
+                  <p>Remaining: <span className={`font-medium ${creditRemaining < 0 ? "text-red-600" : "text-green-600"}`}>
+                    ₹{creditRemaining.toFixed(2)}
+                  </span></p>
+                  {total > 0 && creditRemaining - total < 0 && (
+                    <p className="text-red-600 font-medium text-xs mt-1">
+                      Bill exceeds remaining credit by ₹{Math.abs(creditRemaining - total).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Section 3: Cart + Generate Bill + Orders — mobile: 3rd, desktop: right column */}
+        <div className="space-y-6 order-3 lg:col-start-3 lg:row-start-2">
+          {/* Cart */}
           <Card className="rounded-[8px] border border-border shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle>Cart</CardTitle>
                 <div className="flex items-center gap-1">
+                  <Button variant="outline" size="icon-xs" className="size-7 rounded-[6px] lg:hidden" title="Search products" onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>('[data-billing-search]')
+                    if (input) { input.focus(); input.scrollIntoView({ behavior: 'smooth', block: 'center' }) }
+                  }}>
+                    <Search className="size-3.5" />
+                  </Button>
                   {navigableCount > 1 && (
                     <>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground hover:bg-muted rounded-[6px]" onClick={switchToPrev} title="Previous cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 rounded-[6px]" onClick={switchToPrev} title="Previous cart">
                         <ChevronLeft className="size-3.5" />
                       </Button>
                       <span className="text-xs text-muted-foreground min-w-[4rem] text-center tabular-nums">
                         {activeIdx + 1} of {navigableCount}
                       </span>
-                      <Button variant="outline" size="icon-xs" className="size-7 bg-card border border-border text-foreground hover:bg-muted rounded-[6px]" onClick={switchToNext} title="Next cart">
+                      <Button variant="outline" size="icon-xs" className="size-7 rounded-[6px]" onClick={switchToNext} title="Next cart">
                         <ChevronRight className="size-3.5" />
                       </Button>
                     </>
@@ -634,58 +609,6 @@ export default function BillingPage() {
             )}
           </Card>
 
-          {/* Khata Customer — with gradient accent */}
-          <Card className="rounded-[8px] border-0 shadow-sm relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
-            <CardContent className="space-y-3 pl-5 pt-5">
-              <CardTitle className="text-base flex items-center gap-2">
-                <span className="size-2 rounded-full bg-gradient-to-b from-blue-500 to-purple-500 inline-block" />
-                Khata Customer
-              </CardTitle>
-              <Select
-                value={selectedCustomerId ? String(selectedCustomerId) : ""}
-                onValueChange={(val) => {
-                  const newCustomerId = val ? parseInt(val) : null
-                  // If cart has items and trying to change customer, show modal
-                  if (newCustomerId !== selectedCustomerId && items.length > 0 && selectedCustomerId !== null) {
-                    setPendingCustomerId(newCustomerId)
-                    setCustomerChangeModalOpen(true)
-                  } else {
-                    setSelectedCustomerId(newCustomerId)
-                  }
-                }}
-              >
-                <SelectTrigger className="rounded-[6px] border-border h-11">
-                  <SelectValue>
-                    {selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId)?.company_name || customers.find(c => c.id === selectedCustomerId)?.contact_person || `Customer #${selectedCustomerId}`) : "Walk-in (no khata)"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Walk-in (no khata)</SelectItem>
-                  {customers.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.company_name || c.contact_person || c.email || `Customer #${c.id}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedCustomer && (
-                <div className="text-xs space-y-1 bg-muted border border-border p-3 rounded-[6px]">
-                  <p>Limit: <span className="font-medium">₹{selectedCustomer.credit_limit.toFixed(2)}</span></p>
-                  <p>Used: <span className="font-medium">₹{selectedCustomer.credit_used.toFixed(2)}</span></p>
-                  <p>Remaining: <span className={`font-medium ${creditRemaining < 0 ? "text-red-600" : "text-green-600"}`}>
-                    ₹{creditRemaining.toFixed(2)}
-                  </span></p>
-                  {total > 0 && creditRemaining - total < 0 && (
-                    <p className="text-red-600 font-medium text-xs mt-1">
-                      Bill exceeds remaining credit by ₹{Math.abs(creditRemaining - total).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {items.length > 0 && !lastOrderId && (
             <Button
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-[6px] h-11 px-5 transition-all duration-200"
@@ -730,6 +653,110 @@ export default function BillingPage() {
               </CardContent>
             </Card>
           )}
+        </div>
+
+        {/* Section 4: Search Products + Product List — mobile: last, desktop: left column */}
+        <div className="space-y-6 order-4 lg:col-span-2 lg:row-start-2">
+          {/* Search Products Section */}
+          <Card className="rounded-[8px] border border-border shadow-sm">
+            <CardHeader>
+              <CardTitle>Search Products</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    data-billing-search
+                    placeholder="Search by name, SKU, or category..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    inputMode="search"
+                    className="rounded-[6px] bg-muted border-0 h-11 pl-10"
+                  />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Scan / enter SKU or name..."
+                    value={scanInput}
+                    onChange={(e) => setScanInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleScan()}
+                    inputMode="search"
+                    className="rounded-[6px] bg-muted border-0 h-11 pl-10"
+                  />
+                </div>
+                <Button onClick={handleScan} className="bg-card border border-border text-foreground hover:bg-muted rounded-[6px] h-11 px-5">Lookup</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="bg-card rounded-[8px] border border-border shadow-sm overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead className="max-sm:hidden">Stock</TableHead>
+                  <TableHead className="max-sm:hidden">Price</TableHead>
+                  <TableHead className="w-[80px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-16">
+                      <div className="flex flex-col items-center gap-2">
+                        <Search className="size-10 text-muted-foreground" />
+                        <p className="text-sm font-medium text-foreground">No products found</p>
+                        <p className="text-sm text-muted-foreground">Try a different search term or scan a QR code</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {filtered.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <div className="font-medium">{product.name}</div>
+                      <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                        <span>Stock: {product.stock_quantity}</span>
+                        <span>₹{product.selling_price.toFixed(2)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-sm:hidden">
+                      <span className={product.stock_quantity <= product.reorder_threshold ? "text-red-600 font-medium" : ""}>
+                        {product.stock_quantity}
+                      </span>
+                    </TableCell>
+                    <TableCell>₹{product.selling_price.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-muted-foreground hover:bg-accent hover:text-foreground/80 rounded-[6px]"
+                        onClick={() => {
+                          const maxStock = stockMap.get(product.id) ?? Infinity
+                          const currentQty = getCartQty(product.id)
+                          if (currentQty + 1 > maxStock) {
+                            toast.error(`Only ${maxStock - currentQty} more of "${product.name}" available in stock`)
+                            return
+                          }
+                          addItemToActiveCart({
+                            product_id: product.id,
+                            name: product.name,
+                            sku: product.sku,
+                            unit_price: product.selling_price,
+                          })
+                        }}
+                      >
+                        <Plus className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 
@@ -873,7 +900,7 @@ export default function BillingPage() {
                 {/* Payment Method Selection */}
                 <div>
                   <p className="text-xs font-medium text-muted-foreground mb-1.5">Payment Method</p>
-                  <div className="grid grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                     {[
                       { value: "cash", label: "Cash", icon: Banknote },
                       { value: "upi", label: "UPI", icon: CreditCard },

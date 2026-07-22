@@ -154,14 +154,14 @@ function NavItem({
       <SidebarMenuButton isActive={active} tooltip={collapsed ? item.label : undefined} asChild href={item.href}>
         <div className={cn(
           "flex items-center justify-center size-4 shrink-0 rounded-md transition-all duration-200",
-          active ? "text-amber-brand" : "text-muted-foreground/70 group-hover/menu-button:text-foreground"
+          active ? "text-primary" : "text-muted-foreground/70 group-hover/menu-button:text-foreground"
         )}>
           <Icon className="size-4" />
         </div>
         <span className={cn(
           "transition-all duration-200 sidebar-text-label tracking-tight",
           collapsed && "hidden",
-          active ? "text-amber-brand font-bold" : "text-muted-foreground/80 group-hover/menu-button:text-foreground dark:text-zinc-400 dark:group-hover/menu-button:text-zinc-200"
+          active ? "text-primary font-bold" : "text-muted-foreground/80 group-hover/menu-button:text-foreground dark:text-zinc-400 dark:group-hover/menu-button:text-zinc-200"
         )}>{item.label}</span>
       </SidebarMenuButton>
     </motion.div>
@@ -225,8 +225,8 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild href="/dashboard" onClick={handleNavClick} className={cn("h-12", collapsed && "justify-center")}>
               <div className={cn("flex items-center gap-3", collapsed && "flex-col gap-1")}>
-                <div className="flex items-center justify-center size-9 rounded-xl bg-amber-brand/10 shrink-0">
-                  <Boxes className="size-5 text-amber-brand" />
+                <div className="flex items-center justify-center size-9 rounded-xl bg-primary/10 shrink-0">
+                  <Boxes className="size-5 text-primary" />
                 </div>
                 <span className={cn("font-bold text-lg tracking-tight text-foreground dark:text-white sidebar-text-label", collapsed && "hidden")}>KhataBox</span>
               </div>

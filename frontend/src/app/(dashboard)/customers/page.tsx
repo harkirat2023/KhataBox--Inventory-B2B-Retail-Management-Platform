@@ -345,7 +345,7 @@ function CustomerFormDialog({
           <DialogDescription>{customer ? "Update customer details" : "Add a new customer to your khata"}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
             <div className="col-span-2 space-y-2">
               <label className="text-sm font-medium text-foreground/80 mb-1.5 block">Name *</label>
               <Input value={form.company_name ?? ""} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="rounded-xl border-border h-11" required inputMode="text" />

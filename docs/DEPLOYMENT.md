@@ -1,4 +1,4 @@
-# KhataBox — Deployment Guide
+# KhataBox â€” Deployment Guide
 
 Deployment guide for the KhataBox B2B retail management platform: Next.js frontend (Vercel), FastAPI backend (Railway), PostgreSQL (Neon), and Redis (Upstash).
 
@@ -12,6 +12,7 @@ Deployment guide for the KhataBox B2B retail management platform: Next.js fronte
 - [Docker Compose (PG + Redis)](#docker-compose-pg--redis)
 - [Backend Deployment (Railway)](#backend-deployment-railway)
 - [Frontend Deployment (Vercel)](#frontend-deployment-vercel)
+- [Vercel + Neon Deployment](#vercel--neon-deployment)
 - [Environment Variables](#environment-variables)
 - [Database Migrations](#database-migrations)
 - [Health Checks](#health-checks)
@@ -41,15 +42,15 @@ Deployment guide for the KhataBox B2B retail management platform: Next.js fronte
 ## Architecture Overview
 
 ```
-Browser → Vercel (Next.js) → Railway (FastAPI) → Neon (PostgreSQL)
-                                ↕
+Browser â†’ Vercel (Next.js) â†’ Railway (FastAPI) â†’ Neon (PostgreSQL)
+                                â†•
                             Upstash (Redis)
-                                ↕
+                                â†•
                         Cloudflare R2 (files)
 ```
 
 - Frontend and backend are deployed as separate services.
-- All external services (Sentry, PostHog, Resend, R2, Redis) are optional — features degrade gracefully if not configured.
+- All external services (Sentry, PostHog, Resend, R2, Redis) are optional â€” features degrade gracefully if not configured.
 - Docker Compose is used for local development only (PostgreSQL + Redis). Backend and frontend run natively.
 
 ---
@@ -83,7 +84,7 @@ cd frontend
 copy .env.example .env.local
 
 # 7. Start frontend (new terminal)
-npm run dev
+npm run dev -- --webpack
 
 # 8. Seed demo data (keep backend running)
 cd backend
@@ -114,7 +115,7 @@ docker compose logs redis --tail=5
 docker compose down -v
 ```
 
-Note: Docker Compose does **not** include the backend or frontend — those run natively or on Railway/Vercel.
+Note: Docker Compose does **not** include the backend or frontend â€” those run natively or on Railway/Vercel.
 
 ---
 
@@ -133,14 +134,14 @@ Railway auto-detects the Dockerfile at `backend/Dockerfile` and uses the `railwa
   },
   "deploy": {
     "numReplicas": 1,
-    "healthcheckPath": "/api/v1/health",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ALWAYS"
   }
 }
 ```
 
-Note: The health check path in `railway.json` is `/api/v1/health`, but the actual endpoint is at `/health` in `app/main.py:66`. Ensure Railway health checks point to `/health` unless you add the `/api/v1/health` route.
+Note: The health check path in `railway.json` now correctly points to `/health` (the actual endpoint in `app/main.py`). Ensure Railway health checks point to `/health`.
 
 ### Dockerfile
 
@@ -178,22 +179,7 @@ curl https://khatabox-api.up.railway.app/health
 
 ## Frontend Deployment (Vercel)
 
-Vercel auto-detects Next.js. The `vercel.json` at the project root configures deployment:
-
-```json
-{
-  "framework": "nextjs",
-  "buildCommand": "next build",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "regions": ["iad1"],
-  "env": {
-    "AUTH_SECRET": "@auth-secret",
-    "AUTH_URL": "@auth-url",
-    "NEXT_PUBLIC_API_URL": "@next-public-api-url"
-  }
-}
-```
+Vercel auto-detects Next.js. No `vercel.json` is required at the project root â€” the framework preset is auto-detected.
 
 ### Deployment Steps
 
@@ -207,9 +193,31 @@ Vercel auto-detects Next.js. The `vercel.json` at the project root configures de
 
 ### Post-Deploy
 
-- Visit all 20+ frontend routes to verify 200 responses.
+- Visit all frontend routes to verify 200 responses.
 - Login with `admin@khatabox.com` / `Admin@123` to verify auth flow.
 - The `NEXT_PUBLIC_API_URL` env var is the only connection between frontend and backend.
+
+---
+
+## Vercel + Neon Deployment
+
+### Option A: Separate Services (Recommended)
+
+Deploy the backend on Railway and the frontend on Vercel, with Neon as the database:
+
+1. **Neon:** Create a project, copy the pooled connection string, set as `DATABASE_URL`.
+2. **Railway:** Deploy `backend/` with the Dockerfile, set all env vars, run migrations after deploy.
+3. **Vercel:** Import repo, set `NEXT_PUBLIC_API_URL` to the Railway domain, `AUTH_SECRET`, and `AUTH_URL`.
+
+### Option B: All-in-One (Vercel + Neon Only)
+
+For a simplified stack without Railway:
+
+1. **Neon:** Create a project, copy the connection string.
+2. **Backend:** Deploy as a Vercel Function or keep on Railway.
+3. **Frontend:** Deploy on Vercel as normal.
+
+The recommended approach is Option A (Railway for backend, Vercel for frontend, Neon for database) as it allows the backend to run as a long-lived server with WebSocket support and background tasks.
 
 ---
 
@@ -219,22 +227,22 @@ Vercel auto-detects Next.js. The `vercel.json` at the project root configures de
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | — | PostgreSQL connection string with `+asyncpg` and `?sslmode=require` |
-| `SECRET_KEY` | Yes | — | JWT signing secret (generate with `openssl rand -base64 32`) |
+| `DATABASE_URL` | Yes | â€” | PostgreSQL connection string with `+asyncpg` and `?sslmode=require` |
+| `SECRET_KEY` | Yes | â€” | JWT signing secret (generate with `openssl rand -base64 32`) |
 | `ALGORITHM` | No | `HS256` | JWT algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | No | `30` | JWT access token expiry |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | No | `7` | JWT refresh token expiry |
-| `REDIS_URL` | No | — | Redis connection string (optional, graceful degradation) |
+| `REDIS_URL` | No | â€” | Redis connection string (optional, graceful degradation) |
 | `CORS_ORIGINS` | Yes | `http://localhost:3000` | Comma-separated allowed origins |
-| `RESEND_API_KEY` | No | — | Resend API key for email (optional) |
-| `SENTRY_DSN` | No | — | Sentry DSN for error tracking (optional) |
-| `POSTHOG_API_KEY` | No | — | PostHog API key for analytics (optional) |
+| `RESEND_API_KEY` | No | â€” | Resend API key for email (optional) |
+| `SENTRY_DSN` | No | â€” | Sentry DSN for error tracking (optional) |
+| `POSTHOG_API_KEY` | No | â€” | PostHog API key for analytics (optional) |
 | `POSTHOG_HOST` | No | `https://us.i.posthog.com` | PostHog host URL |
-| `R2_ENDPOINT_URL` | No | — | Cloudflare R2 endpoint (optional) |
-| `R2_ACCESS_KEY_ID` | No | — | Cloudflare R2 access key |
-| `R2_SECRET_ACCESS_KEY` | No | — | Cloudflare R2 secret key |
+| `R2_ENDPOINT_URL` | No | â€” | Cloudflare R2 endpoint (optional) |
+| `R2_ACCESS_KEY_ID` | No | â€” | Cloudflare R2 access key |
+| `R2_SECRET_ACCESS_KEY` | No | â€” | Cloudflare R2 secret key |
 | `R2_BUCKET_NAME` | No | `khatabox` | Cloudflare R2 bucket name |
-| `R2_PUBLIC_URL` | No | — | Cloudflare R2 public URL |
+| `R2_PUBLIC_URL` | No | â€” | Cloudflare R2 public URL |
 
 ### Frontend (`.env.local`)
 
@@ -265,7 +273,7 @@ alembic downgrade -1
 alembic history
 ```
 
-Current migrations (8 total):
+Current migrations (17 applied, up to 0017):
 
 | File | Description |
 |------|-------------|
@@ -277,6 +285,15 @@ Current migrations (8 total):
 | `0006_performance_indexes.py` | 5 composite indexes |
 | `0007_stock_transfers.py` | `stock_transfers` table + inventory_movements.store_id |
 | `0008_add_transfer_enum_values.py` | `transfer_in`/`transfer_out` to MovementType enum |
+| `0009_product_uuid.py` | UUID column for products |
+| `0010_inventory_reservation.py` | Inventory reservation support |
+| `0011_receipt_system.py` | Receipts and receipt_items tables |
+| `0012_store_business_fields.py` | Store business fields (GST, etc.) |
+| `0013_optional_fields.py` | Make various columns nullable |
+| `0014_b2c_support.py` | B2C order support (order status counter) |
+| `0015_payments_table.py` | Payments table |
+| `0016_b2c_orders_system.py` | B2C orders and customer carts |
+| `0017_seed_products_table.py` | Seed products lookup table |
 
 ---
 
@@ -289,7 +306,7 @@ GET /health
 {"status": "ok", "service": "KhataBox API"}
 ```
 
-Railway should be configured to use `/health` as the health check path. The middleware chain includes:
+Railway should be configured to use `/health` as the health check path. The `railway.json` now correctly references `/health`. The middleware chain includes:
 - CORS middleware
 - Rate limiter middleware (100 req/min, Redis + in-memory fallback)
 - Performance middleware (adds `X-Response-Time` header)
@@ -300,16 +317,16 @@ Railway should be configured to use `/health` as the health check path. The midd
 
 ### Sentry (Error Tracking)
 
-Configured in `backend/app/main.py:25-30`. Initialized early in the startup sequence to catch all errors.
+Configured in `backend/app/main.py`. Initialized early in the startup sequence to catch all errors.
 
-- DSN is optional — Sentry is only initialized if `SENTRY_DSN` is set.
-- `traces_sample_rate=0.2` — samples 20% of transactions.
-- `send_default_pii=False` — personal identifiable information is not sent.
+- DSN is optional â€” Sentry is only initialized if `SENTRY_DSN` is set.
+- `traces_sample_rate=0.2` â€” samples 20% of transactions.
+- `send_default_pii=False` â€” personal identifiable information is not sent.
 - Environment tag auto-detected: `"production"` if DSN is set, `"development"` otherwise.
 
 ### PostHog (Product Analytics)
 
-Configured in `backend/app/main.py:35-36`. API key is optional.
+Configured in `backend/app/main.py`. API key is optional.
 
 ```python
 posthog.project_api_key = settings.POSTHOG_API_KEY
@@ -384,7 +401,7 @@ No built-in scheduler. Use an external cron job or GitHub Action to hit the expo
 ### Pre-Deployment Checklist
 
 - Run `alembic upgrade head` locally to verify migrations.
-- Run `python -m pytest tests/ -v` to confirm all tests pass.
+- Run `python -m pytest tests/ -v` to confirm tests pass.
 - Run `cd frontend && npm run build` to verify frontend builds cleanly.
 - Generate fresh `AUTH_SECRET` and `SECRET_KEY` for production.
 - Backup the database before applying destructive migrations.
@@ -411,4 +428,4 @@ No built-in scheduler. Use an external cron job or GitHub Action to hit the expo
 
 ### Health check fails on Railway
 
-- The `railway.json` expects `/api/v1/health` but the actual endpoint is `/health`. Update the Railway health check path to `/health`.
+- Ensure the Railway health check path is set to `/health`. The `railway.json` now correctly references `/health`.

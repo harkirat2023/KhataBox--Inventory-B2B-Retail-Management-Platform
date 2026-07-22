@@ -91,8 +91,7 @@ export default function StoresPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-foreground">Stores</h1>
           <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={openCreate}><Plus className="size-4 mr-2" /> Add Store</Button>
@@ -153,7 +152,7 @@ export default function StoresPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-muted hover:text-foreground/80 rounded-xl" onClick={() => openEdit(s)}><Pencil className="size-4" /></Button>
-                      <Button variant="ghost" size="icon" className="text-red-500 hover:bg-red-50 hover:text-red-700 rounded-xl" onClick={() => handleDelete(s.id)}><Trash2 className="size-4" /></Button>
+                      <Button variant="ghost" size="icon"                        className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl" onClick={() => handleDelete(s.id)}><Trash2 className="size-4" /></Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -181,7 +180,6 @@ export default function StoresPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   )
 }

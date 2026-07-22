@@ -135,7 +135,7 @@ export default function NotificationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-xl border border-border p-1 bg-card">
+          <div className="flex items-center gap-1 flex-wrap rounded-xl border border-border p-1 bg-card">
             <Filter className="size-3.5 text-muted-foreground ml-1" />
             {typeLabels.map((t) => (
               <button

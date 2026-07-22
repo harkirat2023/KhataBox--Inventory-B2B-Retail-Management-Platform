@@ -111,8 +111,7 @@ export default function TransfersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Stock Transfers</h1>
@@ -260,7 +259,7 @@ export default function TransfersPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-foreground/80 mb-1.5 block">From Store *</label>
                 <Select value={String(form.from_store_id)} onValueChange={(v) => v && setForm({ ...form, from_store_id: parseInt(v) })}>
@@ -307,7 +306,6 @@ export default function TransfersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   )
 }

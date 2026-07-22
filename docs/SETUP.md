@@ -33,7 +33,14 @@ cd KhataBox
 npm install
 ```
 
-This installs Next.js 16, React 19, Tailwind CSS v4, Shadcn UI, Zustand, TanStack Query, NextAuth v5, Recharts, and other frontend dependencies.
+This installs Next.js, React 19, Tailwind CSS v4, Shadcn UI, Zustand, TanStack Query, NextAuth v5, Recharts, and other frontend dependencies.
+
+> **Important:** The frontend dev server must be started with the `--webpack` flag (not Turbopack) because the project path contains spaces:
+> ```bash
+> cd frontend
+> npm run dev -- --webpack
+> ```
+> This is already configured in the `package.json` `dev` script.
 
 ### 3. Backend Setup
 
@@ -67,6 +74,8 @@ This starts:
 - **PostgreSQL 16** on port 5432 (database: `khatabox`, user: `khatabox`, password: `khatabox123`)
 - **Redis 7** on port 6379
 
+> **Note â€” Neon DB vs Local Docker:** For local development, the Docker Compose PostgreSQL is recommended. If you prefer using Neon (cloud PostgreSQL), set your `DATABASE_URL` to the Neon pooled connection string with `?sslmode=require`. The backend automatically handles SSL via asyncpg's built-in TLS â€” `sslmode` and `channel_binding` parameters are stripped from the connection URL before being passed to asyncpg.
+
 ### 5. Configure Environment Variables
 
 #### Backend (`backend/.env`)
@@ -95,7 +104,7 @@ AUTH_SECRET=local-dev-secret-at-least-32-chars-long
 AUTH_URL=http://localhost:3000
 ```
 
-If `NEXT_PUBLIC_API_URL` is not set, the frontend defaults to `http://localhost:8000`.
+If `NEXT_PUBLIC_API_URL` is not set, the frontend defaults to `http://localhost:8002`.
 
 ### 6. Run Database Migrations
 
@@ -104,7 +113,7 @@ cd backend
 alembic upgrade head
 ```
 
-This applies all 12 migrations:
+This applies all 17 migrations:
 - 0001: Initial schema (11 tables, 5 enums)
 - 0002: Full-text search (TSVECTOR + GIN)
 - 0003: Expiry/batch tracking
@@ -117,6 +126,11 @@ This applies all 12 migrations:
 - 0010: Inventory reservation
 - 0011: Receipt system
 - 0012: Store business fields
+- 0013: Optional fields (nullable columns)
+- 0014: B2C support (order status counter enum)
+- 0015: Payments table
+- 0016: B2C orders system
+- 0017: Seed products table
 
 ### 7. Seed Demo Data
 
@@ -140,6 +154,13 @@ This creates:
 - Stock transfer requests
 - Notifications (low stock, expiry alerts)
 - Audit log entries
+
+Additionally, 178 seed products across 6 store types can be loaded via:
+
+```bash
+cd backend
+python seed_seed_products.py
+```
 
 The seed script is idempotent: re-running it clears existing non-admin data before inserting.
 
@@ -171,49 +192,15 @@ The frontend is now available at http://localhost:3000.
 Alternatively, use the included batch script from the project root:
 
 ```batch
-start-dev.bat
+scripts\start-khatabox.bat
 ```
 
 This script:
 1. Starts Docker containers (PostgreSQL + Redis)
 2. Runs Alembic migrations
-3. Seeds demo data
+3. Seeds demo data (includes `seed_products` table)
 4. Starts backend on port 8002
 5. Starts frontend on port 3000
-
----
-
-## Accessing the Application
-
-### Admin Account
-
-| Field | Value |
-|-------|-------|
-| URL | http://localhost:3000/login |
-| Email | `admin@khatabox.com` |
-| Password | `Admin@123` |
-| Role | Admin |
-| Access | Full system access, user management, data export/import |
-
-### Shopkeeper Accounts
-
-| Field | Value |
-|-------|-------|
-| URL | http://localhost:3000/login |
-| Email Format | `{store_name}@khatabox.com` (e.g., `mumbai_mart@khatabox.com`) |
-| Password | `Shop@123` |
-| Role | Shopkeeper |
-| Access | Store management, products, orders, customers, suppliers, reports, forecasting |
-
-### Customer Accounts
-
-| Field | Value |
-|-------|-------|
-| URL | http://localhost:3000/login |
-| Email Format | `contact.{name}@client.com` |
-| Password | `customer123` |
-| Role | Customer |
-| Access | Catalog browsing, cart, place orders, order history, receipts |
 
 ---
 
@@ -223,30 +210,30 @@ This script:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | — | PostgreSQL async connection string (asyncpg) |
+| `DATABASE_URL` | Yes | â€” | PostgreSQL async connection string (asyncpg) |
 | `SECRET_KEY` | Yes | change-me | JWT signing secret (minimum 32 characters) |
 | `ALGORITHM` | No | HS256 | JWT signing algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | No | 30 | Access token lifetime in minutes |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | No | 7 | Refresh token lifetime in days |
-| `REDIS_URL` | No | — | Redis connection string (optional, caching degrades gracefully) |
-| `RESEND_API_KEY` | No | — | Resend API key for transactional emails (optional) |
-| `SENTRY_DSN` | No | — | Sentry DSN for error tracking (optional) |
-| `POSTHOG_API_KEY` | No | — | PostHog project API key (optional) |
+| `REDIS_URL` | No | â€” | Redis connection string (optional, caching degrades gracefully) |
+| `RESEND_API_KEY` | No | â€” | Resend API key for transactional emails (optional) |
+| `SENTRY_DSN` | No | â€” | Sentry DSN for error tracking (optional) |
+| `POSTHOG_API_KEY` | No | â€” | PostHog project API key (optional) |
 | `POSTHOG_HOST` | No | https://us.i.posthog.com | PostHog API host |
 | `CORS_ORIGINS` | Yes | http://localhost:3000 | Comma-separated allowed CORS origins |
-| `R2_ENDPOINT_URL` | No | — | Cloudflare R2 S3-compatible endpoint (optional) |
-| `R2_ACCESS_KEY_ID` | No | — | R2 access key ID |
-| `R2_SECRET_ACCESS_KEY` | No | — | R2 secret access key |
+| `R2_ENDPOINT_URL` | No | â€” | Cloudflare R2 S3-compatible endpoint (optional) |
+| `R2_ACCESS_KEY_ID` | No | â€” | R2 access key ID |
+| `R2_SECRET_ACCESS_KEY` | No | â€” | R2 secret access key |
 | `R2_BUCKET_NAME` | No | khatabox | R2 bucket name |
-| `R2_PUBLIC_URL` | No | — | R2 public bucket URL for image access |
+| `R2_PUBLIC_URL` | No | â€” | R2 public bucket URL for image access |
 
 ### Frontend (`.env.local`)
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `NEXT_PUBLIC_API_URL` | No | http://localhost:8000 | Backend API base URL |
-| `AUTH_SECRET` | Yes | — | NextAuth JWT encryption secret |
-| `AUTH_URL` | Yes | — | Frontend public URL (for NextAuth callbacks) |
+| `NEXT_PUBLIC_API_URL` | No | http://localhost:8002 | Backend API base URL |
+| `AUTH_SECRET` | Yes | â€” | NextAuth JWT encryption secret |
+| `AUTH_URL` | Yes | â€” | Frontend public URL (for NextAuth callbacks) |
 
 ---
 
@@ -259,7 +246,9 @@ cd backend
 pytest tests/ -v
 ```
 
-Runs 39+ async integration tests across 20 endpoint groups. The test suite starts a subprocess Uvicorn server on port 18999.
+Runs 39+ async integration tests across 20+ endpoint groups. The test suite starts a subprocess Uvicorn server on port 18999.
+
+**Current test results:** 29 pass, 11 fail, 4 error (pre-existing; mainly data ownership checks and missing endpoints).
 
 ### Frontend Tests
 

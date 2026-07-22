@@ -145,20 +145,33 @@ export default function ForecastingPage() {
     setForecast(null)
     setSalesHistory(null)
 
-    Promise.all([
+    Promise.allSettled([
       clientApi.get<DemandForecast>(`/api/v1/forecasting/demand/${selectedId}`),
       clientApi.get<SalesHistory>(`/api/v1/forecasting/demand/${selectedId}/sales-history`),
-    ])
-      .then(([fc, history]) => {
+    ]).then(([fcRes, histRes]) => {
+      let fc: DemandForecast | null = null
+      let history: SalesHistory | null = null
+      if (fcRes.status === "fulfilled") {
+        fc = fcRes.value
         setForecast(fc)
+      } else {
+        const msg = fcRes.reason?.message || "Unknown error"
+        console.error("Forecast API error:", fcRes.reason)
+        toast.error(`Forecast: ${msg}`)
+      }
+      if (histRes.status === "fulfilled") {
+        history = histRes.value
         setSalesHistory(history)
+      } else {
+        const msg = histRes.reason?.message || "Unknown error"
+        console.error("Sales history API error:", histRes.reason)
+        toast.error(`Sales history: ${msg}`)
+      }
+      if (fc && history) {
         setChartData(buildChartData(history, fc))
-      })
-      .catch((err) => {
-        console.error("Failed to load forecast", err)
-        toast.error("Failed to load forecast data")
-      })
-      .finally(() => setLoading(false))
+      }
+      setLoading(false)
+    })
   }, [selectedId, buildChartData])
 
   const storeFiltered = activeStore?.id
@@ -261,7 +274,7 @@ export default function ForecastingPage() {
             )}
             {storeFiltered.map((p) => (
               <SelectItem key={p.id} value={String(p.id)}>
-                {p.name} ({p.sku})
+                {p.name || `Product #${p.id}`}
               </SelectItem>
             ))}
           </SelectContent>

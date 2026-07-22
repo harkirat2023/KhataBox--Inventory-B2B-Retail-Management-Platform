@@ -8,18 +8,18 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-amber-brand/15 text-amber-brand border-amber-brand/20 [a]:hover:bg-amber-brand/25",
+        default: "bg-primary/15 text-primary border-primary/20 [a]:hover:bg-primary/25",
         secondary:
-          "bg-zinc-800 text-zinc-300 border-zinc-700/60 [a]:hover:bg-zinc-700",
+          "bg-secondary text-secondary-foreground border-border/60 [a]:hover:bg-secondary/80",
         destructive:
-          "bg-destructive/10 text-destructive border-destructive/20 focus-visible:ring-destructive/20 [a]:hover:bg-destructive/20",
+          "bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800 focus-visible:ring-red-400/20 [a]:hover:bg-red-200 dark:[a]:hover:bg-red-900/50",
         outline:
-          "border-zinc-700/60 text-zinc-300 [a]:hover:bg-zinc-800 [a]:hover:text-foreground",
+          "border-border text-muted-foreground [a]:hover:bg-accent [a]:hover:text-foreground",
         ghost:
-          "border-transparent text-zinc-400 hover:bg-zinc-800 hover:text-zinc-300",
-        link: "text-amber-brand underline-offset-4 hover:underline border-transparent",
+          "border-transparent text-muted-foreground hover:bg-accent hover:text-foreground",
+        link: "text-primary underline-offset-4 hover:underline border-transparent",
         success:
-          "bg-emerald-brand/15 text-emerald-brand border-emerald-brand/20 [a]:hover:bg-emerald-brand/25",
+          "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 [a]:hover:bg-green-200 dark:[a]:hover:bg-green-900/50",
         warning:
           "bg-warning/15 text-warning border-warning/20 [a]:hover:bg-warning/25",
       },
