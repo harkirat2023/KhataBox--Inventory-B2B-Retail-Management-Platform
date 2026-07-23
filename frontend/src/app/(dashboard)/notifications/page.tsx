@@ -127,14 +127,14 @@ export default function NotificationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Notifications</h1>
           <p className="text-sm text-muted-foreground">
             {loading ? "Loading..." : unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? "s" : ""}` : "All caught up"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 flex-wrap rounded-xl border border-border p-1 bg-card">
             <Filter className="size-3.5 text-muted-foreground ml-1" />
             {typeLabels.map((t) => (

@@ -302,7 +302,7 @@ export default function BillingPage() {
   return (
     <div className="space-y-6 bg-background">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Billing</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Billing</h1>
         <p className="text-sm text-muted-foreground mt-1">Create bills and manage orders</p>
       </div>
 

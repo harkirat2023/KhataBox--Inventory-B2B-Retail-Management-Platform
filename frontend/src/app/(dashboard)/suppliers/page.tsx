@@ -72,21 +72,21 @@ export default function SuppliersPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Suppliers</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Suppliers</h1>
           <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingSupplier(null); setDialogOpen(true) }}>
             <Plus className="size-4 mr-2" /> Add Supplier
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="relative flex-1 max-w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search by name, contact, or email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 rounded-xl bg-muted border-0 h-11"
+              className="pl-10 rounded-xl bg-muted border-0 h-11 w-full"
               inputMode="search"
             />
           </div>
@@ -98,10 +98,10 @@ export default function SuppliersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Address</TableHead>
+                  <TableHead className="max-sm:hidden">Contact Person</TableHead>
+                  <TableHead className="max-sm:hidden">Email</TableHead>
+                  <TableHead className="max-sm:hidden">Phone</TableHead>
+                  <TableHead className="max-sm:hidden">Address</TableHead>
                   <TableHead className="w-[80px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -109,10 +109,10 @@ export default function SuppliersPage() {
                 {Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-28" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-40" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-48" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-16" /></TableCell>
                   </TableRow>
                 ))}
@@ -134,21 +134,27 @@ export default function SuppliersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Address</TableHead>
+                  <TableHead className="max-sm:hidden">Contact Person</TableHead>
+                  <TableHead className="max-sm:hidden">Email</TableHead>
+                  <TableHead className="max-sm:hidden">Phone</TableHead>
+                  <TableHead className="max-sm:hidden">Address</TableHead>
                   <TableHead className="w-[80px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((supplier) => (
               <TableRow key={supplier.id}>
-                <TableCell className="font-medium">{supplier.name}</TableCell>
-                <TableCell>{supplier.contact_person}</TableCell>
-                <TableCell className="text-sm">{supplier.email}</TableCell>
-                <TableCell className="text-sm">{supplier.phone}</TableCell>
-                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{supplier.address}</TableCell>
+                <TableCell>
+                    <div className="font-medium">{supplier.name}</div>
+                    <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>{supplier.contact_person}</span>
+                      <span>{supplier.email}</span>
+                    </div>
+                  </TableCell>
+                <TableCell className="max-sm:hidden">{supplier.contact_person}</TableCell>
+                <TableCell className="text-sm max-sm:hidden">{supplier.email}</TableCell>
+                <TableCell className="text-sm max-sm:hidden">{supplier.phone}</TableCell>
+                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate max-sm:hidden">{supplier.address}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
                     <Button

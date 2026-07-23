@@ -112,12 +112,12 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Stock Transfers</h1>
             <p className="text-sm text-muted-foreground mt-1">Transfer stock between stores</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}><Plus className="size-4 mr-2" /> New Transfer</Button>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200 w-full sm:w-auto" onClick={() => setDialogOpen(true)}><Plus className="size-4 mr-2" /> New Transfer</Button>
         </div>
 
         <div className="flex items-center gap-4 flex-wrap">
@@ -150,12 +150,12 @@ export default function TransfersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>From</TableHead>
-                  <TableHead>To</TableHead>
+                  <TableHead className="max-sm:hidden">SKU</TableHead>
+                  <TableHead className="max-sm:hidden">From</TableHead>
+                  <TableHead className="max-sm:hidden">To</TableHead>
                   <TableHead>Qty</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="max-sm:hidden">Date</TableHead>
                   <TableHead className="w-[140px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -163,12 +163,12 @@ export default function TransfersPage() {
                 {Array.from({ length: 4 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-16" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-8 w-24" /></TableCell>
                   </TableRow>
                 ))}
@@ -190,29 +190,32 @@ export default function TransfersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>From</TableHead>
-                  <TableHead>To</TableHead>
+                  <TableHead className="max-sm:hidden">SKU</TableHead>
+                  <TableHead className="max-sm:hidden">From</TableHead>
+                  <TableHead className="max-sm:hidden">To</TableHead>
                   <TableHead>Qty</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="max-sm:hidden">Date</TableHead>
                   <TableHead className="w-[140px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((t) => (
               <TableRow key={t.id}>
-                <TableCell className="font-medium">{t.product_name || `Product #${t.product_id}`}</TableCell>
-                <TableCell className="font-mono text-sm">{t.product_sku || "—"}</TableCell>
-                <TableCell className="text-sm">{t.from_store_name || `Store #${t.from_store_id}`}</TableCell>
-                <TableCell className="text-sm">{t.to_store_name || `Store #${t.to_store_id}`}</TableCell>
+                <TableCell className="font-medium">
+                  <span className="sm:hidden text-xs text-muted-foreground block">{t.from_store_name || `Store #${t.from_store_id}`} → {t.to_store_name || `Store #${t.to_store_id}`}</span>
+                  {t.product_name || `Product #${t.product_id}`}
+                </TableCell>
+                <TableCell className="font-mono text-sm max-sm:hidden">{t.product_sku || "—"}</TableCell>
+                <TableCell className="text-sm max-sm:hidden">{t.from_store_name || `Store #${t.from_store_id}`}</TableCell>
+                <TableCell className="text-sm max-sm:hidden">{t.to_store_name || `Store #${t.to_store_id}`}</TableCell>
                 <TableCell className="font-medium">{t.quantity}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={`text-xs px-2 py-0 ${(statusConfig[t.status]?.class) || ""}`}>
                     {statusConfig[t.status]?.label || t.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground max-sm:hidden">
                   {new Date(t.created_at).toLocaleDateString()}
                 </TableCell>
                 <TableCell>

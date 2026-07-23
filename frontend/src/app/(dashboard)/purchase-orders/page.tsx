@@ -112,21 +112,21 @@ export default function PurchaseOrdersPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Purchase Orders</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Purchase Orders</h1>
           <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={() => setDialogOpen(true)}>
             <Plus className="size-4 mr-2" /> Create PO
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <div className="relative flex-1 max-w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               placeholder="Search by PO number or supplier..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 rounded-xl bg-muted border-0 h-11"
+              className="pl-10 rounded-xl bg-muted border-0 h-11 w-full"
             />
           </div>
         </div>
@@ -138,21 +138,21 @@ export default function PurchaseOrdersPage() {
                 <TableRow>
                   <TableHead>PO #</TableHead>
                   <TableHead>Supplier</TableHead>
-                  <TableHead>Items</TableHead>
+                  <TableHead className="max-sm:hidden">Items</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="max-sm:hidden">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-8" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                    <TableCell className="max-sm:hidden"><Skeleton className="h-4 w-24" /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -174,18 +174,24 @@ export default function PurchaseOrdersPage() {
                 <TableRow>
                   <TableHead>PO #</TableHead>
                   <TableHead>Supplier</TableHead>
-                  <TableHead>Items</TableHead>
+                  <TableHead className="max-sm:hidden">Items</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="max-sm:hidden">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((order) => (
               <TableRow key={order.id}>
-                <TableCell className="font-mono text-sm font-medium">{order.po_number}</TableCell>
+                <TableCell>
+                    <div className="font-mono text-sm font-medium">{order.po_number}</div>
+                    <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>{order.items?.length || 0} items</span>
+                      <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </TableCell>
                 <TableCell>{order.supplier_name}</TableCell>
-                <TableCell>{order.items?.length || 0}</TableCell>
+                <TableCell className="max-sm:hidden">{order.items?.length || 0}</TableCell>
                 <TableCell className="font-medium">₹{order.total.toFixed(2)}</TableCell>
                 <TableCell>
                   <Select
@@ -210,7 +216,7 @@ export default function PurchaseOrdersPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground max-sm:hidden">
                   {new Date(order.created_at).toLocaleDateString()}
                 </TableCell>
               </TableRow>

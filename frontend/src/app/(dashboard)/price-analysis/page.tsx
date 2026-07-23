@@ -192,12 +192,14 @@ export default function PriceAnalysisPage() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="rounded-xl bg-muted p-1">
-          <TabsTrigger value="procurement" className="rounded-lg">Procurement vs Market</TabsTrigger>
-          <TabsTrigger value="profitability" className="rounded-lg">Profitability</TabsTrigger>
-          <TabsTrigger value="hml" className="rounded-lg">HML Analysis</TabsTrigger>
-          <TabsTrigger value="alerts" className="rounded-lg">Low Stock Alerts</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="rounded-xl bg-muted p-1 w-max sm:w-auto">
+            <TabsTrigger value="procurement" className="rounded-lg">Procurement vs Market</TabsTrigger>
+            <TabsTrigger value="profitability" className="rounded-lg">Profitability</TabsTrigger>
+            <TabsTrigger value="hml" className="rounded-lg">HML Analysis</TabsTrigger>
+            <TabsTrigger value="alerts" className="rounded-lg">Low Stock Alerts</TabsTrigger>
+          </TabsList>
+        </div>
 
         <div className="flex items-center gap-3 mt-4 flex-wrap">
           <div className="relative flex-1 max-w-sm min-w-[200px]">
@@ -229,11 +231,11 @@ export default function PriceAnalysisPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
-                    <TableHead>SKU</TableHead>
+                    <TableHead className="max-sm:hidden">SKU</TableHead>
                     <TableHead className="text-right">Cost Price</TableHead>
                     <TableHead className="text-right">Selling Price</TableHead>
-                    <TableHead className="text-right">Market Price</TableHead>
-                    <TableHead className="text-right">Diff</TableHead>
+                    <TableHead className="text-right max-sm:hidden">Market Price</TableHead>
+                    <TableHead className="text-right max-sm:hidden">Diff</TableHead>
                     <TableHead className="text-right">Diff %</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -248,7 +250,7 @@ export default function PriceAnalysisPage() {
                     filteredProcurement.map((item: ProcurementItem) => (
                       <TableRow key={item.product_id}>
                         <TableCell className="font-medium text-foreground min-w-[140px]">{item.product_name}</TableCell>
-                        <TableCell className="font-mono text-sm text-muted-foreground">{item.sku}</TableCell>
+                        <TableCell className="font-mono text-sm text-muted-foreground max-sm:hidden">{item.sku}</TableCell>
                         <EditablePriceCell
                           value={item.cost_price}
                           productId={item.product_id}
@@ -263,10 +265,10 @@ export default function PriceAnalysisPage() {
                           onSave={handleSavePrice}
                           saving={savingId === item.product_id}
                         />
-                        <TableCell className="text-right font-mono text-muted-foreground">
+                        <TableCell className="text-right font-mono text-muted-foreground max-sm:hidden">
                           {item.market_price ? `₹${item.market_price.toFixed(2)}` : "—"}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right max-sm:hidden">
                           <div className="flex items-center justify-end gap-1">
                             <span className="font-mono text-sm">₹{item.cost_vs_market_diff.toFixed(2)}</span>
                             <TrendIcon value={item.cost_vs_market_diff} good />
@@ -291,13 +293,13 @@ export default function PriceAnalysisPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
-                    <TableHead>SKU</TableHead>
+                    <TableHead className="max-sm:hidden">SKU</TableHead>
                     <TableHead className="text-right">Cost Price</TableHead>
                     <TableHead className="text-right">Selling Price</TableHead>
-                    <TableHead className="text-right">Landed Cost</TableHead>
-                    <TableHead className="text-right">Gross Profit</TableHead>
+                    <TableHead className="text-right max-sm:hidden">Landed Cost</TableHead>
+                    <TableHead className="text-right max-sm:hidden">Gross Profit</TableHead>
                     <TableHead className="text-right">Margin</TableHead>
-                    <TableHead className="text-right">GMROI</TableHead>
+                    <TableHead className="text-right max-sm:hidden">GMROI</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -311,7 +313,7 @@ export default function PriceAnalysisPage() {
                     filteredProfitability.map((item: ProfitabilityItem) => (
                       <TableRow key={item.product_id}>
                         <TableCell className="font-medium text-foreground min-w-[140px]">{item.product_name}</TableCell>
-                        <TableCell className="font-mono text-sm text-muted-foreground">{item.sku}</TableCell>
+                        <TableCell className="font-mono text-sm text-muted-foreground max-sm:hidden">{item.sku}</TableCell>
                         <EditablePriceCell
                           value={item.cost_price}
                           productId={item.product_id}
@@ -326,14 +328,14 @@ export default function PriceAnalysisPage() {
                           onSave={handleSavePrice}
                           saving={savingId === item.product_id}
                         />
-                        <TableCell className="text-right font-mono text-sm text-muted-foreground">₹{item.landed_cost.toFixed(2)}</TableCell>
-                        <TableCell className="text-right font-mono text-sm text-green-600 dark:text-green-400">
+                        <TableCell className="text-right font-mono text-sm text-muted-foreground max-sm:hidden">₹{item.landed_cost.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-mono text-sm text-green-600 dark:text-green-400 max-sm:hidden">
                           ₹{item.gross_profit.toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right">
                           <MarginBadge margin={item.gross_margin_pct} />
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm">{item.gmroi.toFixed(2)}%</TableCell>
+                        <TableCell className="text-right font-mono text-sm max-sm:hidden">{item.gmroi.toFixed(2)}%</TableCell>
                       </TableRow>
                     ))
                   )}

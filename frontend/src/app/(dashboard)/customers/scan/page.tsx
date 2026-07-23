@@ -241,9 +241,9 @@ export default function CustomerScanPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Customer Product Scan</h1>
-        <Badge variant="outline" className="text-xs gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Customer Product Scan</h1>
+        <Badge variant="outline" className="text-xs gap-1 w-fit">
           <ShoppingCart className="size-3" />
           {items.length} item{items.length !== 1 ? "s" : ""}
         </Badge>
@@ -377,7 +377,7 @@ export default function CustomerScanPage() {
                     <CardTitle className="text-foreground">Cart Action</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {(["add", "remove", "adjust"] as ActionType[]).map((a) => {
                         const cfg = actionConfig[a]
                         const Icon = cfg.icon

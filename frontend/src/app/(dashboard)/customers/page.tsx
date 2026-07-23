@@ -117,21 +117,21 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Khata</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Khata</h1>
         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-11 px-5 transition-all duration-200" onClick={() => { setEditingCustomer(null); setDialogOpen(true) }}>
           <Plus className="size-4 mr-2" /> Add Customer
         </Button>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <div className="relative flex-1 max-w-full sm:max-w-sm">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search by company, contact, or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 rounded-xl bg-muted border-0 h-11"
+            className="pl-10 rounded-xl bg-muted border-0 h-11 w-full"
             inputMode="search"
           />
         </div>
@@ -143,10 +143,10 @@ export default function CustomersPage() {
             <TableRow>
               <TableHead>Company</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Credit Used</TableHead>
-              <TableHead>Price Tier</TableHead>
+              <TableHead className="max-sm:hidden">Email</TableHead>
+              <TableHead className="max-sm:hidden">Phone</TableHead>
+              <TableHead className="max-sm:hidden">Credit Used</TableHead>
+              <TableHead className="max-sm:hidden">Price Tier</TableHead>
               <TableHead className="w-[160px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -177,11 +177,17 @@ export default function CustomersPage() {
             ) : (
               filtered.map((customer) => (
               <TableRow key={customer.id}>
-                <TableCell className="font-medium">{customer.company_name || "—"}</TableCell>
-                <TableCell>{customer.contact_person || "—"}</TableCell>
-                <TableCell className="text-sm">{customer.email || "—"}</TableCell>
-                <TableCell className="text-sm">{customer.phone || "—"}</TableCell>
                 <TableCell>
+                    <div className="font-medium">{customer.company_name || "—"}</div>
+                    <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>{customer.email || "—"}</span>
+                      <span>₹{customer.credit_used.toFixed(2)}</span>
+                    </div>
+                  </TableCell>
+                <TableCell>{customer.contact_person || "—"}</TableCell>
+                <TableCell className="text-sm max-sm:hidden">{customer.email || "—"}</TableCell>
+                <TableCell className="text-sm max-sm:hidden">{customer.phone || "—"}</TableCell>
+                <TableCell className="max-sm:hidden">
                   <span className={customer.credit_used > 0 ? "text-amber-600 font-medium" : "text-foreground"}>
                     ₹{customer.credit_used.toFixed(2)}
                   </span>
@@ -199,7 +205,7 @@ export default function CustomersPage() {
                     )
                   })()}
                 </TableCell>
-                <TableCell>
+                <TableCell className="max-sm:hidden">
                   <Badge variant="outline" className="text-xs capitalize">{customer.price_tier}</Badge>
                 </TableCell>
                 <TableCell>

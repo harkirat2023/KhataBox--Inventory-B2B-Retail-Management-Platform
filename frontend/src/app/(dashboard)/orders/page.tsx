@@ -520,7 +520,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -596,18 +596,18 @@ export default function OrdersPage() {
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("order_number")}>
                       <div className="flex items-center gap-1">Order #{renderSortIcon("order_number")}</div>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
+                    <TableHead className="max-sm:hidden cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
                       <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
                     </TableHead>
-                    <TableHead>Items</TableHead>
+                    <TableHead className="max-sm:hidden">Items</TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
                       <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("status")}>
                       <div className="flex items-center gap-1">Status{renderSortIcon("status")}</div>
                     </TableHead>
-                    <TableHead>Revision</TableHead>
-                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
+                    <TableHead className="max-sm:hidden">Revision</TableHead>
+                    <TableHead className="max-sm:hidden cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
                       <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
                     </TableHead>
                     <TableHead className="w-[80px]"></TableHead>
@@ -646,13 +646,17 @@ export default function OrdersPage() {
                               )}
                             </Button>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="max-sm:hidden">
                             <span className="font-mono text-sm font-medium">{order.order_number}</span>
+                            <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                              <span>{order.customer_name || "Walk-in"}</span>
+                              <span>{order.items?.length || 0} items</span>
+                            </div>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">
+                          <TableCell className="max-sm:hidden text-muted-foreground">
                             {order.customer_name || <span className="italic text-muted-foreground/60">Walk-in</span>}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="max-sm:hidden">
                             <Badge variant="secondary" className="font-mono text-xs">
                               {order.items?.length || 0}
                             </Badge>
@@ -671,7 +675,7 @@ export default function OrdersPage() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="max-sm:hidden">
                             {getRevisionLabel(order) ? (
                               <Badge variant="secondary" className="text-xs font-mono">
                                 {getRevisionLabel(order)}
@@ -680,7 +684,7 @@ export default function OrdersPage() {
                               <span className="text-xs text-muted-foreground">—</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="max-sm:hidden text-sm text-muted-foreground">
                             {new Date(order.created_at).toLocaleDateString("en-IN", {
                               day: "2-digit",
                               month: "short",
@@ -765,17 +769,17 @@ export default function OrdersPage() {
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("order_number")}>
                       <div className="flex items-center gap-1">Order #{renderSortIcon("order_number")}</div>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
+                    <TableHead className="max-sm:hidden cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("customer_name")}>
                       <div className="flex items-center gap-1">Customer{renderSortIcon("customer_name")}</div>
                     </TableHead>
-                    <TableHead>Items</TableHead>
+                    <TableHead className="max-sm:hidden">Items</TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("total")}>
                       <div className="flex items-center gap-1">Total{renderSortIcon("total")}</div>
                     </TableHead>
                     <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("status")}>
                       <div className="flex items-center gap-1">Status{renderSortIcon("status")}</div>
                     </TableHead>
-                    <TableHead className="cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
+                    <TableHead className="max-sm:hidden cursor-pointer select-none hover:text-foreground transition-colors" onClick={() => handleSort("created_at")}>
                       <div className="flex items-center gap-1">Date{renderSortIcon("created_at")}</div>
                     </TableHead>
                     <TableHead>Action</TableHead>
@@ -818,10 +822,10 @@ export default function OrdersPage() {
                           <TableCell>
                             <span className="font-mono text-sm font-medium">{order.order_number}</span>
                           </TableCell>
-                          <TableCell className="text-muted-foreground">
+                          <TableCell className="max-sm:hidden text-muted-foreground">
                             {order.customer_name || <span className="italic text-muted-foreground/60">Walk-in</span>}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="max-sm:hidden">
                             <Badge variant="secondary" className="font-mono text-xs">
                               {order.items?.length || 0}
                             </Badge>
@@ -840,7 +844,7 @@ export default function OrdersPage() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
+                          <TableCell className="max-sm:hidden text-sm text-muted-foreground">
                             {new Date(order.created_at).toLocaleDateString("en-IN", {
                               day: "2-digit",
                               month: "short",

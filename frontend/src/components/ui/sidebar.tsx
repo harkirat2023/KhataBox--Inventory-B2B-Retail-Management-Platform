@@ -48,7 +48,13 @@ const SidebarProvider = React.forwardRef<
 >(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
-  const [_open, _setOpen] = React.useState(defaultOpen)
+  const [mounted, setMounted] = React.useState(false)
+  const [_open, _setOpen] = React.useState(() => {
+    if (typeof document === "undefined") return defaultOpen
+    const match = document.cookie.match(new RegExp(`(^| )${SIDEBAR_COOKIE_NAME}=([^;]+)`))
+    if (match) return match[2] === "true"
+    return defaultOpen
+  })
   const open = openProp ?? _open
 
   const setOpen = React.useCallback(

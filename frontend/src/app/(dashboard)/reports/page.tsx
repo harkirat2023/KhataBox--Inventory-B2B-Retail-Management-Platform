@@ -333,7 +333,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Reports</h1>
         <p className="text-sm text-muted-foreground">View and analyze your business performance.</p>
       </div>
 
@@ -372,7 +372,7 @@ export default function ReportsPage() {
       </div>
 
       <Tabs defaultValue="sales">
-        <TabsList className="rounded-xl bg-muted p-1">
+        <TabsList className="rounded-xl bg-muted p-1 overflow-x-auto flex-nowrap w-full sm:w-auto">
           <TabsTrigger value="sales" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground">Sales</TabsTrigger>
           <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground">Inventory</TabsTrigger>
           <TabsTrigger value="net-profit" className="rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground">Net Profit</TabsTrigger>

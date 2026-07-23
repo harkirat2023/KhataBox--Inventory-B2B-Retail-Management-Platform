@@ -148,14 +148,14 @@ export default function QRLabelsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-foreground">QR Labels</h1>
-        <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={handlePrint} disabled={selected.size === 0 || generating}>
+        <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200 w-full sm:w-auto" onClick={handlePrint} disabled={selected.size === 0 || generating}>
           <Printer className="size-4 mr-2" /> {generating ? "Generating..." : `Print Labels (${selected.size})`}
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
+      <div className="relative w-full sm:max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <Input placeholder="Search products..." className="rounded-xl bg-muted border-0 h-11 pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
@@ -181,9 +181,9 @@ export default function QRLabelsPage() {
                 <input type="checkbox" checked={selectAll && filtered.length > 0} onChange={toggleAll} className="size-4" />
               </TableHead>
               <TableHead>Product</TableHead>
-              <TableHead>SKU</TableHead>
+              <TableHead className="max-sm:hidden">SKU</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
+              <TableHead className="max-sm:hidden">Stock</TableHead>
               <TableHead className="w-[120px]">Stock Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -194,9 +194,9 @@ export default function QRLabelsPage() {
                   <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)} className="size-4" />
                 </TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{p.sku}</TableCell>
+                <TableCell className="text-sm text-muted-foreground max-sm:hidden">{p.sku}</TableCell>
                 <TableCell className="text-foreground/80">&#x20B9;{p.selling_price.toFixed(2)}</TableCell>
-                <TableCell>{p.stock_quantity}</TableCell>
+                <TableCell className="max-sm:hidden">{p.stock_quantity}</TableCell>
                 <TableCell>
                   <Button
                     variant="ghost"

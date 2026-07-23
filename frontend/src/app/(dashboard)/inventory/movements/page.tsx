@@ -96,13 +96,15 @@ export default function MovementsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Inventory Movements</h1>
-        <p className="text-sm text-muted-foreground">Track all stock changes across your inventory</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Inventory Movements</h1>
+          <p className="text-sm text-muted-foreground">Track all stock changes across your inventory</p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+        <div className="relative flex-1 max-w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Search product, SKU, or reference..."
@@ -112,7 +114,7 @@ export default function MovementsPage() {
           />
         </div>
         <Select value={typeFilter} onValueChange={(val) => val && setTypeFilter(val)}>
-          <SelectTrigger className="w-[140px] rounded-xl border-border h-11">
+          <SelectTrigger className="w-full sm:w-[140px] rounded-xl border-border h-11">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -126,7 +128,7 @@ export default function MovementsPage() {
           </SelectContent>
         </Select>
         <Select value={storeFilter} onValueChange={(val) => val && setStoreFilter(val)}>
-          <SelectTrigger className="w-[180px] rounded-xl border-border h-11">
+          <SelectTrigger className="w-full sm:w-[180px] rounded-xl border-border h-11">
             <SelectValue placeholder="All Stores" />
           </SelectTrigger>
           <SelectContent>
@@ -136,20 +138,22 @@ export default function MovementsPage() {
             ))}
           </SelectContent>
         </Select>
-        <Input
-          type="date"
-          value={dateFrom}
-          onChange={(e) => setDateFrom(e.target.value)}
-          className="w-[150px] rounded-xl border-border h-11"
-          placeholder="From"
-        />
-        <Input
-          type="date"
-          value={dateTo}
-          onChange={(e) => setDateTo(e.target.value)}
-          className="w-[150px] rounded-xl border-border h-11"
-          placeholder="To"
-        />
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="flex-1 sm:w-[150px] rounded-xl border-border h-11"
+            placeholder="From"
+          />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="flex-1 sm:w-[150px] rounded-xl border-border h-11"
+            placeholder="To"
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -172,12 +176,12 @@ export default function MovementsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Product</TableHead>
-              <TableHead>SKU</TableHead>
+              <TableHead className="max-sm:hidden">SKU</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Store</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Reference</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead className="max-sm:hidden">Store</TableHead>
+              <TableHead className="text-right sm:text-left">Quantity</TableHead>
+              <TableHead className="max-sm:hidden">Reference</TableHead>
+              <TableHead className="max-sm:hidden">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -196,19 +200,25 @@ export default function MovementsPage() {
             )}
             {filtered.map((movement) => (
               <TableRow key={movement.id}>
-                <TableCell className="font-medium">{movement.product_name}</TableCell>
-                <TableCell className="font-mono text-sm">{movement.product_sku}</TableCell>
+                <TableCell className="font-medium">
+                  {movement.product_name}
+                  <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                    <span>{movement.product_sku}</span>
+                    <span>{movement.store_name || "—"}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="font-mono text-sm max-sm:hidden">{movement.product_sku}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={`text-xs px-2 py-0 ${(typeConfig[movement.movement_type]?.class) || "bg-gray-100 text-gray-800 border-gray-300"}`}>
                     {typeConfig[movement.movement_type]?.label || movement.movement_type}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{movement.store_name || "—"}</TableCell>
-                <TableCell className={movement.quantity < 0 ? "text-destructive font-medium" : "text-green-600 font-medium"}>
+                <TableCell className="text-sm text-muted-foreground max-sm:hidden">{movement.store_name || "—"}</TableCell>
+                <TableCell className={`text-right sm:text-left ${movement.quantity < 0 ? "text-destructive font-medium" : "text-green-600 font-medium"}`}>
                   {movement.quantity > 0 ? "+" : ""}{movement.quantity}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{movement.reference || "—"}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground max-sm:hidden">{movement.reference || "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground max-sm:hidden">
                   {new Date(movement.created_at).toLocaleString()}
                 </TableCell>
               </TableRow>

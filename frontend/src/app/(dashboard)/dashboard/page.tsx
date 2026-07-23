@@ -241,7 +241,7 @@ export default function DashboardPage() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"

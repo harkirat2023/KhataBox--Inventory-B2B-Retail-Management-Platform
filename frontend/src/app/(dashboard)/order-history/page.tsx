@@ -240,7 +240,7 @@ export default function OrderHistoryPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 pb-8 bg-background">
+      <div className="space-y-4 sm:space-y-6 pb-8 bg-background">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Order History</h1>
@@ -397,10 +397,10 @@ export default function OrderHistoryPage() {
   }
 
   return (
-    <div className="space-y-6 pb-8 bg-background">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 pb-8 bg-background">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Order History</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Order History</h1>
           <p className="text-muted-foreground">View completed and cancelled orders.</p>
         </div>
         <Button variant="outline" onClick={() => router.push("/orders")} className="rounded-xl h-11 px-5 bg-card border border-border text-foreground/80 hover:bg-muted hover:border-border">
@@ -540,11 +540,11 @@ export default function OrderHistoryPage() {
             <TableRow className="bg-muted">
               <TableHead className="w-[40px]"></TableHead>
               <TableHead>Order #</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Items</TableHead>
+              <TableHead className="max-sm:hidden">Customer</TableHead>
+              <TableHead className="max-sm:hidden">Items</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead className="max-sm:hidden">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -576,7 +576,11 @@ export default function OrderHistoryPage() {
                   <TableCell className={`font-mono text-sm font-medium ${isBilling ? "text-muted-foreground italic" : "text-foreground"}`}>
                     {isBilling ? order.order_number : (order as Order).order_number}
                   </TableCell>
-                  <TableCell className="text-sm text-foreground/80">{order.customer_name || "—"}</TableCell>
+                    <div className="sm:hidden flex gap-2 mt-1 text-xs text-muted-foreground">
+                      <span>{order.customer_name || "—"}</span>
+                      <span>{items.length} items</span>
+                    </div>
+                  <TableCell className="max-sm:hidden text-sm text-foreground/80">{order.customer_name || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{items.length}</TableCell>
                   <TableCell className="font-medium text-foreground">₹{order.total.toFixed(2)}</TableCell>
                   <TableCell>
@@ -587,7 +591,7 @@ export default function OrderHistoryPage() {
                       {!isBilling && historyTab === "b2c" && getB2CActionButtons(order as unknown as { status: string; id: number })}
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="max-sm:hidden text-sm text-muted-foreground">
                     {new Date(order.created_at).toLocaleDateString()} {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </TableCell>
                   <TableCell className="w-[80px]">

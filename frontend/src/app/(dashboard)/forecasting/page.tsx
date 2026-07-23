@@ -228,7 +228,7 @@ export default function ForecastingPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">AI Forecasting</h1>
           <p className="text-sm text-muted-foreground">
@@ -238,7 +238,7 @@ export default function ForecastingPage() {
         <Button
           variant="outline"
           size="sm"
-          className="rounded-xl h-9 px-4"
+          className="rounded-xl h-9 px-4 w-full sm:w-auto"
           onClick={async () => {
             setRetraining(true)
             try {

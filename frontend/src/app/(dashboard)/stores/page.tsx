@@ -92,9 +92,9 @@ export default function StoresPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-3xl font-bold text-foreground">Stores</h1>
-          <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200" onClick={openCreate}><Plus className="size-4 mr-2" /> Add Store</Button>
+          <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-11 px-5 transition-all duration-200 w-full sm:w-auto" onClick={openCreate}><Plus className="size-4 mr-2" /> Add Store</Button>
         </div>
 
         {loading ? (
@@ -103,7 +103,7 @@ export default function StoresPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Address</TableHead>
+                  <TableHead className="max-sm:hidden">Address</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -121,7 +121,7 @@ export default function StoresPage() {
             </Table>
           </div>
         ) : stores.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl border border-border shadow-sm">
+                    <div className="flex flex-col items-center justify-center py-16 bg-card rounded-2xl border border-border shadow-sm px-4 text-center">
             <StoreIcon className="size-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold text-foreground">No stores found</h3>
             <p className="text-sm text-muted-foreground mt-1 mb-6">Create your first store to get started.</p>
@@ -135,7 +135,7 @@ export default function StoresPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Address</TableHead>
+                  <TableHead className="max-sm:hidden">Address</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -144,7 +144,7 @@ export default function StoresPage() {
                 {stores.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{s.address || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-sm:hidden">{s.address || "—"}</TableCell>
                     <TableCell>
                       <Badge className={`${s.is_active ? "bg-green-600 text-white dark:bg-green-500 dark:text-white" : "bg-slate-600 text-white dark:bg-slate-500 dark:text-white"}`}>
                         {s.is_active ? "Active" : "Inactive"}
