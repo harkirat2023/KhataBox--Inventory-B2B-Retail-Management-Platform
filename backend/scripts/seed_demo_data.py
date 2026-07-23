@@ -21,7 +21,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from faker import Faker
-from sqlalchemy import select, text
+from sqlalchemy import select, text, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import async_session, engine
@@ -32,11 +32,9 @@ from app.models.product import Product
 from app.models.supplier import Supplier
 from app.models.customer import Customer
 from app.models.order import Order, OrderItem, OrderStatus, PaymentMethod
-from app.models.invoice import Invoice
 from app.models.purchase_order import PurchaseOrder, PurchaseOrderItem, POStatus
-from app.models.inventory import InventoryMovement, MovementType, StockTransfer, StockTransferStatus
+from app.models.inventory import InventoryMovement, MovementType
 from app.models.notification import Notification, NotificationType
-from app.models.audit_log import AuditLog
 from app.models.seed_product import SeedProduct
 
 fake = Faker("en_IN")
@@ -219,25 +217,40 @@ STATUSES = ["pending", "completed", "cancelled", "rejected", "confirmed"]
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Batch helpers
 # ---------------------------------------------------------------------------
-async def exists(db: AsyncSession, model, **kwargs) -> bool:
-    stmt = select(model).filter_by(**kwargs).limit(1)
+async def batch_check_existing(db: AsyncSession, model, field_vals: list[tuple]) -> set:
+    """Given a list of (field, value) pairs, return set of values that exist.
+    All pairs must use the same field name. Used to batch idempotency checks.
+    """
+    if not field_vals:
+        return set()
+    field_name, values = field_vals[0][0], [v for _, v in field_vals]
+    col = getattr(model, field_name)
+    stmt = select(col).where(col.in_(values))
     result = await db.execute(stmt)
-    return result.scalar_one_or_none() is not None
+    return {row[0] for row in result}
 
 
-async def get_or_none(db: AsyncSession, model, **kwargs):
-    stmt = select(model).filter_by(**kwargs).limit(1)
+async def batch_check_existing_filter(db: AsyncSession, model, filter_field, filter_val, check_field, check_vals: list) -> set:
+    """Check existence with an additional filter (e.g., owner_id)."""
+    if not check_vals:
+        return set()
+    filter_col = getattr(model, filter_field)
+    check_col = getattr(model, check_field)
+    stmt = select(check_col).where(filter_col == filter_val, check_col.in_(check_vals))
     result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return {row[0] for row in result}
 
 
 async def create_admin(db: AsyncSession, stats: dict):
     email = "admin@khatabox.com"
-    if await exists(db, User, email=email, role=UserRole.ADMIN):
+    existing = await batch_check_existing(db, User, [("email", email)])
+    if email in existing:
         stats["skipped"]["admin"] += 1
-        return await get_or_none(db, User, email=email, role=UserRole.ADMIN)
+        stmt = select(User).where(User.email == email, User.role == UserRole.ADMIN)
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
 
     admin = User(
         email=email,
@@ -254,12 +267,13 @@ async def create_admin(db: AsyncSession, stats: dict):
 
 
 async def create_shopkeepers(db: AsyncSession, stats: dict):
-    created_count = 0
+    existing_emails = await batch_check_existing(db, User, [("email", e) for _, _, e, _, _ in SHOPKEEPER_DATA])
+    users = []
+    stores = []
     for name, person, email, phone, store_type in SHOPKEEPER_DATA:
-        if await exists(db, User, email=email, role=UserRole.SHOPKEEPER):
+        if email in existing_emails:
             stats["skipped"]["shopkeepers"] += 1
             continue
-
         user = User(
             email=email,
             password_hash=hash_password("Shop@123"),
@@ -269,37 +283,41 @@ async def create_shopkeepers(db: AsyncSession, stats: dict):
             store_name=name,
             is_active=True,
         )
-        db.add(user)
+        users.append(user)
+
+    if users:
+        db.add_all(users)
         await db.flush()
 
-        city, state = CITY_ASSIGNMENTS[random.randint(0, len(CITY_ASSIGNMENTS) - 1)]
-        store = Store(
-            name=name,
-            store_type=store_type,
-            address=f"{random.randint(1, 999)}, {fake.street_name()}, {city}",
-            city=city,
-            state=state,
-            pin_code=str(random.randint(100000, 999999)),
-            gst_number=f"27AABCU{random.randint(1000, 9999)}3{random.randint(1, 9)}Z{random.randint(0, 9)}",
-            owner_id=user.id,
-            is_active=True,
-        )
-        db.add(store)
+        for user, (name, person, email, phone, store_type) in zip(users, [s for s in SHOPKEEPER_DATA if s[2] not in existing_emails]):
+            city, state = CITY_ASSIGNMENTS[random.randint(0, len(CITY_ASSIGNMENTS) - 1)]
+            store = Store(
+                name=name,
+                store_type=store_type,
+                address=f"{random.randint(1, 999)}, {fake.street_name()}, {city}",
+                city=city,
+                state=state,
+                pin_code=str(random.randint(100000, 999999)),
+                gst_number=f"27AABCU{random.randint(1000, 9999)}3{random.randint(1, 9)}Z{random.randint(0, 9)}",
+                owner_id=user.id,
+                is_active=True,
+            )
+            stores.append(store)
+        db.add_all(stores)
         await db.flush()
-        created_count += 1
 
-    stats["created"]["shopkeepers"] = created_count
+    stats["created"]["shopkeepers"] = len(users)
 
 
 async def create_customers_for_user(db: AsyncSession, shopkeeper_id: int, stats: dict):
-    for name, person, email, phone, limit_amt in CUSTOMER_DATA:
-        # Each shopkeeper gets unique customer emails
-        cust_email = f"{email.split('@')[0]}+{shopkeeper_id}@client.com"
-        if await exists(db, Customer, email=cust_email, owner_id=shopkeeper_id):
+    cust_emails = [f"{e.split('@')[0]}+{shopkeeper_id}@client.com" for _, _, e, _, _ in CUSTOMER_DATA]
+    existing = await batch_check_existing_filter(db, Customer, "owner_id", shopkeeper_id, "email", cust_emails)
+    customers = []
+    for (name, person, email, phone, limit_amt), cust_email in zip(CUSTOMER_DATA, cust_emails):
+        if cust_email in existing:
             stats["skipped"]["customers"] += 1
             continue
-
-        customer = Customer(
+        customers.append(Customer(
             company_name=name,
             contact_person=person,
             email=cust_email,
@@ -309,50 +327,60 @@ async def create_customers_for_user(db: AsyncSession, shopkeeper_id: int, stats:
             price_tier=random.choice(["standard", "premium", "wholesale"]),
             gst_number=f"27ABCDE{random.randint(1000, 9999)}1Z{random.randint(0, 9)}",
             owner_id=shopkeeper_id,
-        )
-        db.add(customer)
+        ))
+    if customers:
+        db.add_all(customers)
         await db.flush()
-        stats["created"]["customers"] += 1
+    stats["created"]["customers"] = len(customers)
 
 
 async def create_suppliers_for_user(db: AsyncSession, shopkeeper_id: int, stats: dict):
-    for name, contact, email, phone in SUPPLIER_DATA:
-        if await exists(db, Supplier, email=email, owner_id=shopkeeper_id):
+    supp_emails = [e for _, _, e, _ in SUPPLIER_DATA]
+    existing = await batch_check_existing_filter(db, Supplier, "owner_id", shopkeeper_id, "email", supp_emails)
+    suppliers = []
+    for (name, contact, email, phone) in SUPPLIER_DATA:
+        if email in existing:
             stats["skipped"]["suppliers"] += 1
             continue
-
-        supplier = Supplier(
+        suppliers.append(Supplier(
             name=name,
             contact_person=contact,
             email=email,
             phone=phone,
             address=f"{random.randint(1, 999)}, {fake.street_name()}, {random.choice(INDIAN_CITIES)[0]}",
             owner_id=shopkeeper_id,
-        )
-        db.add(supplier)
+        ))
+    if suppliers:
+        db.add_all(suppliers)
         await db.flush()
-        stats["created"]["suppliers"] += 1
+    stats["created"]["suppliers"] = len(suppliers)
 
 
 async def create_products_for_user(db: AsyncSession, shopkeeper_id: int, store_id: int, stats: dict):
     categories = list(PRODUCT_CATALOG.keys())
     product_idx = {cat: 0 for cat in categories}
+    skus = []
+    for cat_name, cat_data in PRODUCT_CATALOG.items():
+        for _ in cat_data["products"]:
+            sku = f"SKU-{shopkeeper_id}-{cat_name[:3].upper()}-{product_idx[cat_name]:04d}"
+            product_idx[cat_name] += 1
+            skus.append((cat_name, sku))
 
+    existing_skus = await batch_check_existing_filter(db, Product, "owner_id", shopkeeper_id, "sku", [s for _, s in skus])
+
+    product_idx = {cat: 0 for cat in categories}
+    products = []
     for cat_name, cat_data in PRODUCT_CATALOG.items():
         for prod_name, cost, sell in cat_data["products"]:
             sku = f"SKU-{shopkeeper_id}-{cat_name[:3].upper()}-{product_idx[cat_name]:04d}"
             product_idx[cat_name] += 1
-
-            if await exists(db, Product, sku=sku, owner_id=shopkeeper_id):
+            if sku in existing_skus:
                 stats["skipped"]["products"] += 1
                 continue
-
             brand = random.choice(cat_data["brands"])
-            gst_rate = GST_RATES[cat_data["gst"]]
             stock = random.randint(15, 200)
             threshold = random.randint(5, 20)
-
-            product = Product(
+            products.append(Product(
                 product_uuid=str(uuid.uuid4()),
                 name=prod_name,
                 sku=sku,
@@ -368,32 +396,44 @@ async def create_products_for_user(db: AsyncSession, shopkeeper_id: int, store_i
                 store_id=store_id,
                 is_active=True,
                 created_at=datetime.now(timezone.utc) - timedelta(days=random.randint(1, 365)),
-            )
-            db.add(product)
-            await db.flush()
-            stats["created"]["products"] += 1
+            ))
+    if products:
+        db.add_all(products)
+        await db.flush()
+    stats["created"]["products"] = len(products)
 
 
 async def create_orders_for_user(db: AsyncSession, shopkeeper_id: int, store_id: int, customers: list[int], products: list[dict], stats: dict):
-    """Create 3-6 months of historical orders plus recent orders."""
     now = datetime.now(timezone.utc)
+    orders_batch = []
+    items_batch = []
+    movements_batch = []
     order_idx = 1
 
+    # Pre-check all order numbers
+    existing_order_numbers = set()
+    for days_ago in range(1, 180, random.randint(1, 3)):
+        onum = f"ORD-{shopkeeper_id}-{order_idx:04d}"
+        existing_order_numbers.add(onum)
+        order_idx += 1
+    existing_order_numbers = await batch_check_existing_filter(
+        db, Order, "shopkeeper_id", shopkeeper_id, "order_number", list(existing_order_numbers)
+    )
+
+    order_idx = 1
+    created_count = 0
     for days_ago in range(1, 180, random.randint(1, 3)):
         order_date = now - timedelta(days=days_ago)
-        num_items = random.randint(1, 5)
-        selected_products = random.sample(products, min(num_items, len(products)))
-        status = random.choices(
-            ["completed", "completed", "completed", "cancelled", "pending"],
-            weights=[50, 30, 10, 5, 5],
-        )[0]
-        customer_id = random.choice(customers) if customers else None
-
-        # Check for duplicate
         order_number = f"ORD-{shopkeeper_id}-{order_idx:04d}"
-        if await exists(db, Order, order_number=order_number):
+        order_idx += 1
+        if order_number in existing_order_numbers:
             stats["skipped"]["orders"] += 1
             continue
+
+        num_items = random.randint(1, 5)
+        selected_products = random.sample(products, min(num_items, len(products)))
+        status = random.choices(["completed", "completed", "completed", "cancelled", "pending"], weights=[50, 30, 10, 5, 5])[0]
+        customer_id = random.choice(customers) if customers else None
 
         subtotal = 0.0
         items_data = []
@@ -430,16 +470,18 @@ async def create_orders_for_user(db: AsyncSession, shopkeeper_id: int, store_id:
             created_at=order_date,
             updated_at=order_date,
         )
-        db.add(order)
+        orders_batch.append((order, items_data, status, order_number, order_date))
+
+    if orders_batch:
+        db.add_all([o for o, _, _, _, _ in orders_batch])
         await db.flush()
 
-        for item in items_data:
-            oi = OrderItem(order_id=order.id, **item)
-            db.add(oi)
-
+        for order, items_data, status, order_number, order_date in orders_batch:
+            for item in items_data:
+                items_batch.append(OrderItem(order_id=order.id, **item))
             if status == "completed":
                 for item in items_data:
-                    im = InventoryMovement(
+                    movements_batch.append(InventoryMovement(
                         product_id=item["product_id"],
                         shopkeeper_id=shopkeeper_id,
                         movement_type=MovementType.SALE,
@@ -448,32 +490,47 @@ async def create_orders_for_user(db: AsyncSession, shopkeeper_id: int, store_id:
                         notes=f"Order {order_number}",
                         created_at=order_date,
                         store_id=store_id,
-                    )
-                    db.add(im)
+                    ))
+        db.add_all(items_batch)
+        if movements_batch:
+            db.add_all(movements_batch)
+        await db.flush()
+        created_count = len(orders_batch)
 
-        order_idx += 1
-        stats["created"]["orders"] += 1
+    stats["created"]["orders"] += created_count
 
 
 async def create_purchase_orders(db: AsyncSession, shopkeeper_id: int, suppliers: list[int], products: list[dict], stats: dict):
-    po_idx = 1
     now = datetime.now(timezone.utc)
+    pos_batch = []
+    poi_batch = []
+    po_idx = 1
 
+    # Pre-check PO numbers
+    existing_po_numbers = set()
+    for days_ago in range(1, 120, random.randint(5, 15)):
+        pn = f"PO-{shopkeeper_id}-{po_idx:04d}"
+        existing_po_numbers.add(pn)
+        po_idx += 1
+    existing_po_numbers = await batch_check_existing_filter(
+        db, PurchaseOrder, "shopkeeper_id", shopkeeper_id, "po_number", list(existing_po_numbers)
+    )
+
+    po_idx = 1
     for days_ago in range(1, 120, random.randint(5, 15)):
         po_date = now - timedelta(days=days_ago)
-        po_number = f"PO-{shopkeeper_id}-{po_idx:04d}"
-
-        if await exists(db, PurchaseOrder, order_number=po_number):
+        po_number_str = f"PO-{shopkeeper_id}-{po_idx:04d}"
+        po_idx += 1
+        if po_number_str in existing_po_numbers:
             stats["skipped"]["purchase_orders"] += 1
             continue
 
         num_items = random.randint(1, 4)
         selected = random.sample(products, min(num_items, len(products)))
-        status = random.choice(["pending", "approved", "received", "cancelled"])
-
+        status = random.choice(["draft", "sent", "received", "cancelled"])
         supplier_id = random.choice(suppliers) if suppliers else None
         po = PurchaseOrder(
-            order_number=po_number,
+            po_number=po_number_str,
             shopkeeper_id=shopkeeper_id,
             supplier_id=supplier_id,
             status=status,
@@ -481,76 +538,69 @@ async def create_purchase_orders(db: AsyncSession, shopkeeper_id: int, suppliers
             created_at=po_date,
             updated_at=po_date,
         )
-        db.add(po)
-        await db.flush()
+        pos_batch.append((po, selected, po_date))
 
-        for prod in selected:
-            qty = random.randint(10, 100)
-            unit_cost = round(prod["price"] * random.uniform(0.6, 0.85), 2)
-            poi = PurchaseOrderItem(
-                purchase_order_id=po.id,
-                product_id=prod["id"],
-                product_name=prod["name"],
-                quantity=qty,
-                unit_cost=unit_cost,
-                total_cost=round(qty * unit_cost, 2),
-            )
-            db.add(poi)
-        po_idx += 1
-        stats["created"]["purchase_orders"] += 1
+    if pos_batch:
+        db.add_all([p for p, _, _ in pos_batch])
+        await db.flush()
+        for po, selected, po_date in pos_batch:
+            for prod in selected:
+                qty = random.randint(10, 100)
+                unit_cost = round(prod["price"] * random.uniform(0.6, 0.85), 2)
+                poi_batch.append(PurchaseOrderItem(
+                    purchase_order_id=po.id,
+                    product_id=prod["id"],
+                    product_name=prod["name"],
+                    quantity=qty,
+                    unit_price=unit_cost,
+                    total_price=round(qty * unit_cost, 2),
+                ))
+        db.add_all(poi_batch)
+        await db.flush()
+    stats["created"]["purchase_orders"] += len(pos_batch)
 
 
 async def create_notifications(db: AsyncSession, shopkeeper_id: int, stats: dict):
-    types = [
+    notif_types = [
         NotificationType.LOW_STOCK, NotificationType.ORDER_COMPLETED,
-        NotificationType.STOCK_UPDATED, NotificationType.PAYMENT,
-        NotificationType.PRODUCT_CREATED,
+        NotificationType.STOCK_UPDATED, NotificationType.PRODUCT_CREATED,
+        NotificationType.PAYMENT_REMINDER, NotificationType.INVOICE_GENERATED,
     ]
     now = datetime.now(timezone.utc)
+    title_map = {
+        NotificationType.LOW_STOCK: "Low Stock Alert",
+        NotificationType.ORDER_COMPLETED: "Order Completed",
+        NotificationType.STOCK_UPDATED: "Stock Updated",
+        NotificationType.PRODUCT_CREATED: "Product Added",
+        NotificationType.PAYMENT_REMINDER: "Payment Reminder",
+        NotificationType.INVOICE_GENERATED: "Invoice Generated",
+    }
+    msg_map = {
+        NotificationType.LOW_STOCK: lambda: f"Product {random.choice(['Aashirvaad Atta', 'Fortune Oil', 'Basmati Rice', 'Sugar'])} is running low",
+        NotificationType.ORDER_COMPLETED: lambda: f"Order ORD-{random.randint(1000,9999)} has been completed",
+        NotificationType.STOCK_UPDATED: lambda: f"Stock updated for {random.randint(1,5)} products",
+        NotificationType.PRODUCT_CREATED: lambda: f"New product added to inventory",
+        NotificationType.PAYMENT_REMINDER: lambda: f"Payment of Rs.{random.randint(100,5000)} is due",
+        NotificationType.INVOICE_GENERATED: lambda: f"Invoice INV-{random.randint(10000,99999)} generated",
+    }
+    records = []
     for i in range(20):
-        notif_type = random.choice(types)
+        notif_type = random.choice(notif_types)
         days_ago = random.randint(0, 30)
-        title_map = {
-            NotificationType.LOW_STOCK: "Low Stock Alert",
-            NotificationType.ORDER_COMPLETED: "Order Completed",
-            NotificationType.STOCK_UPDATED: "Stock Updated",
-            NotificationType.PAYMENT: "Payment Received",
-            NotificationType.PRODUCT_CREATED: "Product Added",
-        }
-        msg_map = {
-            NotificationType.LOW_STOCK: f"Product {random.choice(['Aashirvaad Atta', 'Fortune Oil', 'Basmati Rice', 'Sugar'])} is running low",
-            NotificationType.ORDER_COMPLETED: f"Order ORD-{random.randint(1000,9999)} has been completed",
-            NotificationType.STOCK_UPDATED: f"Stock updated for {random.randint(1,5)} products",
-            NotificationType.PAYMENT: f"Payment of ₹{random.randint(100,5000)} received",
-            NotificationType.PRODUCT_CREATED: f"New product added to inventory",
-        }
-        # Avoid exact duplicates (same type+title for same user on same day)
-        dup_check = await db.execute(
-            select(Notification).where(
-                Notification.user_id == shopkeeper_id,
-                Notification.type == notif_type,
-                Notification.title == title_map[notif_type],
-                Notification.created_at >= now - timedelta(days=1),
-            ).limit(1)
-        )
-        if dup_check.scalar_one_or_none():
-            continue
-
-        n = Notification(
+        records.append(Notification(
             user_id=shopkeeper_id,
             type=notif_type,
             title=title_map[notif_type],
-            message=msg_map[notif_type],
+            message=msg_map[notif_type](),
             is_read=random.random() > 0.4,
             reference_id=None,
             created_at=now - timedelta(days=days_ago, hours=random.randint(0, 12)),
-        )
-        db.add(n)
-        stats["created"]["notifications"] += 1
+        ))
+    db.add_all(records)
+    stats["created"]["notifications"] += len(records)
 
 
 async def add_seed_products(db: AsyncSession, stats: dict):
-    """Add seed products for onboarding if not present."""
     seed_data = {
         "kirana": [
             ("Aashirvaad Atta 5kg", "AASH-ATTA", "Groceries & Staples", 140, 260),
@@ -603,21 +653,34 @@ async def add_seed_products(db: AsyncSession, stats: dict):
         ],
     }
 
+    # Batch existence check for seed products
+    all_sp = []
     for store_type, items in seed_data.items():
         for name, sku_prefix, category, cost, sell in items:
-            if await exists(db, SeedProduct, name=name, store_type=store_type):
-                stats["skipped"]["seed_products"] += 1
-                continue
-            sp = SeedProduct(
-                store_type=store_type,
-                name=name,
-                sku_prefix=sku_prefix,
-                category=category,
-                default_selling_price=float(sell),
-                default_cost_price=float(cost),
-            )
-            db.add(sp)
-            stats["created"]["seed_products"] += 1
+            all_sp.append((store_type, name, sku_prefix, category, cost, sell))
+    existing_sp = set()
+    for store_type in seed_data:
+        names = [n for t, n, _, _, _, _ in all_sp if t == store_type]
+        if names:
+            existing = await batch_check_existing_filter(db, SeedProduct, "store_type", store_type, "name", names)
+            existing_sp.update(existing)
+
+    records = []
+    for store_type, name, sku_prefix, category, cost, sell in all_sp:
+        if name in existing_sp:
+            stats["skipped"]["seed_products"] += 1
+            continue
+        records.append(SeedProduct(
+            store_type=store_type,
+            name=name,
+            sku_prefix=sku_prefix,
+            category=category,
+            default_selling_price=float(sell),
+            default_cost_price=float(cost),
+        ))
+    if records:
+        db.add_all(records)
+    stats["created"]["seed_products"] = len(records)
 
 
 # ---------------------------------------------------------------------------
@@ -659,6 +722,8 @@ async def seed():
                     if not store:
                         continue
 
+                    print(f"  Seeding data for {shopkeeper.store_name or shopkeeper.email}...")
+
                     # 3. Customers
                     await create_customers_for_user(db, shopkeeper.id, stats)
 
@@ -694,23 +759,33 @@ async def seed():
                         continue
 
                     # 7. Orders
+                    print(f"    Creating orders...")
                     await create_orders_for_user(db, shopkeeper.id, store.id, customers, products, stats)
+                    print(f"    Orders done: {stats['created'].get('orders', 0)} created, {stats['skipped'].get('orders', 0)} skipped")
 
                     # 8. Purchase Orders
+                    print(f"    Creating purchase orders...")
                     await create_purchase_orders(db, shopkeeper.id, suppliers, products, stats)
+                    print(f"    Purchase orders done")
 
                     # 9. Notifications
+                    print(f"    Creating notifications...")
                     await create_notifications(db, shopkeeper.id, stats)
+                    print(f"    Notifications done")
 
                 # 10. Seed Products (for onboarding)
                 await add_seed_products(db, stats)
+
+                print("  All data prepared, committing...")
+                await db.commit()
+                print("  Commit OK.")
 
             except Exception as e:
                 stats["errors"].append(str(e))
                 print(f"  [ERR] Error: {e}")
                 raise
 
-        await db.commit()
+        # db.begin() context manager commits/rolls back on exit
 
     # Print Summary
     print()

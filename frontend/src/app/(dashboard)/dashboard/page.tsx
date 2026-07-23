@@ -261,7 +261,7 @@ export default function DashboardPage() {
                 setActiveStore(store ? { id: store.id, name: store.name } : { id: null, name: null })
               }}
             >
-              <SelectTrigger className="w-[180px] h-9 rounded-lg">
+              <SelectTrigger className="w-full sm:w-[180px] h-9 rounded-lg">
                 <SelectValue placeholder="All Stores" />
               </SelectTrigger>
               <SelectContent>
@@ -336,12 +336,12 @@ export default function DashboardPage() {
               >
                 <Button
                   variant="outline"
-                  className="w-full h-auto py-4 flex-col gap-2.5 hover:bg-accent rounded-xl transition-all border-border shadow-sm hover:shadow-md"
+                  className="w-full h-auto py-3 sm:py-4 flex-col gap-1.5 sm:gap-2.5 hover:bg-accent rounded-xl transition-all border-border shadow-sm hover:shadow-md"
                 >
-                  <div className={cn("flex items-center justify-center size-10 rounded-xl", action.color)}>
-                    <Icon className="size-5" />
+                  <div className={cn("flex items-center justify-center size-9 sm:size-10 rounded-xl", action.color)}>
+                    <Icon className="size-4 sm:size-5" />
                   </div>
-                  <span className="text-xs font-semibold text-foreground">{action.label}</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-foreground leading-tight text-center">{action.label}</span>
                 </Button>
               </motion.div>
             </Link>
@@ -360,18 +360,18 @@ export default function DashboardPage() {
               transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}
             >
               <Card className="relative">
-                <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+                <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">{card.title}</CardTitle>
                   <div className={cn("flex items-center justify-center size-9 rounded-xl", iconStyle)}>
                     <Icon className="size-4" />
                   </div>
                 </CardHeader>
-                <CardContent className="px-6 pb-6 pt-0">
+                <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 pt-0">
                   {statsLoading ? (
                     <MetricSkeleton />
                   ) : (
                     <>
-                      <div className="text-3xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</div>
+                      <div className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">{card.value}</div>
                       {card.subtitle && (
                         <p className="text-xs text-muted-foreground mt-1 font-mono">{card.subtitle}</p>
                       )}
@@ -400,7 +400,7 @@ export default function DashboardPage() {
       <motion.div className="grid gap-6 lg:grid-cols-2" variants={itemVariants}>
         <motion.div whileHover={{ translateY: -3 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
               <CardTitle className="text-base font-semibold text-foreground">Recent Orders</CardTitle>
               <Link href="/orders">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl gap-1">
@@ -408,7 +408,7 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="px-6 pb-6 pt-2">
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 pt-2">
               {recentOrders.length === 0 ? (
                 <EmptyState
                   icon={ClipboardList}
@@ -430,11 +430,11 @@ export default function DashboardPage() {
                             <p className="text-xs text-muted-foreground">{order.customer_name || "Walk-in"}</p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <Badge variant="outline" className={cn("text-xs font-medium rounded-lg px-2 py-0.5", ORDER_STATUS_CONFIG[order.status]?.color)}>
+                        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                          <Badge variant="outline" className={cn("text-[10px] sm:text-xs font-medium rounded-lg px-1.5 sm:px-2 py-0.5", ORDER_STATUS_CONFIG[order.status]?.color)}>
                             {order.status}
                           </Badge>
-                          <span className="text-sm font-semibold tabular-nums text-foreground">₹{order.total.toFixed(2)}</span>
+                          <span className="text-xs sm:text-sm font-semibold tabular-nums text-foreground">₹{order.total.toFixed(2)}</span>
                         </div>
                       </div>
                     </Link>
@@ -447,7 +447,7 @@ export default function DashboardPage() {
 
         <motion.div whileHover={{ translateY: -3 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
               <CardTitle className="text-base font-semibold text-foreground">Low Stock Alert</CardTitle>
               <Link href="/inventory">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl gap-1">
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="px-6 pb-6 pt-2">
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 pt-2">
               {lowStockProducts.length === 0 ? (
                 <EmptyState
                   icon={Package}
@@ -491,7 +491,7 @@ export default function DashboardPage() {
 
         <motion.div whileHover={{ translateY: -3 }} transition={{ type: "spring" as const, stiffness: 300, damping: 20 }}>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between px-6 pt-6 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
               <CardTitle className="text-base font-semibold text-foreground">Activity Feed</CardTitle>
               <Link href="/notifications">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground rounded-xl gap-1">
@@ -499,7 +499,7 @@ export default function DashboardPage() {
                 </Button>
               </Link>
             </CardHeader>
-            <CardContent className="px-6 pb-6 pt-2">
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 pt-2">
               {statsLoading ? (
                 <div className="space-y-3">
                   {[1,2,3].map((i) => <Skeleton key={i} className="h-12 w-full rounded-xl" />)}
@@ -518,8 +518,8 @@ export default function DashboardPage() {
                         <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
                         <p className="text-xs text-muted-foreground truncate">{item.message}</p>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {item.total != null && <span className="text-sm font-semibold tabular-nums text-foreground">₹{item.total.toFixed(2)}</span>}
+                      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                        {item.total != null && <span className="hidden sm:inline text-sm font-semibold tabular-nums text-foreground">₹{item.total.toFixed(2)}</span>}
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {timeAgo(item.created_at)}
                         </span>
