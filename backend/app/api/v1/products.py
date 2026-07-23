@@ -169,6 +169,76 @@ async def get_product(product_id: int, current_user: User = Depends(require_role
     return await _enrich_store_name(product, ProductResponse.model_validate(product), db)
 
 
+@router.put("/bulk-update", response_model=dict)
+async def bulk_update_products(
+    payload: BulkProductUpdateRequest,
+    current_user: User = Depends(require_role("admin", "shopkeeper")),
+    db: AsyncSession = Depends(get_db),
+):
+    updated = 0
+    for item in payload.updates:
+        result = await db.execute(
+            select(Product).where(Product.id == item.id, Product.owner_id == current_user.id)
+        )
+        product = result.scalar_one_or_none()
+        if not product:
+            continue
+
+        changes = item.model_dump(exclude={"id"}, exclude_none=True)
+        if not changes:
+            continue
+
+        old_stock = product.stock_quantity
+        old_selling_price = product.selling_price
+        for key, value in changes.items():
+            setattr(product, key, value)
+        await db.flush()
+
+        if "stock_quantity" in changes:
+            diff = product.stock_quantity - old_stock
+            db.add(InventoryMovement(
+                product_id=product.id, shopkeeper_id=current_user.id,
+                store_id=product.store_id,
+                movement_type=MovementType.ADJUSTMENT,
+                quantity=diff,
+                reference=f"Bulk stock edit: {old_stock} → {product.stock_quantity}",
+            ))
+            await log_activity(
+                db=db, product_id=product.id, shopkeeper_id=current_user.id,
+                activity_type=ActivityType.STOCK_UPDATE,
+                quantity=product.stock_quantity,
+                reference="Bulk stock update",
+            )
+
+        if "selling_price" in changes:
+            db.add(PriceHistory(
+                product_id=product.id, shopkeeper_id=current_user.id,
+                field_name="selling_price",
+                previous_value=old_selling_price,
+                new_value=changes["selling_price"],
+                changed_by=current_user.email, reason="Bulk price update",
+            ))
+            await log_activity(
+                db=db, product_id=product.id, shopkeeper_id=current_user.id,
+                activity_type=ActivityType.PRICE_CHANGE,
+                previous_value=old_selling_price,
+                new_value=changes["selling_price"],
+                reference=f"selling_price → {changes['selling_price']}",
+            )
+
+        await create_notification(
+            db=db, user_id=current_user.id, type=NotificationType.STOCK_UPDATED,
+            title="Product Updated",
+            message=f"{product.name} ({product.sku}) — stock: {product.stock_quantity}",
+            reference_id=product.id,
+        )
+        updated += 1
+
+    await db.commit()
+    await invalidate_cache("dashboard:*")
+    return {"updated": updated}
+
+
 @router.put("/{product_id}", response_model=ProductResponse)
 async def update_product(product_id: int, payload: ProductUpdate, current_user: User = Depends(require_role("admin", "shopkeeper")), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Product).where(Product.id == product_id, Product.owner_id == current_user.id))
@@ -257,75 +327,6 @@ async def upload_product_image(
     await db.commit()
     await db.refresh(product)
     return await _enrich_store_name(product, ProductResponse.model_validate(product), db)
-
-
-@router.put("/bulk-update", response_model=dict)
-async def bulk_update_products(
-    payload: BulkProductUpdateRequest,
-    current_user: User = Depends(require_role("admin", "shopkeeper")),
-    db: AsyncSession = Depends(get_db),
-):
-    updated = 0
-    for item in payload.updates:
-        result = await db.execute(
-            select(Product).where(Product.id == item.id, Product.owner_id == current_user.id)
-        )
-        product = result.scalar_one_or_none()
-        if not product:
-            continue
-
-        changes = item.model_dump(exclude={"id"}, exclude_none=True)
-        if not changes:
-            continue
-
-        old_stock = product.stock_quantity
-        for key, value in changes.items():
-            setattr(product, key, value)
-        await db.flush()
-
-        if "stock_quantity" in changes:
-            diff = product.stock_quantity - old_stock
-            db.add(InventoryMovement(
-                product_id=product.id, shopkeeper_id=current_user.id,
-                store_id=product.store_id,
-                movement_type=MovementType.ADJUSTMENT,
-                quantity=diff,
-                reference=f"Bulk stock edit: {old_stock} → {product.stock_quantity}",
-            ))
-            await log_activity(
-                db=db, product_id=product.id, shopkeeper_id=current_user.id,
-                activity_type=ActivityType.STOCK_UPDATE,
-                quantity=product.stock_quantity,
-                reference="Bulk stock update",
-            )
-
-        if "selling_price" in changes:
-            db.add(PriceHistory(
-                product_id=product.id, shopkeeper_id=current_user.id,
-                field_name="selling_price",
-                previous_value=float(old_stock if False else 0),
-                new_value=changes["selling_price"],
-                changed_by=current_user.email, reason="Bulk price update",
-            ))
-            await log_activity(
-                db=db, product_id=product.id, shopkeeper_id=current_user.id,
-                activity_type=ActivityType.PRICE_CHANGE,
-                previous_value=0,
-                new_value=changes["selling_price"],
-                reference=f"selling_price → {changes['selling_price']}",
-            )
-
-        await create_notification(
-            db=db, user_id=current_user.id, type=NotificationType.STOCK_UPDATED,
-            title="Product Updated",
-            message=f"{product.name} ({product.sku}) — stock: {product.stock_quantity}",
-            reference_id=product.id,
-        )
-        updated += 1
-
-    await db.commit()
-    await invalidate_cache("dashboard:*")
-    return {"updated": updated}
 
 
 @router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -26,9 +26,9 @@ FEATURE_COLS = [
 
 def generate_synthetic_data(n_samples: int = N_SAMPLES) -> pd.DataFrame:
     np.random.seed(RANDOM_SEED)
-    categories = ["electronics", "groceries", "clothing", "medicines", "stationery"]
-    base_quantities = {"electronics": 15, "groceries": 80, "clothing": 30, "medicines": 40, "stationery": 50}
-    price_ranges = {"electronics": (500, 50000), "groceries": (10, 500), "clothing": (200, 3000), "medicines": (50, 2000), "stationery": (5, 500)}
+    categories = ["electronics", "groceries", "clothing", "medicines", "stationery", "unknown"]
+    base_quantities = {"electronics": 15, "groceries": 80, "clothing": 30, "medicines": 40, "stationery": 50, "unknown": 30}
+    price_ranges = {"electronics": (500, 50000), "groceries": (10, 500), "clothing": (200, 3000), "medicines": (50, 2000), "stationery": (5, 500), "unknown": (50, 1000)}
 
     product_ids = np.random.randint(1, 51, size=n_samples)
     dates = pd.date_range(start="2025-01-01", periods=365, freq="D")

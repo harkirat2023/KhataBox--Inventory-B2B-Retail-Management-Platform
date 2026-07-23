@@ -40,7 +40,10 @@ def predict_demand(
     cat_encoder = model_bundle["cat_encoder"]
     feature_cols = model_bundle["feature_cols"]
 
-    category_enc = cat_encoder.transform([(product_data.get("category") or "unknown").lower()])[0]
+    cat_str = (product_data.get("category") or "unknown").lower()
+    if cat_str not in cat_encoder.classes_:
+        cat_str = "unknown"
+    category_enc = cat_encoder.transform([cat_str])[0]
     row = {
         "product_id": product_data["product_id"],
         "day_of_week": product_data.get("day_of_week", 0),

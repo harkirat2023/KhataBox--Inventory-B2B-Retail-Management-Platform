@@ -90,8 +90,8 @@ export default function InventoryPage() {
       dirtyChangesRef.current = {}
       setDirtyVersion((v) => v + 1)
       if (!silent) toast.success(`Saved ${updates.length} change${updates.length > 1 ? "s" : ""}`)
-    } catch {
-      if (!silent) toast.error("Failed to save changes")
+    } catch (err) {
+      if (!silent) toast.error(err instanceof Error ? err.message : "Failed to save changes")
     } finally {
       if (!silent) setSaving(false)
     }
